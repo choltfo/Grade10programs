@@ -1,6 +1,6 @@
 var font1 := Font.New ("sans serif:18:bold")
 assert font1 > 0
-View.Set("Graphics:500:500")
+View.Set("offscreenonly")
 
 var frameMillis := 10
 var accel : real := 0.1
@@ -187,4 +187,5 @@ loop
     end for
 	
     Time.Delay(frameMillis)
+    View.Update()
 end loop

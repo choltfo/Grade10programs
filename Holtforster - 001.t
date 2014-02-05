@@ -1,6 +1,8 @@
 % Charles Holtforster
 % Make isometric 3D cubes with draw functions.
 
+View.Set("offscreenonly")
+
 var font:int
 font := Font.New ("arial:14") 
 
@@ -9,7 +11,7 @@ font := Font.New ("arial:14")
 var ySplit : int := 100
 var yDiff  : int := 50
 var xSplit : int := 100
-var lineWidth : int:= 0
+var lineWidth : int:= 1
 
 var rt2 : real := sqrt(2)
 loop
@@ -69,10 +71,11 @@ loop
         end for
     end if
     
-   % ySplit := ySplit+10
-    %xSplit := xSplit+10
-    yDiff  := (yDiff +10) mod (ySplit)
-    delay(100)
+   % ySplit := (ySplit+1) mod maxy + 1
+   % xSplit := (xSplit+1) mod maxx + 1
+    yDiff  := (yDiff +1) mod (ySplit)
+    View.Update()
+    delay(10)
 end loop
 
 Draw.Text("Isometric boxes.",5,maxy-24,font,255)

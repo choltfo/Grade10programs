@@ -24,5 +24,5 @@ loop
 end loop
 
 for i : 1..round(coins)
-    Draw.Dot(round(i/(maxy/2)), round(i mod (maxy/2)), yellow)
+    Draw.Dot(floor(i/(maxy/2)), floor(i mod (maxy/2)), yellow)
 end for
