@@ -29,8 +29,8 @@ procedure DrawTriangle (x1,y1,x2,y2,x3,y3,c,cf : int)
     Draw.Fill(xM,yM,cf,c)
     Draw.Line(xM-10,yM,xM+10,yM, blue)
     Draw.Line(xM,yM-10,xM,yM+10, blue)
-    
 end DrawTriangle
+
 
 
 
