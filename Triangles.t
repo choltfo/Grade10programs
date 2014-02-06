@@ -13,9 +13,22 @@ procedure DrawTriangle (x1,y1,x2,y2,x3,y3,c,cf : int)
     var xM := round((x1+x2+x3)/3)
     var yM := round((y1+y2+y3)/3)
     
+    if (xM > maxx) then
+        xM := maxx
+    end if
+    if (yM > maxy) then
+        yM := maxy
+    end if
+    if (xM < 0) then
+        xM := 0
+    end if
+    if (yM < 0) then
+        yM := 0
+    end if
+    
     Draw.Fill(xM,yM,cf,c)
-    Draw.Line(xM-10,yM,xM+10,yM, red)
-    Draw.Line(xM,yM-10,xM,yM+10, red)
+    Draw.Line(xM-10,yM,xM+10,yM, blue)
+    Draw.Line(xM,yM-10,xM,yM+10, blue)
     
 end DrawTriangle
 
