@@ -7,11 +7,9 @@ var horizon:int:=150
 procedure DrawFilledTriangle (x1,y1,x2,y2,x3,y3,c,cf : int)
     Draw.ThickLine(x1,y1,x2,y2,0,c)
     Draw.ThickLine(x1,y1,x3,y3,0,c)
-    Draw.ThickLine(x2,y2,x3,y3,0,c)
-    
+    Draw.ThickLine(x2,y2,x3,y3,0,c)    
     var xM := round((x1+x2+x3)/3)
     var yM := round((y1+y2+y3)/3)
-    
     if (xM > maxx) then
         xM := maxx
     end if

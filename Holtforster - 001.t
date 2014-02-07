@@ -74,9 +74,10 @@ loop
    % ySplit := (ySplit+1) mod maxy + 1
    % xSplit := (xSplit+1) mod maxx + 1
     yDiff  := (yDiff +1) mod (ySplit)
+    Draw.Text("Isometric boxes.",5,maxy-24,font,255)
+    Draw.Text("Made by Charles Holtforster.",5,5,font,255)
     View.Update()
+    
     delay(10)
 end loop
 
-Draw.Text("Isometric boxes.",5,maxy-24,font,255)
-Draw.Text("Made by Charles Holtforster.",5,5,font,255)
