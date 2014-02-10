@@ -1,4 +1,5 @@
 % So apparantly I need to draw something.....
+% Charles Holtforster, 2014, for ICS3U 
 
 View.Set("offscreenonly")
 
@@ -68,6 +69,10 @@ procedure drawBG (t,r : int)
         % Sky
         Draw.FillBox(0,maxy,maxx,horizon,black)
         Draw.FillBox(0,0,maxx,horizon,grey)
+        
+        
+        % 11, 75 - 81, 53 - 57 -- Nice gradient
+        
         
         % Moon
         Draw.FillOval(round((t mod maxx)/r),moonSunArc(round((t mod maxx)/r)), 10,10,white)
