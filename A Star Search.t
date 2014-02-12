@@ -38,6 +38,19 @@ var handlingSet : array 1 .. 10, 1 .. 10 of int := init(
     0,0,0,0,0,0,0,0,0,0,
     1,1,1,1,1,1,1,1,1,1)
 
+    % Arbitrarily high
+var fSet : array 1 .. 10, 1 .. 10 of int := init(
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,
+    100,100,100,100,100,100,100,100,100,100,)
+
 var sourceX : int := 2
 var sourceY : int := 2
 
@@ -48,7 +61,7 @@ handlingSet := grid
 
 handlingSet (sourceX,sourceY) := 2
 
-put grid (1,1)
+put "Drawing grid."
 
 for x : 1 .. 10
     for y : 1 .. 10
@@ -68,6 +81,8 @@ function getF (x,y:int) : int
     %result (1 + targetX-x + targetY-y)
     result (sourceX-x + sourceY-y + targetX-x + targetY-y)
 end getF
+
+put "Starting search."
 
 loop
     % Show stuff
@@ -126,7 +141,7 @@ loop
     exit when handlingSet(targetX,targetY) = 3
 end loop
 
-put "YES! Now to do the actual pathfinding!"
+put "Doing actual pathfinding"
 
 loop
     % Show stuff
