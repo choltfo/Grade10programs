@@ -104,7 +104,7 @@ if (AvailableTries = 0) then
 else
 put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
 
-points += askQuestion ("Having no distinct shape.","mo rph us",10) % Amorphus
+points += askQuestion ("Having no distinct shape.","a mo rph",10) % Amorphus
 if (AvailableTries = 0) then
     put "Sorry, you're out of tries. Goodbye."
 else
@@ -115,10 +115,12 @@ if (AvailableTries = 0) then
     put "Sorry, you're out of tries. Goodbye."
 else
 put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
-end if
-end if
-end if
-end if
 
+put ("Congratulations! You have won!")
+
+end if
+end if
+end if
+end if
 
 
