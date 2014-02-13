@@ -1,6 +1,7 @@
 % So, I want to make an A* pathfinder through a grid.
 
 View.Set("offscreenonly")
+var font1 := Font.New ("sans serif:10:bold")
 
 % grid states
 % 0 -> Blank
@@ -14,16 +15,18 @@ View.Set("offscreenonly")
 
 % NOTE: all access is via y,x.... DAMMIT!
 
+Draw.FillBox(0,0,maxx,maxy,brown)
+
 var grid : array 1 .. 10, 1 .. 10 of int := init(
     1,1,1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,0,1,1,
-    1,1,1,1,1,1,1,1,0,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,0,1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,0,0,1,
+    1,0,1,0,0,0,0,0,0,1,
+    1,0,1,0,0,1,1,1,0,1,
+    1,0,1,1,0,1,0,0,0,1,
+    1,0,0,0,0,1,1,1,0,1,
+    1,0,0,0,0,1,0,1,0,1,
+    1,0,0,0,0,1,0,1,0,1,
+    1,1,1,0,0,1,0,1,0,1,
+    1,0,1,0,0,0,0,1,0,1,
     1,1,1,1,1,1,1,1,1,1)
 
 var handlingSet : array 1 .. 10, 1 .. 10 of int := init(
@@ -38,18 +41,31 @@ var handlingSet : array 1 .. 10, 1 .. 10 of int := init(
     0,0,0,0,0,0,0,0,0,0,
     1,1,1,1,1,1,1,1,1,1)
 
-    % Arbitrarily high
+% Arbitrarily high - F is distance to target
 var fSet : array 1 .. 10, 1 .. 10 of int := init(
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,
-    100,100,100,100,100,100,100,100,100,100,)
+1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000)
+
+% Arbitrarily high - G is cost to reach
+var gSet : array 1 .. 10, 1 .. 10 of int := init(
+1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,
+    1000,1000,1000,1000,1000,1000,1000,1000,1000,1000)
 
 var sourceX : int := 2
 var sourceY : int := 2
@@ -60,8 +76,9 @@ var targetY : int := 9
 handlingSet := grid
 
 handlingSet (sourceX,sourceY) := 2
+gSet (sourceX,sourceY) := 0 % The cost of inaction is nothing
 
-put "Drawing grid."
+%put "Drawing grid."
 
 for x : 1 .. 10
     for y : 1 .. 10
@@ -77,12 +94,12 @@ View.Update()
 
 function getF (x,y:int) : int
     
-            % Major BS here, g isn't actually 1....
+    % Major BS here, g isn't actually 1....
     %result (1 + targetX-x + targetY-y)
     result (sourceX-x + sourceY-y + targetX-x + targetY-y)
 end getF
 
-put "Starting search."
+% put "Starting search."
 
 loop
     % Show stuff
@@ -98,41 +115,78 @@ loop
                     xpos := x
                     ypos := y
                 end if
+                
+                var lowestG := 1000
+                
+                if gSet (x,y) < lowestG then
+                    lowestG := gSet(x,y)
+                end if
+                if gSet (x+1,y+1) < lowestG and handlingSet(x+1,y+1) not= 1 then
+                    lowestG := gSet (x+1,y+1) 
+                end if
+                if gSet (x+1,y) < lowestG and handlingSet(x+1,y) not= 1 then
+                    lowestG := gSet (x+1,y)
+                end if
+                if gSet (x+1,y-1) < lowestG and handlingSet(x+1,y-1) not= 1 then
+                    lowestG := gSet (x+1,y-1)
+                end if
+                if gSet (x,y-1) < lowestG and handlingSet(x,y-1) not= 1 then
+                    lowestG := gSet (x,y-1)
+                end if
+                if gSet (x-1,y-1) < lowestG and handlingSet(x-1,y-1) not= 1 then
+                    lowestG := gSet (x-1,y-1)
+                end if
+                if gSet (x-1,y) < lowestG and handlingSet(x-1,y) not= 1 then
+                    lowestG := gSet (x-1,y)
+                end if
+                if gSet (x-1,y+1) < lowestG and handlingSet(x-1,y+1) not= 1 then
+                    lowestG := gSet (x-1,y+1)
+                end if
+                if gSet (x,y+1) < lowestG and handlingSet(x,y+1) not= 1 then
+                    lowestG := gSet (x,y+1)
+                end if
+                
+                
+                gSet (x,y) := lowestG + 1
+                
+                
+                
                 Draw.Oval (10+(x-1)*20,10+(y-1)*20,10,10,blue)
             elsif handlingSet (x,y) = 1 then  % Inaccessible/closed set
                 Draw.FillOval (10+(x-1)*20,10+(y-1)*20,10,10,red)
             elsif handlingSet (x,y) = 3 then  % Inaccessible/closed set
                 Draw.FillOval (10+(x-1)*20,10+(y-1)*20,10,10,blue)
             end if
+            
             View.Update()
         end for
     end for
-    
+        
     handlingSet(xpos,ypos) := 3
     
     if handlingSet (xpos+1,ypos-1) = 0 then
-       handlingSet (xpos+1,ypos-1) := 2 
+        handlingSet (xpos+1,ypos-1) := 2 
     end if
     if handlingSet (xpos-1,ypos-1) = 0 then
-       handlingSet (xpos-1,ypos-1) := 2 
+        handlingSet (xpos-1,ypos-1) := 2 
     end if
     if handlingSet (xpos+1,ypos+1) = 0 then
-       handlingSet (xpos+1,ypos+1) := 2 
+        handlingSet (xpos+1,ypos+1) := 2 
     end if
     if handlingSet (xpos+1,ypos+1) = 0 then
-       handlingSet (xpos+1,ypos+1) := 2 
+        handlingSet (xpos+1,ypos+1) := 2 
     end if
     if handlingSet (xpos,ypos-1) = 0 then
-       handlingSet (xpos,ypos-1) := 2 
+        handlingSet (xpos,ypos-1) := 2 
     end if
     if handlingSet (xpos,ypos+1) = 0 then
-       handlingSet (xpos,ypos+1) := 2 
+        handlingSet (xpos,ypos+1) := 2 
     end if
     if handlingSet (xpos+1,ypos) = 0 then
-       handlingSet (xpos+1,ypos) := 2 
+        handlingSet (xpos+1,ypos) := 2 
     end if
     if handlingSet (xpos-1,ypos) = 0 then
-       handlingSet (xpos-1,ypos) := 2 
+        handlingSet (xpos-1,ypos) := 2 
     end if
     
     
@@ -141,64 +195,120 @@ loop
     exit when handlingSet(targetX,targetY) = 3
 end loop
 
-put "Doing actual pathfinding"
+%put "Doing actual pathfinding"
+
+% Okay, so now we need to start at the end, and backtrack, finding the nearest one with the lowest G score.
+
+
+var xpos := targetX
+var ypos := targetY
+
+var lowestG := 1000000
+var bestX := xpos
+var bestY := ypos
+    
+View.Update()
 
 loop
-    % Show stuff
-    
-    var lowestF,xpos,ypos : int := 99999999
-    
-    for x : 1 .. 10
-        for y : 1 .. 10
-            if handlingSet (x,y) = 2 then       % Open set
-                
-                if getF(x,y) < lowestF then
-                    lowestF := getF(x,y)
-                    xpos := x
-                    ypos := y
-                end if
-                Draw.Oval (10+(x-1)*20,10+(y-1)*20,10,10,blue)
-            elsif handlingSet (x,y) = 1 then  % Inaccessible/closed set
-                Draw.FillOval (10+(x-1)*20,10+(y-1)*20,10,10,red)
-            elsif handlingSet (x,y) = 3 then  % Done
-                Draw.FillOval (10+(x-1)*20,10+(y-1)*20,10,10,blue)
-            end if
-            View.Update()
-        end for
-    end for
-    
-    handlingSet(xpos,ypos) := 3
-    
-    if handlingSet (xpos+1,ypos-1) = 0 then
-       handlingSet (xpos+1,ypos-1) := 2 
+    if gSet (xpos+1,ypos-1) <= lowestG then
+        lowestG := gSet (xpos+1,ypos-1)
+        bestX := xpos+1
+        bestY := ypos-1
     end if
-    if handlingSet (xpos-1,ypos-1) = 0 then
-       handlingSet (xpos-1,ypos-1) := 2 
+    if gSet (xpos-1,ypos-1) <= lowestG then
+        lowestG := gSet (xpos-1,ypos-1)
+        bestX := xpos-1
+        bestY := ypos-1
     end if
-    if handlingSet (xpos+1,ypos+1) = 0 then
-       handlingSet (xpos+1,ypos+1) := 2 
+    if gSet (xpos+1,ypos+1) <= lowestG then
+        lowestG := gSet (xpos+1,ypos+1)
+        bestX := xpos+1
+        bestY := ypos+1
     end if
-    if handlingSet (xpos+1,ypos+1) = 0 then
-       handlingSet (xpos+1,ypos+1) := 2 
+    if gSet (xpos+1,ypos+1) <= lowestG then
+        lowestG :=  gSet (xpos+1,ypos+1)
+        bestX := xpos+1
+        bestY := ypos+1
     end if
-    if handlingSet (xpos,ypos-1) = 0 then
-       handlingSet (xpos,ypos-1) := 2 
+    if gSet (xpos,ypos-1) <= lowestG then
+        lowestG := gSet (xpos,ypos-1)
+        bestX := xpos
+        bestY := ypos-1
     end if
-    if handlingSet (xpos,ypos+1) = 0 then
-       handlingSet (xpos,ypos+1) := 2 
+    if gSet (xpos,ypos+1) <= lowestG then
+        lowestG := gSet (xpos,ypos+1)
+        bestX := xpos
+        bestY := ypos+1
     end if
-    if handlingSet (xpos+1,ypos) = 0 then
-       handlingSet (xpos+1,ypos) := 2 
+    if gSet (xpos+1,ypos) <= lowestG then
+        lowestG := gSet (xpos+1,ypos)
+        bestX := xpos+1
+        bestY := ypos
     end if
-    if handlingSet (xpos-1,ypos) = 0 then
-       handlingSet (xpos-1,ypos) := 2 
+    if gSet (xpos-1,ypos) <= lowestG then
+        lowestG := gSet (xpos-1,ypos)
+        bestX := xpos-1
+        bestY := ypos
     end if
     
+    % Now for the lesser than
     
+    if gSet (xpos+1,ypos-1) < lowestG then
+        lowestG := gSet (xpos+1,ypos-1)
+        bestX := xpos+1
+        bestY := ypos-1
+    end if
+    if gSet (xpos-1,ypos-1) < lowestG then
+        lowestG := gSet (xpos-1,ypos-1)
+        bestX := xpos-1
+        bestY := ypos-1
+    end if
+    if gSet (xpos+1,ypos+1) < lowestG then
+        lowestG := gSet (xpos+1,ypos+1)
+        bestX := xpos+1
+        bestY := ypos+1
+    end if
+    if gSet (xpos+1,ypos+1) < lowestG then
+        lowestG :=  gSet (xpos+1,ypos+1)
+        bestX := xpos+1
+        bestY := ypos+1
+    end if
+    if gSet (xpos,ypos-1) < lowestG then
+        lowestG := gSet (xpos,ypos-1)
+        bestX := xpos
+        bestY := ypos-1
+    end if
+    if gSet (xpos,ypos+1) < lowestG then
+        lowestG := gSet (xpos,ypos+1)
+        bestX := xpos
+        bestY := ypos+1
+    end if
+    if gSet (xpos+1,ypos) < lowestG then
+        lowestG := gSet (xpos+1,ypos)
+        bestX := xpos+1
+        bestY := ypos
+    end if
+    if gSet (xpos-1,ypos) < lowestG then
+        lowestG := gSet (xpos-1,ypos)
+        bestX := xpos-1
+        bestY := ypos
+    end if
     
+    xpos := bestX
+    ypos := bestY
+    
+    Draw.FillOval(10+(xpos-1)*20,10+(ypos-1)*20,10,10,yellow)
     View.Update()
-    exit when handlingSet(targetX,targetY) = 3
+    exit when lowestG = 1
 end loop
+
+for x : 1 .. 10
+    for y : 1 .. 10
+        Draw.Text(intstr(gSet(x,y)), 200+(x-1)*30,1000+(y-1)*30,font1,white)
+    end for
+end for
+
+
 
 
 
