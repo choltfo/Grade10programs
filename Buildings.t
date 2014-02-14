@@ -11,7 +11,7 @@ proc drawBuilding(winWidth,winHeight,Width,Height,x,y,c,wc: int)
         exit when winX > Width+x-10 
         loop
             exit when winY > Height+y-10 
-            Draw.FillBox(winX,winY,winWidth,winHeight,wc)
+            Draw.FillBox(winX,winY,winX+winWidth,winY+winHeight,wc)
             winY := winY + winHeight + 10
         end loop
         winX := winX + winWidth + 10
