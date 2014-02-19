@@ -1,4 +1,6 @@
 
+View.Set("offscreenonly")
+
 var CPX := round(maxx/2)
 var CPY := round(maxy/2)
 
@@ -25,13 +27,32 @@ loop
 	%   put "Down Arrow Pressed  " ..
 	y := -1
     end if
-    Time.Delay(10) % Slow it down a tad.
     
-    yRot := yRot + x
+    yRot := yRot - (x/4)
     
-    Draw.FillOval(CPX, CPY, 10,10, red)
-    Draw.Line(CPX+10, CPY+10, CPX-10, CPY-10, black)
+    Draw.FillBox(0,0,maxx,maxy,black)
+    Draw.FillOval(CPX, CPY, 50,50, red)
+
+    
+    Draw.Line(CPX+round(50*cosd(yRot+270)),CPY+round(50*sind(yRot+270)),
+                CPX+round(50*cosd(yRot)),CPY+round(50*sind(yRot)),black)
+    Draw.Line(CPX+round(50*cosd(yRot+180)),CPY+round(50*sind(yRot+180)),
+                CPX+round(50*cosd(yRot)),CPY+round(50*sind(yRot)),black)
+    Draw.Line(CPX+round(50*cosd(yRot+90)),CPY+round(50*sind(yRot+90)),
+                CPX+round(50*cosd(yRot)),CPY+round(50*sind(yRot)),black)
+    Draw.Line(CPX+round(50*cosd(yRot+270)),CPY+round(50*sind(yRot+270)),
+                CPX+round(50*cosd(yRot+180)),CPY+round(50*sind(yRot+180)),black)
+    Draw.Line(CPX+round(50*cosd(yRot+270)),CPY+round(50*sind(yRot+270)),
+                CPX+round(50*cosd(yRot+90)),CPY+round(50*sind(yRot+90)),black)
+    Draw.Line(CPX+round(50*cosd(yRot+180)),CPY+round(50*sind(yRot+180)),
+                CPX+round(50*cosd(yRot+90)),CPY+round(50*sind(yRot+90)),black)
+    
+    Draw.Dot(CPX+round(50*cosd(yRot)),CPY+round(50*sind(yRot)),green)
+    Draw.Dot(CPX+round(50*cosd(yRot+90)),CPY+round(50*sind(yRot+90)),green)
+    Draw.Dot(CPX+round(50*cosd(yRot+180)),CPY+round(50*sind(yRot+180)),green)
+    Draw.Dot(CPX+round(50*cosd(yRot+270)),CPY+round(50*sind(yRot+270)),green)
     
     % Spin that box!
-    
+    View.Update()
+    delay(5)
 end loop

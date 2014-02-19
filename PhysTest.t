@@ -16,8 +16,8 @@ class ball
     var r:=0
     var friction : real := 0.1
     
-    var yspeed : real := Rand.Int(-100,100)
-    var xspeed : real := Rand.Int(-100,100)
+    var yspeed : real := (Rand.Real-0.5)*200
+    var xspeed : real := (Rand.Real-0.5)*200
     
     var col := Rand.Int(0,255)
     
@@ -28,7 +28,7 @@ class ball
     
     r := 5
     
-    procedure update(HL : boolean)
+procedure update(HL : boolean)
 	
 	x := floor( x+(xspeed*(frameMillis/100)) )
 	y := floor( y+(yspeed*(frameMillis/100)) )
@@ -103,7 +103,7 @@ proc CheckCollision (ball1, ball2 : pointer to ball)
 	var x2 : real := ball(ball2).xspeed
 	var y2 : real := ball(ball2).yspeed
 	
-	
+	/*
 	% slope A is the incoming vector representing the balls velocity. As radians
 	var slopeA : real := 90
 	if ball(ball1).xspeed not= 0 then
@@ -122,9 +122,11 @@ proc CheckCollision (ball1, ball2 : pointer to ball)
 	var mag :real := sqrt((x*x)*(y*y))
 	
 	ball1 -> setVel(-cosd(slopeC)*mag,-sind(slopeC)*mag)
+	ball2 -> setVel(cosd(slopeC)*mag,sind(slopeC)*mag)
+    */
 	
-	
-	%ball2 -> setVel(x,y)
+	ball2 -> setVel(x,y)
+    ball1 -> setVel(x2,y2)
     end if
     
 end CheckCollision
