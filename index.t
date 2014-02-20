@@ -1,4 +1,9 @@
 % Usage of the "index" function
+% Also the ord and chr functions
+
+View.Set("graphics:700;400")
+
+var FOC := Font.New ("Arial:10") 
 
 function endsWith (x,a : string) : boolean
     result index (x,a) = length(x) - length(a) + 1
@@ -28,8 +33,10 @@ function toLowerCase (x : string) : string
         result lowerCaseString
 end toLowerCase
 
-var AvailableTries := 5
+var AvailableTries, startTries := 5
 var points := 0
+
+var maxPossiblePoints := 0
 
 function getThreeStrings (s : string) : array 1..3 of string
     var words : array 1..3 of string
@@ -61,66 +68,104 @@ function correct(attempt, answer : string, maximum : int) : int
             end if
         end for
     else
-        if (answer = attempt) then
-            Hits := 1
+        if (toLowerCase(answer) = toLowerCase(attempt)) then
+            Hits := 3
         end if
     end if
     
-    result Hits
+    result round(Hits/3)*maximum
     
 end correct
 
-function askQuestion (prompt, correctAnswer : string, difficulty : int) : int
+function askQuestion (prompt, correctAnswer : string, difficulty : int, hint : string) : int
     loop
         exit when AvailableTries = 0
         
         var answer : string := ""
         
         put prompt
-        get answer
+        get answer:*
+        
+        if toLowerCase(answer) = "hint" then
+            put hint
+        end if
         
         var thesePoints := correct(answer, correctAnswer,difficulty)
         
-        if thesePoints not= 0 then
-            put "Correct!"
-            result thesePoints
-        else
+        if thesePoints = 0 then
             AvailableTries -= 1
+            cls
             put "Uh, no, see, you're wrong. You have ", AvailableTries, " attempts remaining."
+            put "Do you want to try again? (y/n) "..
+            var ans: string := ""
+            get ans:*
+            if (toLowerCase(ans) = "n") then
+                result 0
+            end if
+            put "Hint: ", hint
+        else
+            if thesePoints = difficulty then
+                cls
+                
+                put "Correct!"
+                result thesePoints
+            else
+                cls
+                
+                put "Close enough!"
+                result thesePoints
+            end if
         end if
     end loop
-    result 0
+    
+    if (AvailableTries = 0) then
+        put "Sorry, you're out of tries. Goodbye."
+        result -1
+    else
+        result 0
+    end if
 end askQuestion
 
-points += askQuestion ("This is the square root of 100.","10", 1)
-if (AvailableTries = 0) then
-    put "Sorry, you're out of tries. Goodbye."
-else
-put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
+function handleQuestion (prompt, correctAnswer : string, difficulty : int, hint : string) : boolean
+    maxPossiblePoints += difficulty
+    var ansScore : int :=0
+    ansScore := askQuestion (prompt,correctAnswer,difficulty,hint)
+    if (ansScore >= 0) then
+        points += ansScore
+        
+        put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining."
+        result false
+    end if
+    put "Game over, you failed the quiz. Your score is "..
+    put points..
+    put (", out of a maximum of ")..
+    put maxPossiblePoints
+    result true
+end handleQuestion
 
-points += askQuestion ("Pi to the first 9.","3.14159",10)
-if (AvailableTries = 0) then
-    put "Sorry, you're out of tries. Goodbye."
-else
-put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
+if handleQuestion ("What brand of car does James Bond drive in the movie Skyfall?","Aston Mar tin",5,"It's a ____ DB5") then
 
-points += askQuestion ("Having no distinct shape.","a mo rph",10) % Amorphus
-if (AvailableTries = 0) then
-    put "Sorry, you're out of tries. Goodbye."
-else
-put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
+elsif handleQuestion ("The name of the key 'Bond girl' in Live and Let Die.","Sol it aire",10,"Also a card game, spider _________") then
 
-points += askQuestion ("This is the square root of 100.","10",1)
-if (AvailableTries = 0) then
-    put "Sorry, you're out of tries. Goodbye."
-else
-put "Your current score is ",points, ", and you have ", AvailableTries," attempts remaining. Moving on."
+elsif handleQuestion ("The James Bond movie in which Bond engages in a fistfight with the villain while atop the Golden Gate bridge, after falling out of a blimp.","View to kill",7, "Also notable for having a large conspiracy to trigger a massive earthquake beneath Silicon Valley, as well as a visit to a horse auction.") then
 
-put ("Congratulations! You have won!")
+elsif handleQuestion ("'Remeber Bond, in the time I have known you, I've only tried to teach you two things. One, never let them see you bleed. Two, always have _________'","a escape plan",10, "Three words, an _________ plan") then % An escape plan.
+
+elsif handleQuestion ("The brand of weapon that Bond had at the begginning of Dr. No, before M takes it away and replaces it with his new signature weapon.","Ber et ta",10,"A nine millimeter pistol, not made by Walther.") then
+
+elsif handleQuestion ("The model of James Bond's Walther pistol in almost every movie ","PPK",5,"Sorry, there is truly no hint for this.") then
+
+elsif handleQuestion ("This villain shares a name with a Steven Spielberg film","jaws",3,"Think sharks") then
+
+else
+put ("Congratulations! You completed the quiz! Your score is ")..
+put points..
+put (", out of a maximum of ")..
+put maxPossiblePoints
+put ("And you used ")..
+put startTries-AvailableTries..
+put (" of your ")..
+put startTries..
+put (" tries.")
 
 end if
-end if
-end if
-end if
-
-

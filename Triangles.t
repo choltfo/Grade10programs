@@ -1,9 +1,10 @@
 View.Set("offscreenonly")
 
 var x, y, button :int %vars for the mouse where code 
-
+%Mouse.Where (x, y, button)
 
 Draw.FillBox(0,0,maxx,maxy,255)
+
 
 procedure DrawTriangle (x1,y1,x2,y2,x3,y3,c,cf : int)
     Draw.ThickLine(x1,y1,x2,y2,3,c)
