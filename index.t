@@ -1,9 +1,9 @@
 % Usage of the "index" function
 % Also the ord and chr functions
 
-View.Set("graphics:700;400")
+View.Set("graphics:1000;400")
 
-var FOC := Font.New ("Arial:10") 
+var FOC := Font.New ("Arial:10")
 
 function endsWith (x,a : string) : boolean
     result index (x,a) = length(x) - length(a) + 1
@@ -88,6 +88,7 @@ function askQuestion (prompt, correctAnswer : string, difficulty : int, hint : s
         
         if toLowerCase(answer) = "hint" then
             put hint
+            get answer:*
         end if
         
         var thesePoints := correct(answer, correctAnswer,difficulty)
@@ -101,6 +102,10 @@ function askQuestion (prompt, correctAnswer : string, difficulty : int, hint : s
             get ans:*
             if (toLowerCase(ans) = "n") then
                 result 0
+            else
+                if (toLowerCase(ans) not= "n") then
+                 put "presumably you meant Y"
+                end if
             end if
             put "Hint: ", hint
         else
@@ -143,6 +148,10 @@ function handleQuestion (prompt, correctAnswer : string, difficulty : int, hint 
     result true
 end handleQuestion
 
+
+put "Welcome to the James Bond quiz!"
+put "For an extra hint, you can put 'hint' as an answer. This will not reduce your remaining tries."
+
 if handleQuestion ("What brand of car does James Bond drive in the movie Skyfall?","Aston Mar tin",5,"It's a ____ DB5") then
 
 elsif handleQuestion ("The name of the key 'Bond girl' in Live and Let Die.","Sol it aire",10,"Also a card game, spider _________") then
@@ -156,6 +165,8 @@ elsif handleQuestion ("The brand of weapon that Bond had at the begginning of Dr
 elsif handleQuestion ("The model of James Bond's Walther pistol in almost every movie ","PPK",5,"Sorry, there is truly no hint for this.") then
 
 elsif handleQuestion ("This villain shares a name with a Steven Spielberg film","jaws",3,"Think sharks") then
+
+elsif handleQuestion ("A genuine Felix _________","lighter",3,"Incendiary tool, used to ignite a drug lord at the end of 'The Living Daylights'. Also to light cigarettes.") then
 
 else
 put ("Congratulations! You completed the quiz! Your score is ")..
