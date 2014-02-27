@@ -188,7 +188,7 @@ loop
     PLR -> update(true)
     
     for i : 1..10
-	balls(i) -> update(false)
+        balls(i) -> update(false)
     end for
 	
     Time.Delay(frameMillis)

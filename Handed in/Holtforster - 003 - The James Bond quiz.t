@@ -168,6 +168,19 @@ elsif handleQuestion ("This villain shares a name with a Steven Spielberg film",
 
 elsif handleQuestion ("A genuine Felix _________","lighter",3,"Incendiary tool, used to ignite a drug lord at the end of 'The Living Daylights'. Also to light cigarettes.") then
 
+
+/*
+put "Welcome to the Star Wars quiz!"
+put "For an extra hint, you can put 'hint' as an answer. This will not reduce your remaining tries."
+
+   if handleQuestion ("'No, I am your _________'","fa th er",2,"dad") then
+
+elsif handleQuestion ("The Milllenium _________","falcon",2,"It made the Kessel Run in twelve parsecs!") then
+
+elsif handleQuestion ("These aren't the _________ your looking for.","droids",2,"a smart robot.") then
+
+elsif handleQuestion ("","fa th er",2,"dad") then
+*/
 else
 put ("Congratulations! You completed the quiz! Your score is ")..
 put points..
