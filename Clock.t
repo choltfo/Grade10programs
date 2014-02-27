@@ -3,8 +3,6 @@ View.Set("offscreenonly")
 var TIME :int:= 0
 
 
-
-
 proc drawLine (m,b :real, lX,rX,ox,oy,c:int)
     Draw.ThickLine(lX+ox,round((m*(lX+ox))+b-oy),rX+ox,round((m*(rX+ox))+b-oy),3,c)
 end drawLine
