@@ -51,7 +51,7 @@ new Vector2, ArrowTip
 new Vector2, ArrowLeft
 new Vector2, ArrowRight
 
-Center       -> Set(0,90)
+Center       -> Set(0,0)
 LineTip      -> Set(100,100)
 ArrowTip     -> Set(120,80)
 ArrowLeft    -> Set(120,90)
@@ -63,11 +63,11 @@ loop
     Input.KeyDown (chars)
     if chars (KEY_UP_ARROW) then
         %  put "Up Arrow Pressed  " ..
-        zRot += 1
+        zRot -= 90
     end if
      if chars (KEY_DOWN_ARROW) then
         %  put "Up Arrow Pressed  " ..
-        zRot -= 1
+        zRot += 90
     end if
     
     var CenterRt        : pointer to Vector2  := Center        -> RotateD(zRot,Center)
@@ -86,7 +86,7 @@ loop
     
     
     
-    delay(10)
+    delay(100)
 end loop
 
 
