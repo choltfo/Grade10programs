@@ -22,12 +22,13 @@ class Vector2
         result y
     end getY
     
-    function RotateD (theta,Xc,Xy : real) : pointer to Vector2
+    function RotateD (theta : real, o : pointer to Vector2) : pointer to Vector2
         
         var NewVec : pointer to Vector2
         new Vector2, NewVec
         
-        NewVec -> Set( (x*cosd(theta))-(y*(sind(theta))) , (x*sind(theta))+(y*cosd(theta)) )
+        NewVec -> Set( ((x- (o-> getX()) )*cosd(theta))-((y- (o-> getY()) )*(sind(theta))) + (o-> getX()), ((x- (o-> getX()) )*sind(theta))+((y- (o-> getY()) )*cosd(theta)) + (o-> getY()))
+        
         result NewVec
     end RotateD
     
@@ -42,18 +43,19 @@ proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     round(b->getX())+round(maxx/2),round(b->getY())+round(maxy/2),w,c)
 end drawVectorThickLine
 
-var LineTip, ArrowTip, ArrowLeft, ArrowRight : pointer to Vector2
+var LineTip, ArrowTip, ArrowLeft, ArrowRight,Center : pointer to Vector2
 
+new Vector2, Center
 new Vector2, LineTip
 new Vector2, ArrowTip
 new Vector2, ArrowLeft
 new Vector2, ArrowRight
 
+Center       -> Set(0,90)
 LineTip      -> Set(100,100)
 ArrowTip     -> Set(120,80)
 ArrowLeft    -> Set(120,90)
 ArrowRight   -> Set(110,80)
-
 
 var zRot : real := 0
 
@@ -68,14 +70,16 @@ loop
         zRot -= 1
     end if
     
-    var LineEndRt       : pointer to Vector2  := LineTip       -> RotateD(zRot,0,0)
-    var ArrowTipRt      : pointer to Vector2  := ArrowTip      -> RotateD(zRot,0,0)
-    var ArrowLeftRt     : pointer to Vector2  := ArrowLeft     -> RotateD(zRot,0,0)
-    var ArrowRightRt    : pointer to Vector2  := ArrowRight    -> RotateD(zRot,0,0)
+    var CenterRt        : pointer to Vector2  := Center        -> RotateD(zRot,Center)
+    var LineEndRt       : pointer to Vector2  := LineTip       -> RotateD(zRot,Center)
+    var ArrowTipRt      : pointer to Vector2  := ArrowTip      -> RotateD(zRot,Center)
+    var ArrowLeftRt     : pointer to Vector2  := ArrowLeft     -> RotateD(zRot,Center)
+    var ArrowRightRt    : pointer to Vector2  := ArrowRight    -> RotateD(zRot,Center)
     
     
     Draw.FillBox(0,0,maxx,maxy,white)
-    Draw.ThickLine(round(LineEndRt->getX())+round(maxx/2),round(LineEndRt->getY())+round(maxy/2),round(maxx/2),round(maxy/2),5,red)
+    drawVectorThickLine(CenterRt,LineEndRt,5,red)
+    drawVectorThickLine(ArrowTipRt,LineEndRt,5,red)
     drawVectorThickLine(ArrowTipRt,LineEndRt,5,red)
     drawVectorThickLine(ArrowTipRt,ArrowLeftRt,5,red)
     drawVectorThickLine(ArrowTipRt,ArrowRightRt,5,red)
@@ -84,3 +88,5 @@ loop
     
     delay(10)
 end loop
+
+
