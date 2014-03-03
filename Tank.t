@@ -3,9 +3,7 @@
 View.Set("Graphics:900;600,offscreenonly")
 var chars : array char of boolean
 
-var frameMillis : int := 100
-
-
+var frameMillis : int := 10
 
 class Vector2
     
@@ -243,22 +241,22 @@ loop
     Player -> setControls(V,H)
     Player -> update()
     
-    var i : int := 1
-    if (upper(bullets) not= 0) then
-        loop
-            exit when i = upper(bullets)
-            break 
-            if (bullets(i) -> update() not= true) then
-                bullets (i) := bullets (upper (bullets)) 
-                new Bullet, bullets (upper (bullets) - 1) 
-                i -= 1
-            end if
-            
-            
-            i +=1
-        end loop
-    end if
+    var RemoveThese : flexible array 0..-1 of int
     
+    for i : 1..upper(bullets)
+        if (bullets(i) -> update() not= true) then
+            new RemoveThese, upper (RemoveThese) + 1 
+            RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese) 
+        end if
+    end for
+    
+   for i : 0 .. upper (RemoveThese) 
+        for j : RemoveThese (i) .. upper (bullets) - 1 
+            bullets (j) := bullets (j + 1) 
+        end for
+        new bullets, upper (bullets) - 1 
+    end for
+        
     View.Update()
     cls()
     
