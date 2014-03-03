@@ -18,7 +18,7 @@ class ArrayList
     end Get
     
     procedure Add(o : pointer to ChangeAsNeeded)
-        result contents(i)
+        new ChangeAsNeeded, 
     end Get
     
 end ArrayList

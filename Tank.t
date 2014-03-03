@@ -2,6 +2,7 @@
 
 View.Set("Graphics:900;600,offscreenonly")
 var chars : array char of boolean
+var formerChars : array char of boolean
 
 var frameMillis : int := 10
 
@@ -80,8 +81,15 @@ proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
         round(b->getX()),round(b->getY()),w,c)
 end drawVectorThickLine
 
+proc drawVectorBox (a,b,c,d : pointer to Vector2, col, o : int)
+    Draw.Line(round(a->getX()),round(a->getY()),round(b->getX()),round(b->getY()),o)
+    Draw.Line(round(a->getX()),round(a->getY()),round(d->getX()),round(d->getY()),o)
+    Draw.Line(round(b->getX()),round(b->getY()),round(c->getX()),round(c->getY()),o)
+    Draw.Line(round(c->getX()),round(c->getY()),round(d->getX()),round(d->getY()),o)
+end drawVectorBox
+
 class Bullet
-    import frameMillis, Vector2, drawVectorThickLine,zero
+    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
     export update, Init
     
     % Location
@@ -90,13 +98,13 @@ class Bullet
     % Local velocity
     var Velocity : pointer to Vector2
     
-    procedure Init (Loc: pointer to Vector2, rot,speed:real)
+    procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
         
         new Vector2, Location
-        new Vector2, Velocity
+        Velocity := Vel
         
         Location := Loc
-        Velocity -> Set(cosd(rot)*speed,sind(rot)*speed)
+        Velocity := Velocity -> AddDir(cosd(rot)*speed,sind(rot)*speed)
     end Init
     
     function update () : boolean
@@ -111,7 +119,7 @@ end Bullet
 
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox
     export setControls, update, Init, Fire
     
     % Controls
@@ -129,7 +137,7 @@ class Tank
     var Fric : pointer to Vector2
     
     
-    var Rotation : real := 0
+    var Rotation,turretRotation : real := 0
     
     procedure Init (Vel, Loc, Fri : pointer to Vector2, rot : real) 
         Location := Loc
@@ -138,18 +146,33 @@ class Tank
         Fric     := Fri
     end Init
     
-    procedure setControls (gas,steering : real)
+    procedure setControls (gas,steering,L : real)
         Gas := gas*(frameMillis/1000) * maxThrottle
         Steering := (steering*maxSteer)
-        
+        turretRotation += L*(frameMillis/1000)*100
     end setControls
+    
+    proc render()
+        
+        drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
+        drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,20) -> RotateD(Rotation, Location),1,black)
+        drawVectorThickLine(Location -> AddDir(-10,-20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
+        drawVectorThickLine(Location -> AddDir(-10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,-20) -> RotateD(Rotation, Location),1,black)
+        
+        drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation+Rotation, Location),
+            Location -> AddDir(-1,0) -> RotateD(turretRotation+Rotation, Location),
+            Location -> AddDir(-1,10) -> RotateD(turretRotation+Rotation, Location),
+            Location -> AddDir(1,10) -> RotateD(turretRotation+Rotation, Location),
+            black,black)
+        
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, green)
+        Draw.Oval(round(Location -> getX()), round(Location -> getY()), 3, 3, black)
+        
+    end render
     
     procedure update ()
         
-        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 10, 10, red)
-        drawVectorThickLine(Location, Location -> AddDir (0,100) -> RotateD(Rotation+Steering, Location),5,green)
-        drawVectorThickLine(Location, Location -> AddDir (0,100) -> RotateD(Rotation, Location),2,black)
-        
+        render()
         var RelPos, NewSpeed : pointer to Vector2
         new Vector2, RelPos
         new Vector2, NewSpeed
@@ -160,7 +183,7 @@ class Tank
         Velocity := Velocity -> Multiply(0.99)
         
         NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
-        NewSpeed := NewSpeed -> RotateD(Steering,zero)  %the magnitude of the Gas, and rotate it by steering.
+        NewSpeed := NewSpeed -> RotateD(Steering,zero->AddDir(0 ,Gas) )  %the magnitude of the Gas, and rotate it by steering.
         
         % Add extra speed
         Velocity := Velocity -> Add(NewSpeed)
@@ -181,6 +204,21 @@ class Tank
         %   CurrentPositon.x + (cos(steering)*speed) Rotated by rotation
         %   CurrentPositon.y + (sin(steering)*speed) Rotated by rotation
         
+        if (Location -> getX() > maxx) then
+            Location -> SetX(maxx-1)
+        end if
+        
+        if (Location -> getY() > maxy) then
+            Location -> SetY(maxy-1)
+        end if
+        
+        if (Location -> getX() < 0) then
+            Location -> SetX(1)
+        end if
+        
+        if (Location -> getY() < 0) then
+            Location -> SetY(1)
+        end if
         
     end update
     
@@ -188,7 +226,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Rotation, 10)
+        Bul -> Init(Location, Velocity, Rotation+90, 10)
         
         result Bul
     end Fire
@@ -216,10 +254,10 @@ Player -> Init(vel,loc,fric,0)
 var bullets : flexible array 1..0 of pointer to Bullet
 
 loop
-    
+    formerChars := chars
     Input.KeyDown (chars)
     
-    var H,V : int := 0
+    var H,V,L : int := 0
     
     if chars (KEY_UP_ARROW) then
         V += 1
@@ -233,12 +271,18 @@ loop
     if chars (KEY_LEFT_ARROW) then
         H += 1
     end if
-    if chars (chr(ORD_SPACE)) then
+    if chars (chr(ORD_A)) then
+        L += 1
+    end if
+    if chars (chr(ORD_F)) then
+        L -= 1
+    end if
+    if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
         new bullets, upper(bullets)+1
         bullets(upper(bullets)) := Player -> Fire()%SHOOT FROM THE TANK!
     end if
     
-    Player -> setControls(V,H)
+    Player -> setControls(V,H,L)
     Player -> update()
     
     var RemoveThese : flexible array 0..-1 of int
