@@ -1,6 +1,6 @@
 % Let's drive a car!
 
-View.Set("Graphics:600;400,offscreenonly")
+View.Set("Graphics:900;600,offscreenonly")
 var chars : array char of boolean
 
 var frameMillis : int := 10
@@ -74,17 +74,21 @@ class Vector2
     
 end Vector2
 
+var zero : pointer to Vector2
+new Vector2, zero
+
 proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     Draw.ThickLine(round(a->getX()),round(a->getY()),
     round(b->getX()),round(b->getY()),w,c)
 end drawVectorThickLine
 
 class car
-    import frameMillis, Vector2, drawVectorThickLine
+    import frameMillis, Vector2, drawVectorThickLine,zero
     export setControls, update, Init
     
     % Controls
     var Gas, Steering : real := 0
+    var maxSteer : real := 10 % Degrees of max steering
     
     % Location
     var Location : pointer to Vector2
@@ -92,26 +96,62 @@ class car
     % Local velocity
     var Velocity : pointer to Vector2
     
+    % Local friction
+    var Fric : pointer to Vector2
+    
+    
     var Rotation : real := 0
     
-    procedure Init (Vel, Loc : pointer to Vector2, rot : real) 
+    procedure Init (Vel, Loc, Fri : pointer to Vector2, rot : real) 
         Location := Loc
         Velocity := Vel
         Rotation := rot
+        Fric     := Fri
     end Init
     
     procedure setControls (gas,steering : real)
-        Gas := gas
-        Steering := steering
+        Gas := gas*(frameMillis/1000)
+        Steering := (steering*maxSteer)
+        
     end setControls
     
     procedure update ()
         
         Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 10, 10, red)
-        drawVectorThickLine(Location -> RotateD(Rotation,Location), Location -> AddDir (0,100) -> RotateD(Rotation, Location),5,black)
-        Rotation += Steering*100*(frameMillis/1000)
+        drawVectorThickLine(Location, Location -> AddDir (0,100) -> RotateD(Rotation+Steering, Location),5,green)
+        drawVectorThickLine(Location, Location -> AddDir (0,100) -> RotateD(Rotation, Location),2,black)
         
-        var GlobalPower : pointer to Vector2 := Location -> Multiply(1)
+        var RelPos, NewSpeed : pointer to Vector2
+        new Vector2, RelPos
+        new Vector2, NewSpeed
+        
+        % Friction
+        Velocity -> SetX(Velocity -> getX() * (1 - Fric -> getX()))
+        Velocity -> SetY(Velocity -> getY() * (1 - Fric -> getY()))
+        
+        NewSpeed -> Set(0,Gas)
+        NewSpeed := NewSpeed -> RotateD(Steering,zero)
+        
+        % Add extra speed
+        Velocity := Velocity -> Add(NewSpeed)
+        
+        % Rotate to get relative new position
+        RelPos := Velocity -> RotateD(Rotation, zero)
+        
+        Location := Location -> Add (RelPos)
+        
+        put (Gas)
+        
+        Rotation += Steering*(frameMillis/1000)
+        
+        
+        
+        %   Okay, so here's the plan:
+        %   So, the new position after movment has to be the 
+        %   CurrentPositon.x + (cos(steering)*speed) Rotated by rotation
+        %   CurrentPositon.y + (sin(steering)*speed) Rotated by rotation
+        
+        
     end update
     
 end car
@@ -122,12 +162,16 @@ new car, PlayerCar
 
 var LastFrame : int :=0
 
-var loc, vel : pointer to Vector2
+var loc, vel,fric : pointer to Vector2
 
 new Vector2, vel
 new Vector2, loc
+new Vector2, fric
 
-PlayerCar -> Init(vel,loc,0)
+fric ->Set(0.1,0.1)
+loc -> Set(100,100)
+
+PlayerCar -> Init(vel,loc,fric,0)
 
 loop
     
@@ -142,15 +186,14 @@ loop
         V -= 1
     end if
     if chars (KEY_RIGHT_ARROW) then
-        H += 1
-    end if
-     if chars (KEY_LEFT_ARROW) then
         H -= 1
     end if
+     if chars (KEY_LEFT_ARROW) then
+        H += 1
+    end if
     
-    
-    PlayerCar -> update()
     PlayerCar -> setControls(V,H)
+    PlayerCar -> update()
     
     View.Update()
     cls()
