@@ -124,7 +124,7 @@ class Tank
     
     % Controls
     var Gas, Steering : real := 0
-    var maxSteer : real := 45 % Degrees of max steering
+    var maxSteer : real := 90 % Degrees of max steering
     var maxThrottle:real:= 3
     
     % Location
@@ -150,6 +150,7 @@ class Tank
         Gas := gas*(frameMillis/1000) * maxThrottle
         Steering := (steering*maxSteer)
         turretRotation += L*(frameMillis/1000)*100
+        put realstr(turretRotation,4)," TurretRotation"
     end setControls
     
     proc render()
@@ -171,7 +172,6 @@ class Tank
     end render
     
     procedure update ()
-        
         render()
         var RelPos, NewSpeed : pointer to Vector2
         new Vector2, RelPos
@@ -192,8 +192,6 @@ class Tank
         RelPos := Velocity -> RotateD(Rotation, zero)
         
         Location := Location -> Add (RelPos)
-        
-        put (Gas)
         
         Rotation += Steering*(frameMillis/1000)
         
@@ -226,7 +224,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Velocity, Rotation+90, 10)
+        Bul -> Init(Location, zero, Rotation+90+turretRotation, 10)
         
         result Bul
     end Fire
@@ -271,11 +269,13 @@ loop
     if chars (KEY_LEFT_ARROW) then
         H += 1
     end if
-    if chars (chr(ORD_A)) then
+    if chars ('a') then
         L += 1
+        put"A"
     end if
-    if chars (chr(ORD_F)) then
+    if chars ('f') then
         L -= 1
+        put"F"
     end if
     if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
         new bullets, upper(bullets)+1
