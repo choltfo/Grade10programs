@@ -147,6 +147,8 @@ class Tank
         Velocity := Vel
         Rotation := rot
         Fric     := Fri
+        
+        Fric ->Set(0,0)
     end Init
     
     procedure setControls (gas,steering,L : real)
@@ -181,8 +183,8 @@ class Tank
         new Vector2, NewSpeed
         
         % Friction
-        % Velocity -> SetX(Velocity -> getX() * (1 - Fric -> getX()))
-        % Velocity -> SetY(Velocity -> getY() * (1 - Fric -> getY()))
+        %Velocity -> SetX(Velocity -> getX() * (1 - Fric -> getX()))
+        %Velocity -> SetY(Velocity -> getY() * (1 - Fric -> getY()))
         Velocity := Velocity -> Multiply(0.99)
         
         NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
@@ -227,7 +229,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, zero, Rotation+90+turretRotation, 10)
+        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 10)
         
         result Bul
     end Fire
