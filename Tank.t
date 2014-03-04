@@ -22,7 +22,7 @@ class Vector2
     end SetX
     
     procedure SetY (Y : real)
-        x := Y
+        y := Y
     end SetY
     
     function getX () :real
@@ -71,7 +71,10 @@ class Vector2
         result NewVec
     end RotateD
     
+    
+    
 end Vector2
+
 
 var zero : pointer to Vector2
 new Vector2, zero
@@ -150,7 +153,7 @@ class Tank
         Gas := gas*(frameMillis/1000) * maxThrottle
         Steering := (steering*maxSteer)
         turretRotation += L*(frameMillis/1000)*100
-        put realstr(turretRotation,4)," TurretRotation"
+
     end setControls
     
     proc render()
@@ -183,7 +186,7 @@ class Tank
         Velocity := Velocity -> Multiply(0.99)
         
         NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
-        NewSpeed := NewSpeed -> RotateD(Steering,zero->AddDir(0 ,Gas) )  %the magnitude of the Gas, and rotate it by steering.
+        NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  %the magnitude of the Gas, and rotate it by steering.
         
         % Add extra speed
         Velocity := Velocity -> Add(NewSpeed)
@@ -271,11 +274,9 @@ loop
     end if
     if chars ('a') then
         L += 1
-        put"A"
     end if
     if chars ('f') then
         L -= 1
-        put"F"
     end if
     if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
         new bullets, upper(bullets)+1
@@ -294,20 +295,22 @@ loop
         end if
     end for
     
-   for i : 0 .. upper (RemoveThese) 
+    for i : 0 .. upper (RemoveThese)
+    
         for j : RemoveThese (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1) 
         end for
         new bullets, upper (bullets) - 1 
+        
     end for
         
     View.Update()
     cls()
     
     put (LastFrame + frameMillis) - Time.Elapsed
+    
     loop
         exit when (LastFrame + frameMillis) < Time.Elapsed
     end loop
-    put (LastFrame + frameMillis) - Time.Elapsed
     LastFrame := Time.Elapsed
 end loop
