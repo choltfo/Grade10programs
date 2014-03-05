@@ -4,7 +4,7 @@ View.Set("Graphics:900;600,offscreenonly")
 var chars : array char of boolean
 var formerChars : array char of boolean
 
-var frameMillis : int := 10
+var frameMillis : int := 100
 
 class Vector2
     
@@ -165,6 +165,8 @@ class Tank
         drawVectorThickLine(Location -> AddDir(-10,-20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(-10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,-20) -> RotateD(Rotation, Location),1,black)
         
+        
+        
         drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation+Rotation, Location),
             Location -> AddDir(-1,0) -> RotateD(turretRotation+Rotation, Location),
             Location -> AddDir(-1,10) -> RotateD(turretRotation+Rotation, Location),
@@ -188,7 +190,7 @@ class Tank
         Velocity := Velocity -> Multiply(0.99)
         
         NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
-        NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  %the magnitude of the Gas, and rotate it by steering.
+        NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  % The magnitude of the Gas, and rotate it by steering.
         
         % Add extra speed
         Velocity := Velocity -> Add(NewSpeed)
@@ -229,7 +231,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 10)
+        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
         
         result Bul
     end Fire
@@ -280,7 +282,7 @@ loop
     if chars ('f') then
         L -= 1
     end if
-    if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
+    if chars (chr(ORD_SPACE)) then % and not formerChars (chr(ORD_SPACE)) then
         new bullets, upper(bullets)+1
         bullets(upper(bullets)) := Player -> Fire()%SHOOT FROM THE TANK!
     end if
