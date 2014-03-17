@@ -4,7 +4,7 @@ View.Set("Graphics:900;600,offscreenonly")
 var chars : array char of boolean
 var formerChars : array char of boolean
 
-var frameMillis : int := 100
+var frameMillis : int := 10
 
 class Vector2
     
