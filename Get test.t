@@ -2,7 +2,7 @@ put "Hello gentleman"
 put "welcome to dice roller 2014"
 
 var sure : boolean := false
-var coins : real
+var Cash : real
 
 var name : string
 sure := false
@@ -17,9 +17,9 @@ end loop
 sure := false
 loop
     exit when sure
-    put "Okay ",name,", how many coins do you have? (1-1000)"..
-    get coins
-    put "You have ", coins, " coins? Are you sure about that? (true/false) "..
+    put "Okay ",name,", how many Cash do you have? (1-1000)"..
+    get Cash
+    put "You have ", Cash, " Cash? Are you sure about that? (true/false) "..
     get sure
 end loop
 
@@ -38,12 +38,12 @@ loop
     sure := false
     loop
         exit when sure
-        put "How many coins do you want to bet? (1-",coins,")"..
+        put "How much Cash do you want to bet? ($1-$",Cash,")"..
         get bet
-        put "You have ", coins, " coins, and you want to bet ",bet,". Are you sure about that? (true/false) "..
+        put "You have $", Cash, ", and you want to bet $",bet,". Are you sure about that? (true/false) "..
         get sure
     end loop
-    coins := coins - bet
+    Cash := Cash - bet
     
     var guess : int := 0
     sure := false
@@ -57,10 +57,9 @@ loop
     var r := Rand.Int(1,diceSize)
     
     if (guess = r) then
-        coins := coins + (bet*diceSize)
-        put "Success! The die came up as ", guess, ", just like you expected! You win ", (bet*diceSize), ". You now have ", coins
+        Cash := Cash + (bet*diceSize)
+        put "Success! The die came up as ", guess, ", just like you expected! You win ", (bet*diceSize), ". You now have $", Cash
     else
-        put "You were wrong. The correct answer was ", r,". You now only have ",coins," coins."
+        put "You were wrong. The correct answer was ", r,". You now only have $",Cash,"."
     end if
-    
 end loop
