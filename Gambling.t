@@ -181,7 +181,7 @@ loop    % Main Menu loop
         game := 0
     end if
     
-    if game = 2 then   % Dice loop, Game 1
+    if game = 2 then   % Dice loop, Game 2
         loop
             var diceSize : int := 0
             var sure := false
@@ -224,9 +224,17 @@ loop    % Main Menu loop
                 end if
                 
                 put "Would you like to play again?"
-                get 
+                var YesNo : string := ""
+                get YesNo
+                
+                exit when not(YesNo = "Yes" or YesNo = "yes")
                 
             end loop
+            put "Are you sure?"
+                var YesNo : string := ""
+                get YesNo
+                
+                exit when not(YesNo = "No" or YesNo = "no")
         end loop
     end if
 
