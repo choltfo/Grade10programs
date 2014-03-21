@@ -1,18 +1,18 @@
 
 var Font1 := Font.New ("Arial:10")
-var Font24 := Font.New ("Arial:24")
+var Font2 := Font.New ("Arial:18")
 
 var Cash : int := 100
 
 var Toggle : string := "yes"
 
-function getNumber (x,y,font,c,bgc : int) : int
+function getNumber (prompt:string,x,y,font,c,bgc : int) : int
     var chars : array char of boolean
     var formerChars : array char of boolean
     var output : int := 0
     Draw.FillBox(x-2,y-2,maxx,y+45,bgc)
     Font.Draw("-> " + intstr(output),x,y,font,c)
-    Font.Draw("Please enter a number",x,y+25,font,c)
+    Font.Draw(prompt,x,y+25,font,c)
     Input.KeyDown (chars)
     formerChars := chars
     
@@ -53,18 +53,17 @@ loop
         SortedRands(i) := 0
         Choices(i) := 0
     end for
-    
+        
     Draw.FillBox(0,0,maxx,maxy,green)
     %put "You are now playing ", upper(Rands) , "-", Max,"."
-    Draw.Text("You are now playing "+ intstr(upper(Rands)) + "-"+intstr(Max)+".",50,maxy-50,Font1,black)
+    Draw.Text("You are now playing "+ intstr(upper(Rands)) + "-"+intstr(Max)+".",50,maxy-25,Font2,black)
     %put "Your guesses must be between ", Max, " and ", Min, "."
-    Draw.Text("Your guesses must be between "+ intstr(Min) + " and "+intstr(Max)+".",50,maxy-70,Font1,black)
+    Draw.Text("Your guesses must be between "+ intstr(Min) + " and "+intstr(Max)+".",50,maxy-50,Font2,black)
     delay(1000)
     Toggle := "yes"
     Cash -= 3
     for i : 1..upper(Choices)
-        Font.Draw("Pleas enter guess #"+ intstr(i)+".",50,maxy-15,Font1,black)
-        Choices(i) := getNumber(50,maxy-150,Font1,black,green)
+        Choices(i) := getNumber("Please enter guess #"+ intstr(i)+".",50,maxy-200,Font1,black,green)
         var Valid : boolean := true
         loop
             Valid := true
@@ -72,9 +71,7 @@ loop
                 if (o not= i) then
                     if (Choices(i) = Choices(o)) then
                         Valid := false
-                        %Draw.FillBox(0,0,maxx,maxy,green)
-                        put "You have already selected that number, try again."
-                        Choices(i) := getNumber(50,maxy-150,Font1,black,green)
+                        Choices(i) := getNumber("You have already selected that number, try again.",50,maxy-200,Font1,black,green)
                     end if
                 end if
             end for
@@ -84,31 +81,21 @@ loop
             end if
             
             if (Choices(i) < Min) then
-                %Draw.FillBox(0,0,maxx,maxy,green)
-                put "That number is lower than the minimum of ", Min,". Please enter another number."
                 Valid := false
-                Choices(i) := getNumber(50,maxy-150,Font1,black,green)
+                Choices(i) := getNumber("That number is lower than the minimum of "+intstr(Min)+". Please enter another number.",50,maxy-200,Font1,black,green)
             end if
             if (Choices(i) > Max) then
-                %Draw.FillBox(0,0,maxx,maxy,green)
-                put "That number is higher than the maaximum of ", Max,". Please enter another number."
                 Valid := false
-                Choices(i) := getNumber(50,maxy-150,Font1,black,green)
+                Choices(i) := getNumber("That number is higher than the maaximum of "+intstr(Max)+". Please enter another number.",50,maxy-200,Font1,black,green)
             end if
-            %Draw.FillBox(0,0,maxx,maxy,green)
+            
             exit when Valid
         end loop
+        Draw.FillBox(50,maxy-200,maxx,maxy-155,green)
+        Draw.Text("Guess #"+intstr(i) + ": " + intstr(Choices(i)),50,maxy-50-(15*i),Font1,black)
     end for
-        
-    % Okay, we have all of the choices now. So, now to generate some other stuff.
     
-    Draw.FillBox(0,0,maxx,maxy,green)
-    put "Your choices are"
     
-    for i : 1..upper(Choices)
-        put Choices(i)
-    end for
-        
     for i : 1..upper(Rands)
         var INT := 0
         var Valid := true
@@ -121,7 +108,7 @@ loop
                     if (Rands(i) = Rands(o)) then
                         Valid := false
                         INT := Rand.Int(Min,Max)
-                    end if % THIS IS BROKEN, IT HANGS FREOM HRER.
+                    end if
                 end if
             end for
                 exit when Valid
@@ -149,7 +136,9 @@ loop
         SortedRands (i) := highest
         
     end for
-        
+    
+    % Okay, so here is where we need to draw all of the cool stuff
+    
     delay(1000)
     put "And the random picks are..."
     
