@@ -231,7 +231,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
+        Bul -> Init(Location -> Add(zero -> AddDir(0,21) -> RotateD(Rotation,zero)), Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
         
         result Bul
     end Fire
@@ -282,7 +282,7 @@ loop
     if chars ('f') then
         L -= 1
     end if
-    if chars (chr(ORD_SPACE)) then % and not formerChars (chr(ORD_SPACE)) then
+    if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
         new bullets, upper(bullets)+1
         bullets(upper(bullets)) := Player -> Fire()%SHOOT FROM THE TANK!
     end if
@@ -304,7 +304,7 @@ loop
         for j : RemoveThese (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1) 
         end for
-        new bullets, upper (bullets) - 1 
+        new bullets, upper (bullets) - 1
         
     end for
         
