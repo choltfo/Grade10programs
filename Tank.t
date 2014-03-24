@@ -231,7 +231,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location -> Add(zero -> AddDir(0,21) -> RotateD(Rotation,zero)), Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
+        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
         
         result Bul
     end Fire
@@ -318,3 +318,4 @@ loop
     end loop
     LastFrame := Time.Elapsed
 end loop
+

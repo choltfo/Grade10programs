@@ -1,6 +1,8 @@
 
 var Font24 := Font.New ("Arial:24")
 
+Draw.FillBox(0,0,maxx,maxy,cyan)
+
 function getNumber (x,y,font,c,bgc : int) : int
     var chars : array char of boolean
     var formerChars : array char of boolean
@@ -31,4 +33,4 @@ function getNumber (x,y,font,c,bgc : int) : int
     end loop
 end getNumber
 
-put getNumber(50,maxy-50,Font24,red,white)
+put getNumber(50,maxy-50,Font24,blue,cyan)
