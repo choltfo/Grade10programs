@@ -79,6 +79,8 @@ end Vector2
 var zero : pointer to Vector2
 new Vector2, zero
 
+
+
 proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     Draw.ThickLine(round(a->getX()),round(a->getY()),
         round(b->getX()),round(b->getY()),w,c)
@@ -90,6 +92,17 @@ proc drawVectorBox (a,b,c,d : pointer to Vector2, col, o : int)
     Draw.Line(round(b->getX()),round(b->getY()),round(c->getX()),round(c->getY()),o)
     Draw.Line(round(c->getX()),round(c->getY()),round(d->getX()),round(d->getY()),o)
 end drawVectorBox
+
+
+class Wall
+    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
+    
+    var p1, p2 : pointer to Vector2
+    
+    proc draw
+        drawVectorThickLine (p1,p2,5,black)
+    end draw
+end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
@@ -119,6 +132,40 @@ class Bullet
     end update
     
 end Bullet
+
+class Laser
+    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox,Wall
+    export update, Init
+    
+    % Location
+    var Location : pointer to Vector2
+    
+    % Local velocity
+    var Velocity : pointer to Vector2
+    
+    procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
+        
+        new Vector2, Location
+        Velocity := Vel
+        
+        Location := Loc
+        Velocity := Velocity -> AddDir(cosd(rot)*speed,sind(rot)*speed)
+    end Init
+    
+    function checkCol (wall : pointer to Wall) : boolean % add thing for targets.
+        
+        
+    end checkCol
+    
+    function update () : boolean
+        Location := Location -> Add(Velocity)
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
+        
+        result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < maxy and Location->getY() > 0
+        
+    end update
+    
+end Laser
 
 
 class Tank

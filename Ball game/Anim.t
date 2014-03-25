@@ -1,5 +1,5 @@
 View.Set("Graphics:600;400,offscreenonly")
-var frameMillis := 1
+var frameMillis := 10
 
 var x,y,button : int := 0
 
