@@ -74,7 +74,7 @@ loop
             if not paused then
                 var neighbours : int := 0
                 
-                for cX : -1..1
+                for cX : -1..1  % count neighbours.
                     for cY : -1..1
                         if (CurrentCells((x+cX) mod size,(y+cY) mod size) -> alive) then
                             if not(cX = cY and cX=0) then
@@ -86,11 +86,11 @@ loop
                     end for
                 end for
                     
-                if (neighbours < 2 and CurrentCells(x,y) -> alive)then
+                if (neighbours < 2)then
                     NewCells(x,y) -> Alive (false)  % Dies of loneliness
                 elsif ((neighbours = 2 or neighbours = 3) and CurrentCells(x,y) -> alive) then
                     NewCells(x,y) -> Alive (true)   % Continues existing
-                elsif (neighbours > 3 and CurrentCells(x,y) -> alive) then
+                elsif (neighbours > 3) then
                     NewCells(x,y) -> Alive (false)  % Dies of overpopulation
                 elsif (neighbours = 3 and not CurrentCells(x,y) -> alive) then
                     NewCells(x,y) -> Alive (true)   % Born
