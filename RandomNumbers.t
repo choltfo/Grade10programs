@@ -1,5 +1,5 @@
 Draw.FillBox(0,0,maxx,maxy,white)
-var frameMillis : int := 100
+var frameMillis : int := 50
 var LastFrame : int := 0
 
 var keys, formerKeys : array char of boolean
@@ -13,15 +13,12 @@ class Cell
     proc Alive (a : boolean)
         alive := a
     end Alive
-    
-    
-    
 end Cell
 
 var NewCells,CurrentCells : array 0..size,0..size of pointer to Cell
 
-var width  :int := ceil(maxx/size)
-var height :int := ceil(maxy/size)
+var width  :int := floor(maxx/size)
+var height :int := floor(maxy/size)
 
 View.Set("offscreenonly")
 
@@ -61,31 +58,37 @@ loop
     for x : 1..size
         for y : 1..size
             
+                
             % Allows you to click in a cell
             if (PtInRect    ((x)*width,(y)*height,(x+1)*width,(y+1)*height,  Mx,My) and Mb=1) then
                 CurrentCells(x,y) -> Alive (true)
             end if
-            
             % Draw the cell
             if (CurrentCells(x,y) -> alive) then
-                Draw.FillBox((x)*width,(y)*height,(x+1)*width,(y+1)*height,blue)
+                Draw.FillBox((x)*width,(y)*height,(x+1)*width,(y+1)*height,red)
             end if
-            
             if not paused then
+                new Cell, NewCells(x,y)
                 var neighbours : int := 0
                 
                 for cX : -1..1  % count neighbours.
                     for cY : -1..1
-                        if (CurrentCells((x+cX) mod size,(y+cY) mod size) -> alive) then
-                            if not(cX = cY and cX=0) then
+                        
+                        if not(cX = cY and cX=0) then
+                            %if (cX + x <= size and cX + x > 0 and cY + y <= size and cY + y > 0) then
                                 
-                                neighbours += 1
+                                if (CurrentCells((x+cX-1)mod size+1,(y+cY-1)mod size +1) -> alive) then
+                                    neighbours := neighbours + 1
+                                end if
                                 
-                            end if
+                            %end if  
                         end if
+                        
+                        
                     end for
                 end for
                     
+                
                 if (neighbours < 2)then
                     NewCells(x,y) -> Alive (false)  % Dies of loneliness
                 elsif ((neighbours = 2 or neighbours = 3) and CurrentCells(x,y) -> alive) then
@@ -111,7 +114,7 @@ loop
     end for
         
     CurrentCells := NewCells
-    put (LastFrame + frameMillis) - Time.Elapsed
+    %put (LastFrame + frameMillis) - Time.Elapsed
     View.Update()
     cls()
     Draw.FillBox(0,0,maxx,maxy,white)
