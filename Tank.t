@@ -131,6 +131,8 @@ class Bullet
         
     end update
     
+    
+    
 end Bullet
 
 class Laser
@@ -212,6 +214,8 @@ class Tank
         drawVectorThickLine(Location -> AddDir(-10,-20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(-10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,-20) -> RotateD(Rotation, Location),1,black)
         
+        Draw.Fill(floor(Location -> getX()),floor(Location -> getY()),green,black)
+        
         
         
         drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation+Rotation, Location),
@@ -220,7 +224,7 @@ class Tank
             Location -> AddDir(1,10) -> RotateD(turretRotation+Rotation, Location),
             black,black)
         
-        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, green)
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, grey)
         Draw.Oval(round(Location -> getX()), round(Location -> getY()), 3, 3, black)
         
     end render
