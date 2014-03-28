@@ -1,12 +1,12 @@
 Draw.FillBox(0,0,maxx,maxy,white)
-var frameMillis : int := 10
+var frameMillis : int := 100
 var LastFrame : int := 0
 
 var SavePath : string := "CGOLSave.bmp" 
 
 var keys, formerKeys : array char of boolean
 
-const size : int := 100
+const size : int := 40
 
 class Cell
     export Alive, alive
@@ -66,17 +66,28 @@ loop
             cls()
             for x : 1..size
                 for y : 1..size
-                    
+                    if (CurrentCells(x,y) -> alive) then
+                        Draw.Dot(x,y,black)
+                    end if
                     % Add the saving code here.
-                    
                 end for
             end for
+                
+            var SaveData := Pic.New(1,1,size,size)
+            Pic.Save(SaveData, SavePath)
+            Pic.Free(SaveData)
         end if
         
         if (keys(KEY_CTRL) and keys('o') and not formerKeys('o')) then
-            
+            cls()
+            Pic.ScreenLoad(SavePath,1,1,0)
+            for x : 1..size
+                for y : 1..size
+                    NewCells (x,y) -> Alive (whatdotcolour(x,y) = black)
+                    % Add the saving code here.
+                end for
+            end for
         end if
-    
     end if
     
     for x : 1..size
@@ -100,11 +111,11 @@ loop
                         
                         if not(cX = cY and cX=0) then
                             %if (cX + x <= size and cX + x > 0 and cY + y <= size and cY + y > 0) then
-                                
-                                if (CurrentCells((x+cX-1)mod size+1,(y+cY-1)mod size +1) -> alive) then
-                                    neighbours := neighbours + 1
-                                end if
-                                
+                            
+                            if (CurrentCells((x+cX-1)mod size+1,(y+cY-1)mod size +1) -> alive) then
+                                neighbours := neighbours + 1
+                            end if
+                            
                             %end if  
                         end if
                         
@@ -140,13 +151,27 @@ loop
         
     CurrentCells := NewCells
     %put (LastFrame + frameMillis) - Time.Elapsed
+    put "Esc to pause. 'A' to reduce framerate, 'D' to increase."
+    locate(1,60)
+    put "Current FR cap: ",floor(1000/frameMillis)
     View.Update()
     cls()
     Draw.FillBox(0,0,maxx,maxy,white)
     
-    loop
-        exit when (LastFrame + frameMillis) < Time.Elapsed
-    end loop
+    if (keys('a') and not formerKeys('a')) then
+        cls()
+        frameMillis += 100
+    end if
+    if (keys('d') and not formerKeys('d')) then
+        cls()
+        frameMillis += -100
+    end if
+    
+    if (not paused) then
+        loop
+            exit when (LastFrame + frameMillis) < Time.Elapsed
+        end loop
+    end if
     LastFrame := Time.Elapsed
     Draw.FillBox(0,0,maxx,maxy,white)
     Pb := Mb
