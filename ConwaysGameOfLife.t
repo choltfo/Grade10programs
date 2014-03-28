@@ -1,5 +1,5 @@
 Draw.FillBox(0,0,maxx,maxy,white)
-var frameMillis : int := 100
+var frameMillis : int := 10
 var LastFrame : int := 0
 
 var SavePath : string := "CGOLSave.bmp" 
@@ -153,18 +153,21 @@ loop
     %put (LastFrame + frameMillis) - Time.Elapsed
     put "Esc to pause. 'A' to reduce framerate, 'D' to increase."
     locate(1,60)
-    put "Current FR cap: ",floor(1000/frameMillis)
+    put "Current F-Time: ",frameMillis
     View.Update()
     cls()
     Draw.FillBox(0,0,maxx,maxy,white)
     
-    if (keys('a') and not formerKeys('a')) then
+    if (keys('a')) then
         cls()
-        frameMillis += 100
+        frameMillis += 1
     end if
-    if (keys('d') and not formerKeys('d')) then
+    if (keys('d')) then
         cls()
-        frameMillis += -100
+        frameMillis += -1
+        if (frameMillis < 0) then
+            frameMillis := 0
+        end if
     end if
     
     if (not paused) then
