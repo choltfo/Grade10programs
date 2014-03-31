@@ -50,20 +50,22 @@ end DRAW
 
 var metaLayer : int := 1
 loop
-    DRAW(floor(maxx/2),floor(maxy/2),1,red)
-    var layer := 1
-    loop
-        Mouse.Where(mX, mY, mB)
-        for i : 1.. upper(curDotsX)
-            DRAW(curDotsX(i),curDotsY(i),1,layer+metaLayer)
-        end for
-            
-        layer += 1
-        Switch()
-        %put upper(curDotsY) , ", ", layer
-        View.Update()
-        exit when layer > 50
-    end loop
+    if (mB = 1) then
+        DRAW(floor(maxx/2),floor(maxy/2),1,red)
+        var layer := 1
+        loop
+            Mouse.Where(mX, mY, mB)
+            for i : 1.. upper(curDotsX)
+                DRAW(curDotsX(i),curDotsY(i),1,layer+metaLayer)
+            end for
+                
+            layer += 1
+            Switch()
+            %put upper(curDotsY) , ", ", layer
+            View.Update()
+            exit when layer > 50 or mB = 0
+        end loop
+    end if
     for decreasing i : upper(curDotsX) .. 1
         new curDotsX, upper (curDotsX) - 1
         new curDotsY, upper (curDotsY) - 1
@@ -76,6 +78,8 @@ loop
     cls
     Draw.FillBox(0,0,maxx,maxy,black)
     metaLayer+=1
+    View.Update
+    Mouse.Where(mX, mY, mB)
 end loop
 
 
