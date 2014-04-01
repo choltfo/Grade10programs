@@ -1,3 +1,5 @@
+% Awesome lightning stuff by Charles Holtforster for the Random program.
+
 View.Set("graphics:800;600")
 View.Set("offscreenonly")
 
@@ -42,13 +44,15 @@ proc DRAW (x,y,i,c:int)
     for a : 1 .. i
         var xA : int := Rand.Int(-10,10) + sign(mX-x)*5
         var yA : int := Rand.Int(-10,10) + sign(mY-y)*5
+        
+        Draw.Line(x,y-1,x+xA,y+yA-1,blue)%(c mod 6)+9)
         Draw.Line(x,y,x+xA,y+yA,yellow)%(c mod 6)+9)
         Add(x+xA,y+yA)
-        View.Update()
     end for
 end DRAW
 
 var metaLayer : int := 1
+
 loop
     DRAW(floor(maxx/2),floor(maxy/2),1,red)
     var layer := 1
@@ -62,7 +66,7 @@ loop
         Switch()
         %put upper(curDotsY) , ", ", layer
         View.Update()
-        exit when layer > 50
+        exit when layer > (abs(mX - maxx/2)+abs(mY - maxy/2))/20 + 10
     end loop
     for decreasing i : upper(curDotsX) .. 1
         new curDotsX, upper (curDotsX) - 1
@@ -72,7 +76,10 @@ loop
         new dotsX, upper (dotsX) - 1
         new dotsY, upper (dotsY) - 1
     end for
-        
+    
+    Time.DelaySinceLast(10)
+    View.Update()
+    
     cls
     Draw.FillBox(0,0,maxx,maxy,black)
     metaLayer+=1

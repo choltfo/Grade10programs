@@ -1,8 +1,34 @@
 % Let's drive a Tank!
 
 View.Set("Graphics:900;600,offscreenonly")
+
+var Font1 := Font.New ("Impact:72")
+var Font2 := Font.New ("Arial:18")
+
 var chars : array char of boolean
 var formerChars : array char of boolean
+
+var mX, mY, mB, mLB : int := 0      % Mouse vars
+var hasWaited := false
+loop    % Title screen loop
+    Mouse.Where(mX, mY, mB)
+    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),maxy-100,Font1,black)
+    Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
+    Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
+    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
+    
+    View.Update()
+    if (not hasWaited) then 
+        delay(2000)
+    else
+        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-300,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
+    end if
+    
+    hasWaited := true
+    
+    exit when mB = 1 and mLB not=1
+    mLB := mB
+end loop
 
 var frameMillis : int := 10
 
@@ -76,8 +102,6 @@ end Vector2
 var zero : pointer to Vector2
 new Vector2, zero
 
-
-
 proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     Draw.ThickLine(round(a->getX()),round(a->getY()),
         round(b->getX()),round(b->getY()),w,c)
@@ -93,12 +117,20 @@ end drawVectorBox
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
+    export Init, draw
+    
     
     var p1, p2 : pointer to Vector2
+    
+    proc Init (e, s : pointer to Vector2)
+        p1 := e
+        p2 := s
+    end Init
     
     proc draw
         drawVectorThickLine (p1,p2,5,black)
     end draw
+    
 end Wall
 
 class Bullet
@@ -128,53 +160,30 @@ class Bullet
         
     end update
     
+    function checkWallCol (w : pointer to Wall) : boolean
     
+    end checkWallCol
     
 end Bullet
 
-class Laser
-    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox,Wall
-    export update, Init
-    
-    % Location
-    var Location : pointer to Vector2
-    
-    % Local velocity
-    var Velocity : pointer to Vector2
-    
-    procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
-        
-        new Vector2, Location
-        Velocity := Vel
-        
-        Location := Loc
-        Velocity := Velocity -> AddDir(cosd(rot)*speed,sind(rot)*speed)
-    end Init
-    
-    function checkCol (wall : pointer to Wall) : boolean % add thing for targets.
-        
-        
-    end checkCol
-    
-    function update () : boolean
-        Location := Location -> Add(Velocity)
-        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
-        
-        result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < maxy and Location->getY() > 0
-        
-    end update
-    
-end Laser
-
-
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox
-    export setControls, update, Init, Fire
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2
+    export setControls, update, Init, Fire, Reload, CanFire
+    
+    var health := 100
+    
+    % The gun
+    var maxAmmo, curAmmo : int := 10
+    var damage := 10
+    
+    var lastReload := 0
+    var reloadMillis := 2500
     
     % Controls
     var Gas, Steering : real := 0
     var maxSteer : real := 90 % Degrees of max steering
     var maxThrottle:real:= 3
+    
     
     % Location
     var Location : pointer to Vector2
@@ -187,6 +196,12 @@ class Tank
     
     
     var Rotation,turretRotation : real := 0
+    
+    function CheckCol
+    
+    procedure Reload()
+        lastReload := Time.Elapsed
+    end Reload
     
     procedure Init (Vel, Loc, Fri : pointer to Vector2, rot : real) 
         Location := Loc
@@ -201,10 +216,25 @@ class Tank
         Gas := gas*(frameMillis/1000) * maxThrottle
         Steering := (steering*maxSteer)
         turretRotation += L*(frameMillis/1000)*100
-
+        
     end setControls
     
     proc render()
+        
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 20,
+                round(Location -> getX()) + 25, round(Location -> getY()) + 25, red)
+        
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 20,
+                round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 25, green)
+        
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 20,round(Location -> getX()) + 25, round(Location -> getY()) + 20,black)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
+        
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
+                round(Location -> getX()) - 25, round(Location -> getY()) + 20,black)
+        Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 25,
+                round(Location -> getX()) + 25, round(Location -> getY()) + 20,black)
+        
         
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,20) -> RotateD(Rotation, Location),1,black)
@@ -213,12 +243,17 @@ class Tank
         
         Draw.Fill(floor(Location -> getX()),floor(Location -> getY()),green,black)
         
+        if (lastReload = 0) then
+            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
+            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
+        else
+            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
+        end if
         
-        
-        drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation+Rotation, Location),
-            Location -> AddDir(-1,0) -> RotateD(turretRotation+Rotation, Location),
-            Location -> AddDir(-1,10) -> RotateD(turretRotation+Rotation, Location),
-            Location -> AddDir(1,10) -> RotateD(turretRotation+Rotation, Location),
+        drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation, Location),
+            Location -> AddDir(-1,0) -> RotateD(turretRotation, Location),
+            Location -> AddDir(-1,10) -> RotateD(turretRotation, Location),
+            Location -> AddDir(1,10) -> RotateD(turretRotation, Location),
             black,black)
         
         Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, grey)
@@ -226,7 +261,15 @@ class Tank
         
     end render
     
-    procedure update ()
+    procedure update (mX, mY, mB : int)
+        
+        if (lastReload not= 0) then
+            if (lastReload + reloadMillis < Time.Elapsed) then
+                curAmmo := maxAmmo
+                lastReload := 0
+            end if
+        end if
+        
         render()
         var RelPos, NewSpeed : pointer to Vector2
         new Vector2, RelPos
@@ -250,7 +293,12 @@ class Tank
         
         Rotation += Steering*(frameMillis/1000)
         
-        
+        if (Location -> getX() not= mX) then
+            turretRotation := (arctand((Location -> getY()- mY) / (Location -> getX()- mX)) +270) mod 360
+            if (Location -> getX() > mX) then
+                turretRotation += 180
+            end if
+        end if
         
         %   Okay, so here's the plan:
         %   So, the new position after movment has to be the 
@@ -275,11 +323,16 @@ class Tank
         
     end update
     
+    function CanFire() : boolean
+        result curAmmo > 0 and lastReload = 0
+    end CanFire
+    
     function Fire() : pointer to Bullet
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), Rotation+90+turretRotation, 15)
+        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), 90+turretRotation, 15)
+        curAmmo -= 1
         
         result Bul
     end Fire
@@ -291,7 +344,7 @@ var Player : pointer to Tank
 
 new Tank, Player
 
-var LastFrame : int :=0
+var LastFrame : int := 0
 
 var loc, vel,fric : pointer to Vector2
 
@@ -306,56 +359,67 @@ Player -> Init(vel,loc,fric,0)
 
 var bullets : flexible array 1..0 of pointer to Bullet
 
-loop
-    formerChars := chars
-    Input.KeyDown (chars)
+% generate map from walls and vecotr points
+
+var playerHasControl := true
+
+loop    % Main game logic loop
     
-    var H,V,L : int := 0
     
-    if chars (KEY_UP_ARROW) then
-        V += 1
+    if (playerHasControl) then 
+        Mouse.Where(mX,mY,mB)
+        formerChars := chars
+        Input.KeyDown (chars)
+        
+        var H,V,L : int := 0
+        
+        if chars ('w') then
+            V += 1
+        end if
+        if chars ('s') then
+            V -= 1
+        end if
+        if chars ('d') then
+            H -= 1
+        end if
+        if chars ('a') then
+            H += 1
+        end if
+        if chars ('r') then
+            Player -> Reload()
+        end if
+        if mB =1 and not mLB = 1 and Player -> CanFire() then
+            new bullets, upper(bullets)+1
+            bullets(upper(bullets)) := Player -> Fire() %SHOOT FROM THE TANK!
+        end if
+        
+        Player -> setControls(V,H,L)
+        Player -> update(mX, mY, mB)
+        
     end if
-    if chars (KEY_DOWN_ARROW) then
-        V -= 1
-    end if
-    if chars (KEY_RIGHT_ARROW) then
-        H -= 1
-    end if
-    if chars (KEY_LEFT_ARROW) then
-        H += 1
-    end if
-    if chars ('a') then
-        L += 1
-    end if
-    if chars ('f') then
-        L -= 1
-    end if
-    if chars (chr(ORD_SPACE)) and not formerChars (chr(ORD_SPACE)) then
-        new bullets, upper(bullets)+1
-        bullets(upper(bullets)) := Player -> Fire()%SHOOT FROM THE TANK!
-    end if
-    
-    Player -> setControls(V,H,L)
-    Player -> update()
     
     var RemoveThese : flexible array 0..-1 of int
     
-    for i : 1..upper(bullets)
+    for i : 1..upper(bullets) 
         if (bullets(i) -> update() not= true) then
             new RemoveThese, upper (RemoveThese) + 1 
             RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese) 
         end if
     end for
-    
+        
     for i : 0 .. upper (RemoveThese)
-    
+        
         for j : RemoveThese (i) .. upper (bullets) - 1 
-            bullets (j) := bullets (j + 1) 
+            bullets (j) := bullets (j + 1)
         end for
-        new bullets, upper (bullets) - 1
+            new bullets, upper (bullets) - 1
         
     end for
         
+    
+    
+    
+    
     View.Update()
     cls()
     
@@ -365,5 +429,6 @@ loop
         exit when (LastFrame + frameMillis) < Time.Elapsed
     end loop
     LastFrame := Time.Elapsed
+    mLB := mB
 end loop
 
