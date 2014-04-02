@@ -134,7 +134,7 @@ class Wall
 end Wall
 
 class Bullet
-    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
+    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Wall
     export update, Init
     
     % Location
@@ -197,7 +197,7 @@ class Tank
     
     var Rotation,turretRotation : real := 0
     
-    function CheckCol
+    %function CheckCol
     
     procedure Reload()
         lastReload := Time.Elapsed
@@ -221,19 +221,19 @@ class Tank
     
     proc render()
         
-        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 20,
-                round(Location -> getX()) + 25, round(Location -> getY()) + 25, red)
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
+                round(Location -> getX()) + 25, round(Location -> getY()) + 30, red)
         
-        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 20,
-                round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 25, green)
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
+                round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 30, green)
         
-        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 20,round(Location -> getX()) + 25, round(Location -> getY()) + 20,black)
         Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,round(Location -> getX()) + 25, round(Location -> getY()) + 30,black)
         
-        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
-                round(Location -> getX()) - 25, round(Location -> getY()) + 20,black)
-        Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 25,
-                round(Location -> getX()) + 25, round(Location -> getY()) + 20,black)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,
+                round(Location -> getX()) - 25, round(Location -> getY()) + 25,black)
+        Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 30,
+                round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
         
         
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
