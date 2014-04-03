@@ -135,7 +135,7 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Wall
-    export update, Init
+    export update, Init, checkWallCol
     
     % Location
     var Location : pointer to Vector2
@@ -161,7 +161,7 @@ class Bullet
     end update
     
     function checkWallCol (w : pointer to Wall) : boolean
-    
+        result false
     end checkWallCol
     
 end Bullet
@@ -200,7 +200,9 @@ class Tank
     %function CheckCol
     
     procedure Reload()
-        lastReload := Time.Elapsed
+        if (curAmmo < maxAmmo) then
+            lastReload := Time.Elapsed
+        end if
     end Reload
     
     procedure Init (Vel, Loc, Fri : pointer to Vector2, rot : real) 
@@ -359,12 +361,60 @@ Player -> Init(vel,loc,fric,0)
 
 var bullets : flexible array 1..0 of pointer to Bullet
 
-% generate map from walls and vecotr points
+var walls : flexible array -1..0 of pointer to Wall
+
+% generate map from walls and vector points
+
+var stream : int
+var mapFile : flexible array 1..0 of string
+open : stream, "map1.txt", get
+
+
+cls
+put "Loading map..."
+
+loop
+    exit when eof(stream)
+    new mapFile, upper(mapFile) + 1
+    get : stream, mapFile(upper(mapFile))
+end loop
+
+for i : 1..upper(mapFile)
+    if (mapFile(i) = "Wall:") then
+        
+        var x1,x2,y1,y2 : int := 0
+        
+        x1 := strint(mapFile (i+1))
+        y1 := strint(mapFile (i+2))
+        x2 := strint(mapFile (i+3))
+        y2 := strint(mapFile (i+4))
+        
+        put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
+        
+        new walls, upper(walls)+1
+        new Wall, walls(upper(walls))
+        
+        var e,s : pointer to Vector2
+        new Vector2, e
+        new Vector2, s
+        s -> Set (x1+0.01,y1+0.01)
+        e -> Set (x2+0.01,y2+0.01)
+        
+        walls(upper(walls)) -> Init (e,s)
+        
+    end if
+end for
+put "Done!"
+View.Update()
+delay(500)
 
 var playerHasControl := true
 
+delay (20)
+mLB := mB
+Mouse.Where(mX,mY,mB)
+
 loop    % Main game logic loop
-    
     
     if (playerHasControl) then 
         Mouse.Where(mX,mY,mB)
@@ -398,6 +448,10 @@ loop    % Main game logic loop
         
     end if
     
+    for i : 1..upper(walls) 
+        walls(i) -> draw()
+    end for
+    
     var RemoveThese : flexible array 0..-1 of int
     
     for i : 1..upper(bullets) 
@@ -405,6 +459,13 @@ loop    % Main game logic loop
             new RemoveThese, upper (RemoveThese) + 1 
             RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese) 
         end if
+        for o : 1..upper(walls)
+            if ( bullets(i) -> checkWallCol(walls(o))) then
+                new RemoveThese, upper (RemoveThese) + 1 
+                RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese)
+                exit
+            end if
+        end for
     end for
         
     for i : 0 .. upper (RemoveThese)
