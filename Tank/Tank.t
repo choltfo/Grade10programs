@@ -34,7 +34,7 @@ var frameMillis : int := 10
 
 class Vector2
     
-    export (x,y,RotateD,getX,getY,Set,SetX,SetY,Multiply,AddDir,Add)
+    export (x,y,RotateD,getX,getY,Set,SetX,SetY,Multiply,AddDir,Add,Subtract)
     
     var x,y : real := 0
     
@@ -118,19 +118,62 @@ end drawVectorBox
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
-    export Init, draw
+    export Init, draw, getP1, getP2, getB, getM, getWallIntersect
     
     
     var p1, p2 : pointer to Vector2
     
+    var m,b : real := 0 % As in Y=mX+b
+    
+    function getP1() : pointer to Vector2
+        result p1
+    end getP1
+    
+    function getP2() : pointer to Vector2
+        result p2
+    end getP2
+    
+    function getM() : real
+        result m
+    end getM
+    
+    function getB() : real
+        result b
+    end getB
+    
     proc Init (e, s : pointer to Vector2)
+        
         p1 := e
         p2 := s
+        
+        m := (p1 -> getY() - p2 -> getY()) / (p1 -> getX() - p2 -> getX())
+        
+        b := p1->getY() - (p1->getX() * m)
+        
     end Init
     
     proc draw
         drawVectorThickLine (p1,p2,5,black)
+        %Draw.FillOval(0,round(b),5,5,red)
     end draw
+    
+    function getWallIntersect (w : pointer to Wall) : pointer to Vector2
+        
+        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+        
+        %x = (b2-b1)/(m1-m2)
+        
+        var y : real := (m*x)+b
+        
+        var vec : pointer to Vector2
+        
+        new Vector2, vec
+        
+        vec -> Set(x,y)
+        
+        result (vec)
+        
+    end getWallIntersect
     
 end Wall
 
@@ -144,6 +187,8 @@ class Bullet
     % Local velocity
     var Velocity : pointer to Vector2
     
+    var m, b : real := 0
+    
     procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
         
         new Vector2, Location
@@ -151,25 +196,47 @@ class Bullet
         
         Location := Loc
         Velocity := Velocity -> AddDir(cosd(rot)*speed,sind(rot)*speed)
+        
+        m := (Location -> getY() - Location -> Add(Velocity) -> getY()) / (Location -> getX() - Location -> Add(Velocity) -> getX())
+        b := Location->getY() - (Location -> Add(Velocity)->getX() * m)
+        
     end Init
     
     function update () : boolean
         Location := Location -> Add(Velocity)
-        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
         
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
         result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < maxy and Location->getY() > 0
         
     end update
     
+    function realBetween(a,x,y : real) : boolean
+        
+        if (x>y) then
+            result realBetween(a,y,x)
+        end if
+        
+        result a > x and a < y
+        
+    end realBetween
+    
     function checkWallCol (w : pointer to Wall) : boolean
-        result false
+        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+        %x = (b2-b1)/(m1-m2)
+        
+        var y : real := (m*x)+b
+        %Draw.FillOval(round(x),round(y),5,5,red)
+        
+        result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
+            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
+        
     end checkWallCol
     
 end Bullet
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2
-    export setControls, update, Init, Fire, Reload, CanFire
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall
+    export setControls, update, Init, Fire, Reload, CanFire, checkWallCol
     
     var health := 100
     
@@ -188,6 +255,7 @@ class Tank
     
     % Location
     var Location : pointer to Vector2
+    var PLoc     : pointer to Vector2
     
     % Local velocity
     var Velocity : pointer to Vector2
@@ -225,18 +293,15 @@ class Tank
     proc render()
         
         Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
-                round(Location -> getX()) + 25, round(Location -> getY()) + 30, red)
-        
+            round(Location -> getX()) + 25, round(Location -> getY()) + 30, red)
         Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
-                round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 30, green)
-        
+            round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 30, green)
         Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
         Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,round(Location -> getX()) + 25, round(Location -> getY()) + 30,black)
-        
         Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,
-                round(Location -> getX()) - 25, round(Location -> getY()) + 25,black)
+            round(Location -> getX()) - 25, round(Location -> getY()) + 25,black)
         Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 30,
-                round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
+            round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
         
         
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
@@ -273,7 +338,8 @@ class Tank
             end if
         end if
         
-        render()
+        PLoc := Location
+        
         var RelPos, NewSpeed : pointer to Vector2
         new Vector2, RelPos
         new Vector2, NewSpeed
@@ -303,11 +369,6 @@ class Tank
             end if
         end if
         
-        %   Okay, so here's the plan:
-        %   So, the new position after movment has to be the 
-        %   CurrentPositon.x + (cos(steering)*speed) Rotated by rotation
-        %   CurrentPositon.y + (sin(steering)*speed) Rotated by rotation
-        
         if (Location -> getX() > maxx) then
             Location -> SetX(maxx-1)
         end if
@@ -324,6 +385,7 @@ class Tank
             Location -> SetY(1)
         end if
         
+        render()
     end update
     
     function CanFire() : boolean
@@ -339,6 +401,45 @@ class Tank
         
         result Bul
     end Fire
+    
+    function realBetween(a,x,y : real) : boolean
+        
+        if (x>y) then
+            result realBetween(a,y,x)
+        end if
+        
+        result a > x and a < y
+        
+    end realBetween
+    
+    procedure checkWallCol(w : pointer to Wall)
+        /*
+        var m,b : real := 0
+        
+        if ((Location -> getX() - PLoc -> getX() <= 0)) then
+            m := 0
+            b:=0
+        else
+        
+        m := (Location -> getY() - PLoc -> getY()) / (Location -> getX() - PLoc -> getX())
+        b := Location->getY() - (PLoc->getX() * m)
+        
+        end if
+        
+        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+        %x = (b2-b1)/(m1-m2)
+        
+        var y : real := (m*x)+b
+        %Draw.FillOval(round(x),round(y),5,5,red)
+        
+        if (realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
+                realBetween(x,Location->Add(Velocity)->getX(),Location->getX())) then
+            
+            Velocity -> Set(0,0)
+            Location -> Set(x,y)
+            
+        end if*/
+    end checkWallCol
     
 end Tank
 
@@ -405,7 +506,7 @@ for i : 1..upper(mapFile)
         
     end if
 end for
-put "Done!"
+    put "Done!"
 View.Update()
 delay(500)
 
@@ -452,21 +553,29 @@ loop    % Main game logic loop
     for i : 1..upper(walls) 
         walls(i) -> draw()
     end for
-    
+        
     var RemoveThese : flexible array 0..-1 of int
     
-    for i : 1..upper(bullets) 
-        if (bullets(i) -> update() not= true) then
-            new RemoveThese, upper (RemoveThese) + 1 
-            RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese) 
-        end if
+    for i : 1..upper(bullets)
+        var alive: boolean := true
         for o : 1..upper(walls)
+            
             if ( bullets(i) -> checkWallCol(walls(o))) then
                 new RemoveThese, upper (RemoveThese) + 1 
                 RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese)
-                exit
+                alive := false
             end if
         end for
+            if (alive) then
+            if (bullets(i) -> update() not= true) then
+                new RemoveThese, upper (RemoveThese) + 1 
+                RemoveThese (upper (RemoveThese)) := i - upper (RemoveThese) 
+            end if
+        end if
+    end for
+        
+    for i : 1..upper(walls)
+        Player -> checkWallCol(walls(i))
     end for
         
     for i : 0 .. upper (RemoveThese)

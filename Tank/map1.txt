@@ -1,5 +1,11 @@
+All lines must go from left to right!
+Wall:
+200
+300
+400
+500
 Wall:
 0
-100
-600
-100
+200
+200
+200
