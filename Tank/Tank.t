@@ -96,6 +96,7 @@ class Vector2
         
         result NewVec
     end RotateD
+    
 end Vector2
 
 
