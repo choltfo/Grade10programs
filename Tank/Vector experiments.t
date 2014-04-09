@@ -1,6 +1,6 @@
 class Vector2
     
-    export (x,y,RotateD,getX,getY,Set,SetX,SetY,Multiply,AddDir,Add,Subtract,normalize,getMag,getNormal,dotProduct)
+    export (x,y,RotateD,getX,getY,Set,SetX,SetY,Multiply,AddDir,Add,Subtract,normalize,getMag,getNormal,dotProduct,Normalize)
     
     var x,y : real := 0
     
@@ -77,6 +77,14 @@ class Vector2
         y := y/mag
     end normalize
     
+    function Normalize () : pointer to Vector2
+        var r : pointer to Vector2
+        new Vector2, r
+        r := r -> AddDir (x,y)
+        r -> normalize()
+        result r
+    end Normalize
+    
     % (r - d1) / (d2-d1) = t
     % Probably best used as A -> Subtract (B) -> getNormal()
     
@@ -127,15 +135,17 @@ loop
     
     var n : pointer to Vector2 := p1 -> Subtract(p2) -> getNormal(zero)
     
-    var d1 : real := abs(p1 -> Subtract(c1) -> dotProduct(n))
+    var d1 : real := abs(p2 -> Subtract(c1) -> dotProduct(n))
     var d2 : real := abs(p2 -> Subtract(c2) -> dotProduct(n))
     
     var t : real := 0
     
     if (d1 = d2) then
-        % PANIC!
-        put "d1 equals d2, this fails now."
-        quit
+        if (c1->Subtract(c2)-> Normalize() = p1->Subtract(p2)-> Normalize()) then
+            t := 0.5
+        else
+        
+        end if
     else
         %t := (r - d1) / (d2-d1)
         t := (-d1) / (d2-d1)
