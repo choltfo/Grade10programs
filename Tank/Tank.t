@@ -97,6 +97,27 @@ class Vector2
         result NewVec
     end RotateD
     
+    function dotProduct (b : pointer to Vector2) : real
+        result (x*b->getX())+(y*b->getY())
+    end dotProduct
+    
+    % (r - d1) / (d2-d1) = t
+    % Probably best used as A -> Subtract (B) -> getNormal()
+    
+    function getNormal () : pointer to Vector2
+        
+    end getNormal
+    
+    function getMag () : real
+        result sqrt(x**2 + y**2)
+    end getMag
+    
+    procedure normalize ()
+        var mag : real := getMag()
+        x := x/mag
+        y := y/mag
+    end normalize
+    
 end Vector2
 
 
@@ -226,6 +247,8 @@ class Bullet
         
         var y : real := (m*x)+b
         %Draw.FillOval(round(x),round(y),5,5,red)
+        
+        
         
         result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
             realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
@@ -417,9 +440,9 @@ class Tank
         var m,b : real := 0
         
         if ((Location -> getX() - PLoc -> getX() <= 0)) then
-            m := 0
-            b:=0
-        else
+        m := 0
+        b:=0
+    else
         
         m := (Location -> getY() - PLoc -> getY()) / (Location -> getX() - PLoc -> getX())
         b := Location->getY() - (PLoc->getX() * m)
@@ -433,11 +456,11 @@ class Tank
         %Draw.FillOval(round(x),round(y),5,5,red)
         
         if (realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
-                realBetween(x,Location->Add(Velocity)->getX(),Location->getX())) then
-            
-            Velocity -> Set(0,0)
-            Location -> Set(x,y)
-            
+            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())) then
+        
+        Velocity -> Set(0,0)
+        Location -> Set(x,y)
+        
         end if*/
     end checkWallCol
     

@@ -8,6 +8,8 @@ var Font2 := Font.New ("Arial:18")
 var LastFrame : int := 0
 var frameMillis : int := 10
 
+var difficulty : int := 100      % int from 1 (impossible) to 300 (meh).
+
 var chars : array char of boolean
 var formerChars : array char of boolean
 Input.KeyDown(chars)
@@ -25,6 +27,7 @@ for i : 1..upper(pPos)
 pPos (i) := 0
 end for
 
+
 var hasWaited := false
 loop    % Title screen loop
 Input.KeyDown(chars)
@@ -32,16 +35,23 @@ Font.Draw("Cannonbalt",round((maxx/2)-(Font.Width("Cannonbalt",Font1)/2)),maxy-1
 Font.Draw("Space to jump",round((maxx/2)-(Font.Width("Space to jump",Font2)/2)),maxy-200,Font2,black)
 
 View.Update()
-if (not hasWaited) then 
+if (not hasWaited) then
     delay(1000)
 else
-    Font.Draw("Space to start!",round((maxx/2)-(Font.Width("Space to start!",Font2)/2)),maxy-300,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
+    Font.Draw("Space to start!",round((maxx/2)-(Font.Width("Space to start!",Font2)/2)),maxy-300,Font2,black*(round(    Time.Elapsed() / 200)) mod 2)
 end if
 
-hasWaited := true
+View.Update()
 
+loop
+    exit when (LastFrame + frameMillis) < Time.Elapsed
+end loop
+LastFrame := Time.Elapsed
+
+hasWaited := true
 exit when chars(' ') and not formerChars(' ')
 end loop
+
 hasWaited := false
 
 loop    % Everything
@@ -55,6 +65,7 @@ var floorHeight : int := 100
 var Walls : flexible array 1..0 of int
 
 var Health : real := 100
+
 
 loop
     Input.KeyDown(chars)
@@ -71,9 +82,6 @@ loop
     end if
     
     var jumping := chars(' ') and not formerChars(' ')
-    
-    
-    
     if (jumping and grounded) then
         y := floorHeight+1
         yVel := 5
@@ -98,7 +106,6 @@ loop
                 if (walls(i).posX-x -2.5 < 100 and walls(i).posX-x +2.5 > 100) then
                     
                     if (y < floorHeight+50) then
-                        put "Crashed!"
                         Health -= 20
                         walls(i).alive := false
                     end if
@@ -107,7 +114,7 @@ loop
             end if
         end for
             
-        if (Rand.Int(0,100) = 50) then
+        if (Rand.Int(0,difficulty) = difficulty) then
             new walls, upper(walls)+1
             walls(upper(walls)).posX := maxx+x+100
             walls(upper(walls)).alive := true
@@ -146,10 +153,7 @@ loop
         Draw.FillBox    (10,10,160,30,red)
         Draw.FillBox    (10,10,10+round((Health/100)*150),30,green)
         
-        put "FT:    ",(LastFrame + frameMillis) - Time.Elapsed
-        put "Y:     ",y
-        put "yVel:  ",(yVel)
-        put "x:     ",x
+        Font.Draw("Score: "+intstr(x),400,15,Font2,black)
         
         if (Health <= 0) then
             % So, we just lost. Now to explode!
