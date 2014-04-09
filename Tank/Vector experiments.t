@@ -91,34 +91,79 @@ end Vector2
 var zero : pointer to Vector2
 new Vector2, zero
 
-var r : real := 5           % The radius of the ball
 
-var c1 : pointer to Vector2 % The current postion of the ball
-new Vector2, c1
-c1 -> Set(50,50)
+proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
+    Draw.ThickLine(round(a->getX()),round(a->getY()),
+        round(b->getX()),round(b->getY()),w,c)
+end drawVectorThickLine
 
-var c2 : pointer to Vector2 % The next position of the ball
-new Vector2, c2
-c2 -> Set(100,0)
+function vectorPtInRect (p,a,b : pointer to Vector2) : boolean
+    result true 
+end vectorPtInRect
 
-var p1 : pointer to Vector2 % End one of the wall
-new Vector2, p1
-p1 -> Set(0,0)
+View.Set("offscreenonly")
 
-var p2 : pointer to Vector2 % End two of the wall
-new Vector2, p2
-p2 -> Set(100,100)
+var x,y,b : int := 0
 
-var n : pointer to Vector2 := p1 -> Subtract(p2) -> getNormal(zero)
+loop
+    Mouse.Where(x,y,b)
+    var r : real := 0           % The radius of the ball
+    
+    var c1 : pointer to Vector2 % The current postion of the ball
+    new Vector2, c1
+    c1 -> Set(x-100,y-100)
+    
+    var c2 : pointer to Vector2 % The next position of the ball
+    new Vector2, c2
+    c2 -> Set(100,0)
+    
+    var p1 : pointer to Vector2 % End one of the wall
+    new Vector2, p1
+    p1 -> Set(1000,1000)
+    
+    var p2 : pointer to Vector2 % End two of the wall
+    new Vector2, p2
+    p2 -> Set(-100,-100)
+    
+    var n : pointer to Vector2 := p1 -> Subtract(p2) -> getNormal(zero)
+    
+    var d1 : real := abs(p1 -> Subtract(c1) -> dotProduct(n))
+    var d2 : real := abs(p2 -> Subtract(c2) -> dotProduct(n))
+    
+    var t : real := 0
+    
+    if (d1 = d2) then
+        % PANIC!
+        put "d1 equals d2, this fails now."
+        quit
+    else
+        %t := (r - d1) / (d2-d1)
+        t := (-d1) / (d2-d1)
+    end if
+    
+    put "p1-p2*t                ", p1->Subtract(p2)->Multiply(t)->getX(), ", ",p2->Subtract(p1)->Multiply(t)->getY()
+    put "p1-p2                  ", p1->Subtract(p2)->getX(), ", ",p2->Subtract(p1)->getY()
+    put "p1+p1+((p2-p1)*t)      ", p1->Add(p1->Add(p2->Subtract(p1)->Multiply(t)))->getX(), ", ", p1->Add(p1->Add(p2->Subtract(p1)->Multiply(t)))->getY()
+    
+    var hit : pointer to Vector2 := c1->Add(c1->Add(c2->Subtract(c1)->Multiply(t)))
+    
+    put "Distance from c1 to p  ", d1
+    put "Distance from c2 to p  ", d2
+    put "Scalar of collision    ", t
+    put "Length of p            ", p1 -> Subtract(p2) -> getMag()
+    put "Length of c            ", c1 -> Subtract(c2) -> getMag()
+    put "Collision location     ", hit -> getX(), ", ", hit -> getY()
+    
+    drawVectorThickLine(p1->AddDir(100,100),p2->AddDir(100,100),3,black)
+    drawVectorThickLine(c1->AddDir(100,100),c2->AddDir(100,100),3,red)
+    Draw.FillOval(floor(hit->AddDir(100,100) -> getX()),floor(hit->AddDir(100,100) -> getY()),5,5,blue)
+    Draw.Line(100,100,100,maxy,black)
+    Draw.Line(100,100,maxx,100,black)
+    View.Update()
+    cls()
+    delay(10)
+end loop
 
-var d1 : real := abs(p1 -> Subtract(c1) -> dotProduct(n))
-var d2 : real := abs(p2 -> Subtract(c2) -> dotProduct(n))
-
-put d1
-put d2
-put (r - d1) / (d2-d1)
 
 
-        
-        
-        
+
