@@ -178,6 +178,29 @@ class Wall
         %Draw.FillOval(0,round(b),5,5,red)
     end draw
     
+    function realBetween(a,x,y : real) : boolean
+        
+        if (x>y) then
+            result realBetween(a,y,x)
+        end if
+        
+        result a > x and a < y
+        
+    end realBetween
+    
+    function checkWallCol (w : pointer to Wall) : boolean
+        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+        %x = (b2-b1)/(m1-m2)
+        
+        var y : real := (m*x)+b
+        %Draw.FillOval(round(x),round(y),5,5,red)
+        
+        
+        
+        %result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) andrealBetween(x,Location->Add(Velocity)->getX(),Location->getX())
+        
+    end checkWallCol
+    
     function getWallIntersect (w : pointer to Wall) : pointer to Vector2
         
         var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
@@ -254,6 +277,58 @@ class Bullet
             realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
         
     end checkWallCol
+    
+        function realBetween(a,x,y : real) : boolean
+        
+        if (x>y) then
+            result realBetween(a,y,x)
+        end if
+        
+        result a > x and a < y
+        
+    end realBetween
+    
+    /*function checkWallCol (w : pointer to Wall) : boolean
+        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+        %x = (b2-b1)/(m1-m2)
+        
+        var y : real := (m*x)+b
+        %Draw.FillOval(round(x),round(y),5,5,red)
+        
+        
+        
+        result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
+            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
+        
+    end checkWallCol*/
+    
+    function findIntersect (w : pointer to Wall) : pointer to Vector2
+        
+        var x,y    : real:= 0
+        var found1 : boolean := false
+        var found2 : boolean := false
+        
+        if (s1->getX() = e1->getX()) then
+            x := s1->getX()
+            found1:=true
+        end if
+        
+        if (w->getP1->getX() = w->getP1->getX()) then
+            x := s2->getX()
+            found2:=true
+        end if
+        
+        if (found1 and found2) then % Okay, so, if this passes, we are in deep s***.
+            if (s2->getX() = s1->getX()) then
+                result s1
+            end if
+            result s2
+        end if
+        
+        var m1,b1,m2,b2 : real := 0
+        
+        
+    end findIntersect
     
 end Bullet
 
