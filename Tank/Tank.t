@@ -124,6 +124,64 @@ end Vector2
 var zero : pointer to Vector2
 new Vector2, zero
 
+/*
+This finds the collision between (a1,b1) and (a2,b2). NOT SAFE: Can crash if not called on checked vars.
+*/
+function getVectorCollision (s1,e1,s2,e2 : pointer to Vector2) : pointer to Vector2
+    var x,y : real := 0
+    var foundX : boolean := false
+    var res : pointer to Vector2
+    
+    new Vector2, res
+    
+    if (s1->getX()not=e1->getX()) then  % The line is not vertical
+        
+        var m1 : real := (s1 -> getY() - e1 -> getY()) / (s1 -> getX() - e1 -> getX())
+        var a1 : real := s1->getY() - (s1->getX() * m1)
+        var m2,a2 : real := 0
+        
+        if (s2->getX() = e2->getX()) then
+            x := s2->getX()
+            foundX := true
+        else
+            m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+            a2 : real := s2->getY() - (s2->getX() * m2)
+        end if
+    else                                % Line 1 is vertical
+        x := s1 -> getX()   % Line 1 is vertical, subsequently, we know where the point's X is.
+        foundX := true
+    end if
+    
+    if (foundX) then
+        y := (m1*x)+a1
+    else
+        x := (b2-b1)/(m1-m2)
+        y := (m1*x)+a1
+    end if
+    
+    res->Set(x,y)
+    result res
+end getVectorCollision
+
+function doVectorsCollide (s1,e1,s2,e2 : pointer to Vector2) : boolean
+    if (s1->getX()not=e1->getX()) then  % The line is not vertical
+        
+        var m1 : real := (s1 -> getY() - e1 -> getY()) / (s1 -> getX() - e1 -> getX())
+        
+        if (s2->getX() = e2->getX()) then
+            result true         % One is vertical, the other is not. Thusly do they touch.
+        end if
+        
+        var m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+        var a2 : real := s2->getY() - (s2->getX() * m2)
+        
+        result (m1 not= m2) % lines are not parallel?
+        
+    else                                % Line 1 is vertical
+        result (s2->getX() = e2->getX())    % Is Line 2 vertical also?
+    end if
+end doVectorsCollide
+
 proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     Draw.ThickLine(round(a->getX()),round(a->getY()),
         round(b->getX()),round(b->getY()),w,c)
@@ -277,59 +335,6 @@ class Bullet
             realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
         
     end checkWallCol
-    
-        function realBetween(a,x,y : real) : boolean
-        
-        if (x>y) then
-            result realBetween(a,y,x)
-        end if
-        
-        result a > x and a < y
-        
-    end realBetween
-    
-    /*function checkWallCol (w : pointer to Wall) : boolean
-        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
-        %x = (b2-b1)/(m1-m2)
-        
-        var y : real := (m*x)+b
-        %Draw.FillOval(round(x),round(y),5,5,red)
-        
-        
-        
-        result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
-            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
-        
-    end checkWallCol*/
-    
-    function findIntersect (w : pointer to Wall) : pointer to Vector2
-        
-        var x,y    : real:= 0
-        var found1 : boolean := false
-        var found2 : boolean := false
-        
-        if (s1->getX() = e1->getX()) then
-            x := s1->getX()
-            found1:=true
-        end if
-        
-        if (w->getP1->getX() = w->getP1->getX()) then
-            x := s2->getX()
-            found2:=true
-        end if
-        
-        if (found1 and found2) then % Okay, so, if this passes, we are in deep s***.
-            if (s2->getX() = s1->getX()) then
-                result s1
-            end if
-            result s2
-        end if
-        
-        var m1,b1,m2,b2 : real := 0
-        
-        
-    end findIntersect
-    
 end Bullet
 
 class Tank
@@ -509,35 +514,6 @@ class Tank
         result a > x and a < y
         
     end realBetween
-    
-    procedure checkWallCol(w : pointer to Wall)
-        /*
-        var m,b : real := 0
-        
-        if ((Location -> getX() - PLoc -> getX() <= 0)) then
-        m := 0
-        b:=0
-    else
-        
-        m := (Location -> getY() - PLoc -> getY()) / (Location -> getX() - PLoc -> getX())
-        b := Location->getY() - (PLoc->getX() * m)
-        
-        end if
-        
-        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
-        %x = (b2-b1)/(m1-m2)
-        
-        var y : real := (m*x)+b
-        %Draw.FillOval(round(x),round(y),5,5,red)
-        
-        if (realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
-            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())) then
-        
-        Velocity -> Set(0,0)
-        Location -> Set(x,y)
-        
-        end if*/
-    end checkWallCol
     
 end Tank
 

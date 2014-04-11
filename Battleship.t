@@ -36,7 +36,7 @@ proc addShip(x1,y1,x2,y2:int)
                     player1grid (x,y).containsShip := true
                 end for
             end for
-            else
+        else
             addShip(x1,y2,x2,y1)
         end if
     else
@@ -54,13 +54,16 @@ proc drawGrid()
             end if
             if (player1grid(x,y).firedOn) then
                 Draw.FillBox(x*15,y*15,(x+1)*15,(y+1)*15,red)
+                if (player1grid(x,y).containsShip) then
+                    Draw.FillBox(x*15,y*15,(x+1)*15,(y+1)*15,green)
+                end if
             end if
         end for
     end for
         
     for x : 1..20
         for y : 1..20
-            Draw.Box (x*15,y*15,(x+1)*15,(y+1)*15,green)
+            Draw.Box (x*15,y*15,(x+1)*15,(y+1)*15,black)
         end for
     end for
 end drawGrid
@@ -86,13 +89,16 @@ loop    % placement loop
                 if (mB = 1 and mL = 0) then
                     x2 := floor(mX/15)
                     y2 := floor(mY/15)
+                    
                     addShip(x1,y1,x2,y2)
                     shipsLeft -= 1
+                    
                 end if
-                Draw.ThickLine(mX,mY,x1*15,y1*15,5,black)
-                drawGrid()
-                View.Update()
+                
                 cls()
+                drawGrid()
+                Draw.ThickLine(mX,mY,x1*15,y1*15,5,black)
+                View.Update()
                 exit when mB = 1 and mL = 0
             end loop
         end if
@@ -111,15 +117,22 @@ loop    % Firing loop
     if (mX > 15 and mX < 21*15 and mY > 15 and mY < 21*15) then
         var x1,y1 : int := 0
         
-        drawGrid()
+        
         
         if (mB = 1 and mL = 0) then
             x1 := floor(mX/15)
             y1 := floor(mY/15)
-            player1grid(x1,y1).firedOn := true
+            if (player1grid(x1,y1).firedOn = false) then
+                player1grid(x1,y1).firedOn := true
+            end if
         end if
         
+        
+        
     end if
+    
+    cls()
+    drawGrid()
     
     Time.DelaySinceLast(10)
     View.Update()
