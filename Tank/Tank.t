@@ -124,6 +124,16 @@ end Vector2
 var zero : pointer to Vector2
 new Vector2, zero
 
+function realBetween(a,x,y : real) : boolean
+    
+    if (x>y) then
+        result realBetween(a,y,x)
+    end if
+    
+    result a > x and a < y
+    
+end realBetween
+
 /*
 This finds the collision between (a1,b1) and (a2,b2). NOT SAFE: Can crash if not called on checked vars.
 */
@@ -144,23 +154,25 @@ function getVectorCollision (s1,e1,s2,e2 : pointer to Vector2) : pointer to Vect
             x := s2->getX()
             foundX := true
         else
-            m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
-            a2 : real := s2->getY() - (s2->getX() * m2)
+            m2 := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+            a2 := s2->getY() - (s2->getX() * m2)
+        end if
+        if (foundX) then
+            y := (m1*x)+a1
+        else
+            x := (a2-a1)/(m1-m2)
+            y := (m1*x)+a1
         end if
     else                                % Line 1 is vertical
+        var m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+        var a2 : real := s2->getY() - (s2->getX() * m2)
         x := s1 -> getX()   % Line 1 is vertical, subsequently, we know where the point's X is.
-        foundX := true
-    end if
-    
-    if (foundX) then
-        y := (m1*x)+a1
-    else
-        x := (b2-b1)/(m1-m2)
-        y := (m1*x)+a1
+        y := (m2*x)+a2
     end if
     
     res->Set(x,y)
     result res
+    
 end getVectorCollision
 
 function doVectorsCollide (s1,e1,s2,e2 : pointer to Vector2) : boolean
@@ -280,7 +292,8 @@ class Wall
 end Wall
 
 class Bullet
-    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Wall
+    import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
+            doVectorsCollide, getVectorCollision, realBetween
     export update, Init, checkWallCol
     
     % Location
@@ -312,34 +325,21 @@ class Bullet
         
     end update
     
-    function realBetween(a,x,y : real) : boolean
-        
-        if (x>y) then
-            result realBetween(a,y,x)
-        end if
-        
-        result a > x and a < y
-        
-    end realBetween
-    
     function checkWallCol (w : pointer to Wall) : boolean
-        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
-        %x = (b2-b1)/(m1-m2)
-        
-        var y : real := (m*x)+b
-        %Draw.FillOval(round(x),round(y),5,5,red)
-        
-        
-        
-        result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) and
-            realBetween(x,Location->Add(Velocity)->getX(),Location->getX())
-        
+        if (doVectorsCollide(Location, Location->Subtract(Velocity), w->getP1(),w->getP2())) then
+            var hit : pointer to Vector2 := getVectorCollision(Location, Location->Subtract(Velocity),
+                    w->getP1(),w->getP2())
+            result realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+                    realBetween(hit->getY(),Location->Add(Velocity)->getX(),Location->getX())
+        else
+            result false
+        end if
     end checkWallCol
 end Bullet
 
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall
-    export setControls, update, Init, Fire, Reload, CanFire, checkWallCol
+    export setControls, update, Init, Fire, Reload, CanFire
     
     var health := 100
     
@@ -626,6 +626,14 @@ loop    % Main game logic loop
     
     for i : 1..upper(walls) 
         walls(i) -> draw()
+        for o : i .. upper(walls)
+            if (doVectorsCollide(walls(i)->getP1(), walls(i)->getP2(),
+                    walls(o)->getP1(), walls(o)->getP2())) then
+                var pos : pointer to Vector2 := getVectorCollision(walls(i)->getP1(), walls(i)->getP2(),
+                    walls(o)->getP1(), walls(o)->getP2())
+                Draw.FillOval(round(pos->getX()),round(pos->getY()),10,10,red)
+            end if
+        end for
     end for
         
     var RemoveThese : flexible array 0..-1 of int
@@ -649,7 +657,7 @@ loop    % Main game logic loop
     end for
         
     for i : 1..upper(walls)
-        Player -> checkWallCol(walls(i))
+        %Player -> checkWallCol(walls(i))
     end for
         
     for i : 0 .. upper (RemoveThese)
@@ -661,9 +669,6 @@ loop    % Main game logic loop
         
     end for
         
-    
-    
-    
     
     View.Update()
     cls()
