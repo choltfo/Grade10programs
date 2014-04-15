@@ -8,20 +8,22 @@ var Font2 := Font.New ("Arial:18")
 var chars : array char of boolean
 var formerChars : array char of boolean
 
+var GUIBase : int := maxy - 50
+
 var mX, mY, mB, mLB : int := 0      % Mouse vars
 var hasWaited := false
 loop    % Title screen loop
     Mouse.Where(mX, mY, mB)
-    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),maxy-100,Font1,black)
-    Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
-    Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
-    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
+    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),GUIBase-100,Font1,black)
+    Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),GUIBase-200,Font2,black)
+    Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),GUIBase-220,Font2,black)
+    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),GUIBase-240,Font2,black)
     
     View.Update()
     if (not hasWaited) then 
         delay(2000)
     else
-        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-300,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
+        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),GUIBase-300,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
     end if
     
     hasWaited := true
@@ -261,13 +263,13 @@ class Wall
     end realBetween
     
     /*function checkWallCol (w : pointer to Wall) : boolean
-        var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
-        %x = (b2-b1)/(m1-m2)
-        
-        var y : real := (m*x)+b
-        %Draw.FillOval(round(x),round(y),5,5,red)
-        %result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) andrealBetween(x,Location->Add(Velocity)->getX(),Location->getX())
-        
+    var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
+    %x = (b2-b1)/(m1-m2)
+    
+    var y : real := (m*x)+b
+    %Draw.FillOval(round(x),round(y),5,5,red)
+    %result realBetween(x,w->getP1()->getX(),w->getP2()->getX()) andrealBetween(x,Location->Add(Velocity)->getX(),Location->getX())
+    
     end checkWallCol*/
     
     function getWallIntersect (w : pointer to Wall) : pointer to Vector2
@@ -292,7 +294,7 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween
+        doVectorsCollide, getVectorCollision, realBetween, GUIBase
     export update, Init, checkWallCol
     
     % Location
@@ -321,20 +323,20 @@ class Bullet
         
         %drawVectorThickLine(Location, Location->Add(Velocity),3,red)
         Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
-        result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < maxy and Location->getY() > 0
+        result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < GUIBase and Location->getY() > 0
         
     end update
     
     function checkWallCol (w : pointer to Wall) : boolean
         %if (doVectorsCollide(Location, Location->Add(Velocity), w->getP1(),w->getP2())) then
-            var hit : pointer to Vector2 := getVectorCollision(Location, Location->Add(Velocity),
-                w->getP1(),w->getP2())
-            
-            %Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,cyan)
-            
-            result realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
-                realBetween(hit->getX(),Location->Add(Velocity)->getX(),Location->getX())
-       % else
+        var hit : pointer to Vector2 := getVectorCollision(Location, Location->Add(Velocity),
+            w->getP1(),w->getP2())
+        
+        %Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,cyan)
+        
+        result realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+            realBetween(hit->getX(),Location->Add(Velocity)->getX(),Location->getX())
+        % else
         %    result false
         %end if
     end checkWallCol
@@ -351,7 +353,8 @@ class Laser
     
     var EndPoint : pointer to Vector2
     
-    var TTL : int := 5
+    var TTL : int := 10
+    var maxTTL : int := 10
     
     procedure Init (Loc : pointer to Vector2, rot:real)
         new Vector2, Location
@@ -361,37 +364,45 @@ class Laser
         
     end Init
     
-    function update () : boolean
-        drawVectorThickLine(Location, EndPoint,3,red)
+    function update () : int    % 0 for dead, 1 for firing, 2 for fading
         %Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
         TTL -= 1
-        result TTL > 0
+        if (TTL = 0) then
+            result 0
+        elsif (TTL = maxTTL-1) then
+            result 1
+        else
+            drawVectorThickLine(Location, EndPoint,TTL,red)
+            result 2
+        end if
     end update
     
     proc checkWallCol (w : pointer to Wall)
-            var hit : pointer to Vector2 := getVectorCollision(Location, EndPoint,
-                w->getP1(),w->getP2())
-            Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,red)
-            
-            
-            if realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
-                    realBetween(hit->getX(),EndPoint->getX(),Location->getX()) then
-                EndPoint := hit
-            end if
+        var hit : pointer to Vector2 := getVectorCollision(Location, EndPoint,
+            w->getP1(),w->getP2())
+        %Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,red)
+        
+        
+        if realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+                realBetween(hit->getX(),EndPoint->getX(),Location->getX()) then
+            EndPoint := hit
+        end if
     end checkWallCol
     
 end Laser
 
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser
     
     var health := 100
     
     % The gun
     var maxAmmo, curAmmo : int := 10
     var damage := 10
+    var curLasers, maxLasers : int := 100
+    var laserDamage := 5
     
     var lastReload := 0
     var reloadMillis := 2500
@@ -412,10 +423,10 @@ class Tank
     % Local friction
     var Fric : pointer to Vector2
     
-    
     var Rotation,turretRotation : real := 0
     
     %function CheckCol
+    
     
     procedure Reload()
         if (curAmmo < maxAmmo) then
@@ -453,6 +464,8 @@ class Tank
             round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
         
         
+        
+        
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(-10,20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(-10,-20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
@@ -462,9 +475,9 @@ class Tank
         
         if (lastReload = 0) then
             var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
-            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
+            Font.Draw(ammoLine, maxx - 400, GUIBase-20,Font2, black)
         else
-            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
+            Font.Draw("Reloading",maxx-400,GUIBase-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
         end if
         
         drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation, Location),
@@ -522,8 +535,8 @@ class Tank
             Location -> SetX(maxx-1)
         end if
         
-        if (Location -> getY() > maxy) then
-            Location -> SetY(maxy-1)
+        if (Location -> getY() > GUIBase) then
+            Location -> SetY(GUIBase-1)
         end if
         
         if (Location -> getX() < 0) then
@@ -536,7 +549,7 @@ class Tank
         
         render()
     end update
-        
+    
     function realBetween(a,x,y : real) : boolean
         
         if (x>y) then
@@ -555,6 +568,8 @@ class Tank
             var didIHit : boolean := realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
                 realBetween(hit->getX(),PLoc->getX(),loc->getX())
             if (didIHit) then
+                /*Velocity := Velocity -> Multiply(0.5) -> RotateD(180,zero)
+                Location := Location -> Add(Velocity)*/
                 Velocity := zero
             end if
         end if
@@ -581,6 +596,18 @@ class Tank
         result Bul
     end Fire
     
+    function CanFireLaser() : boolean
+        result true
+    end CanFireLaser
+    
+    function FireLaser() : pointer to Laser
+        var laser : pointer to Laser
+        new Laser, laser
+        
+        laser -> Init(Location -> AddDir(0,15)->RotateD(Rotation, Location), Rotation+90)
+        result laser
+    end FireLaser
+    
 end Tank
 
 
@@ -603,7 +630,6 @@ Player -> Init(vel,loc,fric,0)
 
 var bullets : flexible array 1..0 of pointer to Bullet
 var lasers : flexible array 1..0 of pointer to Laser
-
 var walls : flexible array -1..0 of pointer to Wall
 
 % generate map from walls and vector points
@@ -646,7 +672,7 @@ for i : 1..upper(mapFile)
         
     end if
 end for
-put "Done!"
+    put "Done!"
 View.Update()
 delay(500)
 
@@ -684,6 +710,10 @@ loop    % Main game logic loop
             new bullets, upper(bullets)+1
             bullets(upper(bullets)) := Player -> Fire() %SHOOT FROM THE TANK!
         end if
+        if chars (' ') and Player -> CanFireLaser() then
+            new lasers, upper(lasers)+1
+            lasers(upper(lasers)) := Player -> FireLaser() %SHOOT FROM THE TANK!
+        end if
         
         Player -> setControls(V,H,L)
         Player -> update(mX, mY, mB)
@@ -700,35 +730,38 @@ loop    % Main game logic loop
     for i : 1..upper(bullets)
         var alive: boolean := true
         
-        if (alive) then
-            if (bullets(i) -> update() not= true) then
-                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets) 
-            end if
+        if (bullets(i) -> update() not= true) then
+            new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+            RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets) 
         end if
         
-        for o : 1..upper(walls)
-            
-            if ( bullets(i) -> checkWallCol(walls(o))) then
-                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
-                alive := false
-            end if
-            
-        end for
+        if (alive) then
+            for o : 1..upper(walls)
+                if ( bullets(i) -> checkWallCol(walls(o))) then
+                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
+                    alive := false
+                end if
+            end for
+        end if
     end for
-    
+        
     for i : 1..upper(lasers)
         var alive: boolean := true
         
         if (alive) then
-            if (lasers(i) -> update() not= true) then
+            var lState := lasers(i) -> update()
+            if (lState = 0 ) then
                 new RemoveTheseLasers, upper (RemoveTheseLasers) + 1 
                 RemoveTheseLasers (upper (RemoveTheseLasers)) := i - upper (RemoveTheseLasers) 
+            elsif (lState = 1) then
+                for o : 1..upper(walls)
+                    lasers(i) -> checkWallCol(walls(o))
+                end for
             end if
         end if
     end for
-    
+        
     for i : 1..upper(walls)
         Player -> checkWallCol(walls(i))
     end for
@@ -738,18 +771,18 @@ loop    % Main game logic loop
         for j : RemoveTheseBullets (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1)
         end for
-        if (upper(bullets) > 0) then
+            if (upper(bullets) > 0) then
             new bullets, upper (bullets) - 1
         end if
         
     end for
-    
+        
     for i : 0 .. upper (RemoveTheseLasers)
         
         for j : RemoveTheseLasers (i) .. upper (lasers) - 1 
             lasers (j) := lasers (j + 1)
         end for
-        if (upper(lasers) > 0) then
+            if (upper(lasers) > 0) then
             new lasers, upper (lasers) - 1
         end if
         
