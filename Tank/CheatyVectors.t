@@ -97,9 +97,63 @@ class Vector2
 end Vector2
 
 
-var zero : pointer to Vector2
-new Vector2, zero
+function getVectorCollision (s1,e1,s2,e2 : pointer to Vector2) : pointer to Vector2
+    var x,y : real := 0
+    var foundX : boolean := false
+    var res : pointer to Vector2
+    
+    new Vector2, res
+    
+    if (s1->getX()not=e1->getX()) then  % The line is not vertical
+        
+        var m1 : real := (s1 -> getY() - e1 -> getY()) / (s1 -> getX() - e1 -> getX())
+        var a1 : real := s1->getY() - (s1->getX() * m1)
+        var m2,a2 : real := 0
+        
+        if (s2->getX() = e2->getX()) then
+            x := s2->getX()
+            foundX := true
+        else
+            m2 := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+            a2 := s2->getY() - (s2->getX() * m2)
+        end if
+        if (foundX) then
+            y := (m1*x)+a1
+        else
+            x := (a2-a1)/(m1-m2)
+            y := (m1*x)+a1
+        end if
+    else                                % Line 1 is vertical
+        var m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+        
+        var a2 : real := s2->getY() - (s2->getX() * m2)
+        x := s1 -> getX()   % Line 1 is vertical, subsequently, we know where the point's X is.
+        y := (m2*x)+a2
+    end if
+    
+    res->Set(x,y)
+    result res
+    
+end getVectorCollision
 
+function doVectorsCollide (s1,e1,s2,e2 : pointer to Vector2) : boolean
+    if (s1->getX()not=e1->getX()) then  % The line is not vertical
+        
+        var m1 : real := (s1 -> getY() - e1 -> getY()) / (s1 -> getX() - e1 -> getX())
+        
+        if (s2->getX() = e2->getX()) then
+            result true         % One is vertical, the other is not. Thusly do they touch.
+        end if
+        
+        var m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
+        var a2 : real := s2->getY() - (s2->getX() * m2)
+        
+        result (m1 not= m2) % lines are not parallel?
+        
+    else                                % Line 1 is vertical
+        result (s2->getX() = e2->getX())    % Is Line 2 vertical also?
+    end if
+end doVectorsCollide
 
 proc drawVectorThickLine (a,b : pointer to Vector2, w, c : int)
     Draw.ThickLine(round(a->getX()),round(a->getY()),
@@ -110,75 +164,34 @@ function vectorPtInRect (p,a,b : pointer to Vector2) : boolean
     result true 
 end vectorPtInRect
 
-View.Set("offscreenonly")
 
 var x,y,b : int := 0
+View.Set("offscreenonly")
 
 loop
     Mouse.Where(x,y,b)
-    var r : real := 0           % The radius of the ball
     
     var c1 : pointer to Vector2 % The current postion of the ball
     new Vector2, c1
-    c1 -> Set(x-100,y-100)
+    c1 -> Set(maxx-200,maxy-200)
     
     var c2 : pointer to Vector2 % The next position of the ball
     new Vector2, c2
-    c2 -> Set(100,0)
+    c2 -> Set(x,y)
     
     var p1 : pointer to Vector2 % End one of the wall
     new Vector2, p1
-    p1 -> Set(1000,1000)
+    p1 -> Set(maxx,0)
     
     var p2 : pointer to Vector2 % End two of the wall
     new Vector2, p2
-    p2 -> Set(-100,-100)
+    p2 -> Set(0,maxy)
     
-    var n : pointer to Vector2 := p1 -> Subtract(p2) -> getNormal(zero)
+    drawVectorThickLine (p1,p2,5,red)
+    drawVectorThickLine (c1,c2,5,green)
     
-    var d1 : real := abs(p2 -> Subtract(c1) -> dotProduct(n))
-    var d2 : real := abs(p2 -> Subtract(c2) -> dotProduct(n))
-    
-    var t : real := 0
-    
-    if (d1 = d2) then
-        if (c1->Subtract(c2)-> Normalize() = p1->Subtract(p2)-> Normalize()) then
-            t := 0.5
-        else
-        
-        end if
-    else
-        %t := (r - d1) / (d2-d1)
-        t := (-d1) / (d2-d1)
-    end if
-    
-    put "p1-p2*t                ", p1->Subtract(p2)->Multiply(t)->getX(), ", ",p2->Subtract(p1)->Multiply(t)->getY()
-    put "p1-p2                  ", p1->Subtract(p2)->getX(), ", ",p2->Subtract(p1)->getY()
-    put "p1+p1+((p2-p1)*t)      ", p1->Add(p1->Add(p2->Subtract(p1)->Multiply(t)))->getX(), ", ", p1->Add(p1->Add(p2->Subtract(p1)->Multiply(t)))->getY()
-    
-    var hit : pointer to Vector2 := c1->Add(c1->Add(c2->Subtract(c1)->Multiply(t)))
-    
-    put "Distance from c1 to p  ", d1
-    put "Distance from c2 to p  ", d2
-    put "Scalar of collision    ", t
-    put "Length of p            ", p1 -> Subtract(p2) -> getMag()
-    put "Length of c            ", c1 -> Subtract(c2) -> getMag()
-    put "Collision location     ", hit -> getX(), ", ", hit -> getY()
-    
-    drawVectorThickLine(p1->AddDir(100,100),p2->AddDir(100,100),3,black)
-    drawVectorThickLine(c1->AddDir(100,100),c2->AddDir(100,100),3,red)
-    Draw.FillOval(floor(hit->AddDir(100,100) -> getX()),floor(hit->AddDir(100,100) -> getY()),5,5,blue)
-    Draw.Line(100,100,100,maxy,black)
-    Draw.Line(100,100,maxx,100,black)
+    var hit : pointer to Vector2 := getVectorCollision(c1,c2,p1,p2)
+    Draw.FillOval(floor(hit -> getX()),floor(hit -> getY()),10,10,blue)
     View.Update()
     cls()
-    delay(10)
 end loop
-
-
-
-
-
-
-
-
