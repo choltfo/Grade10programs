@@ -547,17 +547,24 @@ class Tank
         
     end realBetween
     
-    procedure checkWallCol (w : pointer to Wall)
-        var newLoc : pointer to Vector2 := Location->Add(Velocity)
-        if (doVectorsCollide(Location, PLoc, w->getP1(),w->getP2())) then
-            var hit : pointer to Vector2 := getVectorCollision(Location, PLoc,
+    procedure checkPointWall (loc : pointer to Vector2, w : pointer to Wall)
+        var newLoc : pointer to Vector2 := loc->Add(Velocity)
+        if (doVectorsCollide(loc, PLoc, w->getP1(),w->getP2())) then
+            var hit : pointer to Vector2 := getVectorCollision(loc, PLoc,
                 w->getP1(),w->getP2())
             var didIHit : boolean := realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
-                realBetween(hit->getX(),PLoc->getX(),Location->getX())
+                realBetween(hit->getX(),PLoc->getX(),loc->getX())
             if (didIHit) then
                 Velocity := zero
             end if
         end if
+    end checkPointWall
+    
+    procedure checkWallCol (w : pointer to Wall)
+        checkPointWall(Location->AddDir(10,20)->RotateD(Rotation,Location),w)
+        checkPointWall(Location->AddDir(-10,20)->RotateD(Rotation,Location),w)
+        checkPointWall(Location->AddDir(-10,-20)->RotateD(Rotation,Location),w)
+        checkPointWall(Location->AddDir(10,-20)->RotateD(Rotation,Location),w)
     end checkWallCol
     
     function CanFire() : boolean
@@ -720,16 +727,6 @@ loop    % Main game logic loop
                 RemoveTheseLasers (upper (RemoveTheseLasers)) := i - upper (RemoveTheseLasers) 
             end if
         end if
-        
-        for o : 1..upper(walls)
-            
-            if (lasers(i) -> checkWallCol(walls(o))) then
-                new RemoveTheseLasers, upper (RemoveTheseLasers) + 1 
-                RemoveTheseLasers (upper (RemoveTheseLasers)) := i - upper (RemoveTheseLasers)
-                alive := false
-            end if
-            
-        end for
     end for
     
     for i : 1..upper(walls)
