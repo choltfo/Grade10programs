@@ -10,7 +10,7 @@ const size : int := 40
 
 class Cell
     export Alive, alive
-    var alive : boolean := false %cheat(boolean, Rand.Int(0,1))
+    var alive : boolean := cheat(boolean, Rand.Int(0,1))
     
     proc Alive (a : boolean)
         alive := a
@@ -168,6 +168,14 @@ loop
         if (frameMillis < 0) then
             frameMillis := 0
         end if
+    end if
+    
+    if (keys('r')) then
+        for x : 0..size
+            for y : 0..size
+                CurrentCells(x,y)->Alive(cheat(boolean, Rand.Int(0,1)))
+            end for
+        end for
     end if
     
     if (not paused) then

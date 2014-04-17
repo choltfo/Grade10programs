@@ -2,7 +2,7 @@
 
 include "Vector2.t"
 
-View.Set("Graphics:900;600,offscreenonly")
+View.Set("Graphics:600;400,offscreenonly")
 
 var Font1 := Font.New ("Impact:72")
 var Font2 := Font.New ("Arial:18")
@@ -38,8 +38,16 @@ var frameMillis : int := 10
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
-    export Init, draw, getP1, getP2, getB, getM, getWallIntersect
+    export Init, draw, getP1, getP2, getB, getM, getWallIntersect, getColour, getHeight
     
+    var height : int := 100
+    var col    : int := red 
+    function getHeight() : int
+        result height
+    end getHeight
+    function getColour() : int
+        result col
+    end getColour
     
     var p1, p2 : pointer to Vector2
     
@@ -61,10 +69,12 @@ class Wall
         result b
     end getB
     
-    proc Init (e, s : pointer to Vector2)
+    proc Init (e, s : pointer to Vector2, c:int)
         
         p1 := e
         p2 := s
+        col := c
+        
         
     end Init
     
@@ -174,8 +184,8 @@ class Laser
     
     var EndPoint : pointer to Vector2
     
-    var TTL : int := 5
-    var maxTTL : int := 5
+    var TTL : int := 3
+    var maxTTL : int := 3
     
     procedure Init (Loc : pointer to Vector2, rot:real)
         new Vector2, Location
@@ -215,7 +225,7 @@ end Laser
 
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render, getLocation,Rotation, getRotation
     
     var health := 100
     
@@ -270,6 +280,14 @@ class Tank
         turretRotation += L*(frameMillis/1000)*100
         
     end setControls
+    
+    function getLocation () : pointer to Vector2
+        result Location
+    end getLocation
+    
+    function getRotation () : real
+        result Rotation
+    end getRotation
     
     proc render()
         
@@ -481,14 +499,15 @@ end loop
 for i : 1..upper(mapFile)
     if (mapFile(i) = "Wall:") then
         
-        var x1,x2,y1,y2 : int := 0
+        var x1,x2,y1,y2,c : int := 0
         
         x1 := strint(mapFile (i+1))
         y1 := strint(mapFile (i+2))
         x2 := strint(mapFile (i+3))
         y2 := strint(mapFile (i+4))
+        c  := strint(mapFile (i+5))
         
-        put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
+        put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,"),",c,"."
         
         new walls, upper(walls)+1
         new Wall, walls(upper(walls))
@@ -499,7 +518,7 @@ for i : 1..upper(mapFile)
         s -> Set (x1+0.01,y1+0.01)
         e -> Set (x2+0.01,y2+0.01)
         
-        walls(upper(walls)) -> Init (e,s)
+        walls(upper(walls)) -> Init (e,s,c)
         
     end if
 end for
@@ -514,6 +533,40 @@ mLB := mB
 Mouse.Where(mX,mY,mB)
 
 var FRPlotX : int := 1
+
+
+function getWall(camera, endPoint : pointer to Vector2) : pointer to Wall
+    var W : pointer to Wall := nil
+    var d : real := 1000000    % The square distance
+    for i : 1..upper(walls)
+        var w : pointer to Wall := walls(i)
+        if (doVectorsCollide(camera, endPoint, w->getP1(),w->getP2())) then
+            var hit : pointer to Vector2 := getVectorCollision(camera, endPoint,
+                w->getP1(),w->getP2())
+            var didIHit : boolean := realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+                realBetween(hit->getX(),endPoint->getX(),camera->getX())
+            if (didIHit) then
+                var SM : real := hit -> Subtract(camera) -> getSqrMag()
+                if (SM < d) then
+                    W := w
+                    d := SM
+                end if
+                %Draw.FillOval(round(hit->getX()),round(hit->getY()),5,5,blue)
+            end if
+        end if
+    end for
+    result W
+end getWall
+
+proc drawCol(x:int)
+    var c : pointer to Vector2 := Player->getLocation()
+    var e : pointer to Vector2 := Player->getLocation() -> AddDir(x-maxx/2,200) -> RotateD(Player->getRotation(),Player->getLocation())
+    %drawVectorThickLine(c,e,1,red)
+    var w : pointer to Wall := getWall(c,e)
+    if (w not= nil) then
+        Draw.Line(x, 0, x, 100, w -> getColour())
+    end if
+end drawCol
 
 loop    % Main game logic loop
     
@@ -597,6 +650,10 @@ loop    % Main game logic loop
         
     Player -> render()
     
+    for x : 1..maxx
+        drawCol(x)
+    end for
+    
     for i : 1..upper(walls)
         Player -> checkWallCol(walls(i))
     end for
@@ -622,7 +679,7 @@ loop    % Main game logic loop
         end if
         
     end for
-        
+    
     
     
     put (LastFrame + frameMillis) - Time.Elapsed
