@@ -1,6 +1,7 @@
 % Let's drive a Tank!
 
 include "Vector2.t"
+include "Lightning.t"
 
 View.Set("Graphics:900;600,offscreenonly")
 
@@ -38,7 +39,7 @@ var frameMillis : int := 10
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
-    export Init, draw, getP1, getP2, getB, getM, getWallIntersect
+    export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture
     
     
     var p1, p2 : pointer to Vector2
@@ -111,12 +112,34 @@ class Wall
         
     end getWallIntersect
     
+    function Puncture(point : pointer to Vector2, holeWidth : real) : pointer to Wall
+        var res : pointer to Wall
+        var hP1,hP2,dif : pointer to Vector2
+            /*
+                Hole point 1 and 2
+                hP1 is the point nearest p1, while hP2 is nearest p2.
+                dif is that massive line of math.
+            */
+        new Vector2, hP1
+        new Vector2, hP2
+        new Wall, res
+        
+        dif := zero->AddDir(0,holeWidth/2)->RotateD(arctand((p1->getY()-p2->getY())/(p1->getX()-p2->getX()))+90, zero)
+        
+        hP1 := point->Subtract(dif)
+        hP2 := point->Add(dif)
+        
+        res -> Init (hP2, p2)
+        p2 := hP1
+        result res
+    end  Puncture
+    
 end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
         doVectorsCollide, getVectorCollision, realBetween, GUIBase
-    export update, Init, checkWallCol
+    export update, Init, checkWallCol, getLoc, getVel
     
     % Location
     var Location : pointer to Vector2
@@ -125,6 +148,14 @@ class Bullet
     var Velocity : pointer to Vector2
     
     var m, b : real := 0
+    
+    function getLoc() : pointer to Vector2
+        result Location
+    end getLoc
+    
+    function getVel() : pointer to Vector2
+        result Velocity
+    end getVel
     
     procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
         
@@ -214,16 +245,19 @@ end Laser
 
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render
     
     var health := 100
     
+    var LB : pointer to LightningBox
+    
     % The gun
     var maxAmmo, curAmmo : int := 10
     var damage := 10
-    var curLasers, maxLasers : int := 100
+    var curLasers, maxLasers : real := 100
     var laserDamage := 5
+    var canLase : boolean := true
     
     var lastReload := 0
     var reloadMillis := 2500
@@ -262,6 +296,8 @@ class Tank
         Fric     := Fri
         
         Fric ->Set(0,0)
+        new LightningBox, LB
+        LB -> Init (10,maxy-10,230,GUIBase+10,black,yellow,darkgrey)
     end Init
     
     procedure setControls (gas,steering,L : real)
@@ -286,8 +322,6 @@ class Tank
         
         
         
-        
-        
         % Draw the main body of the tank.
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(10,-20) -> RotateD(Rotation, Location),1,black)
         drawVectorThickLine(Location -> AddDir(10,20) -> RotateD(Rotation, Location), Location -> AddDir(5,20) -> RotateD(Rotation, Location),1,black)
@@ -303,17 +337,6 @@ class Tank
         Draw.Fill(floor(Forward -> getX()),floor(Forward -> getY()),grey,black)
         Draw.Fill(floor(Location -> getX()),floor(Location -> getY()),green,black)
         
-        
-        Draw.FillBox(0,GUIBase, maxx,maxy,grey)
-        Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
-        
-        if (lastReload = 0) then
-            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
-            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
-        else
-            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
-        end if
-        
         drawVectorBox(Location -> AddDir(1,0) -> RotateD(turretRotation, Location),
             Location -> AddDir(-1,0) -> RotateD(turretRotation, Location),
             Location -> AddDir(-1,10) -> RotateD(turretRotation, Location),
@@ -323,9 +346,33 @@ class Tank
         Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, grey)
         Draw.Oval(round(Location -> getX()), round(Location -> getY()), 3, 3, black)
         
+        Draw.FillBox(0,GUIBase, maxx,maxy,grey)
+        Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
+        
+        LB -> update()
+        LB -> draw(round(curLasers),round(maxLasers), not canLase)
+        
+        if (lastReload = 0) then
+            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
+            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
+        else
+            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
+        end if
+        
     end render
     
     procedure update (mX, mY, mB : int)
+        
+        if (curLasers < maxLasers) then
+            curLasers += 10*(frameMillis/1000)
+            if (round(curLasers) - 1 < 0) then
+                canLase := false
+            end if
+        end if
+        
+        if ((canLase = false) and curLasers > 25) then
+            canLase := true
+        end if
         
         if (lastReload not= 0) then
             if (lastReload + reloadMillis < Time.Elapsed) then
@@ -430,7 +477,7 @@ class Tank
     end Fire
     
     function CanFireLaser() : boolean
-        result true
+        result (curLasers > 0) and (canLase = true)
     end CanFireLaser
     
     function FireLaser() : pointer to Laser
@@ -438,6 +485,7 @@ class Tank
         new Laser, laser
         
         laser -> Init(Location -> AddDir(0,15)->RotateD(Rotation, Location), Rotation+90)
+        curLasers-=1
         result laser
     end FireLaser
     
@@ -573,6 +621,20 @@ loop    % Main game logic loop
         if (alive) then
             for o : 1..upper(walls)
                 if ( bullets(i) -> checkWallCol(walls(o))) then
+                    
+                    % TODO: Blast holes in walls.
+                    
+                    var hitLoc : pointer to Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), bullets(i)->getLoc()->Add(bullets(i)->getVel()))
+                    
+                    if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                        walls(o)->Init(hitLoc,walls(o)->getP2())
+                    elsif (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                        walls(o)->Init(walls(o)->getP1(),hitLoc)
+                    else
+                        new walls, upper(walls)+1
+                        walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
+                    end if
+                    
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
                     alive := false
@@ -604,7 +666,6 @@ loop    % Main game logic loop
     end for
         
     for i : 0 .. upper (RemoveTheseBullets)
-        
         for j : RemoveTheseBullets (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1)
         end for
@@ -627,7 +688,7 @@ loop    % Main game logic loop
         
     
     
-    put (LastFrame + frameMillis) - Time.Elapsed
+    %put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
