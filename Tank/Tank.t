@@ -272,7 +272,7 @@ class Tank
     end setControls
     
     proc render()
-        
+        % Health Bar
         Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
             round(Location -> getX()) + 25, round(Location -> getY()) + 30, red)
         Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
@@ -283,6 +283,8 @@ class Tank
             round(Location -> getX()) - 25, round(Location -> getY()) + 25,black)
         Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 30,
             round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
+        
+        
         
         
         
