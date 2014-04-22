@@ -393,7 +393,7 @@ class Tank
         Velocity := Velocity -> Multiply(0.99)
         
         NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
-        NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  % The magnitude of the Gas, and rotate it by steering.
+        %NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  % The magnitude of the Gas, and rotate it by steering.
         
         % Add extra speed
         Velocity := Velocity -> Add(NewSpeed)
