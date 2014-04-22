@@ -215,7 +215,7 @@ loop
     exit when handlingSet(targetX,targetY) = 3
 end loop
 
-% Okay, so now we need to start at the end, and backtrack, finding the nearest one with the lowest G scoreh
+% Okay, so now we need to start at the end, and backtrack, finding the nearest one with the lowest G score
 
 var xpos := targetX
 var ypos := targetY

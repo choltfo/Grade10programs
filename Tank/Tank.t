@@ -17,22 +17,27 @@ var mX, mY, mB, mLB : int := 0      % Mouse vars
 var hasWaited := false
 loop    % Title screen loop
     Mouse.Where(mX, mY, mB)
-    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),GUIBase-100,Font1,black)
-    Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),GUIBase-200,Font2,black)
-    Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),GUIBase-220,Font2,black)
-    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),GUIBase-240,Font2,black)
+    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),maxy-100,Font1,black)
+    Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
+    Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
+    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
+    Font.Draw("Space to fire laser",round((maxx/2)-(Font.Width("Space to fire laser",Font2)/2)),maxy-260,Font2,black)
     
-    View.Update()
-    if (not hasWaited) then 
+    
+    if (not hasWaited) then
+        View.Update()
         delay(2000)
     else
-        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),GUIBase-300,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
+        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-400,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
     end if
     
     hasWaited := true
     
     exit when mB = 1 and mLB not=1
     mLB := mB
+    View.Update()
+    cls()
+    delay(10)
 end loop
 
 var frameMillis : int := 10
@@ -115,11 +120,11 @@ class Wall
     function Puncture(point : pointer to Vector2, holeWidth : real) : pointer to Wall
         var res : pointer to Wall
         var hP1,hP2,dif : pointer to Vector2
-            /*
-                Hole point 1 and 2
-                hP1 is the point nearest p1, while hP2 is nearest p2.
-                dif is that massive line of math.
-            */
+        /*
+        Hole point 1 and 2
+        hP1 is the point nearest p1, while hP2 is nearest p2.
+        dif is that massive line of math.
+        */
         new Vector2, hP1
         new Vector2, hP2
         new Wall, res
@@ -563,7 +568,46 @@ delay (20)
 mLB := mB
 Mouse.Where(mX,mY,mB)
 
+function PtInRect (x,y,x1,y1,x2,y2:int):boolean
+    if x1 > x2 then
+        result PtInRect(x,y,x2,y2,x1,y1)
+    end if
+    if y1 > y2 then
+        result PtInRect(x,y,x1,y2,x2,y1)
+    end if
+    result (x > x1) and (x < x2) and (y > y1) and (y < y2)
+end PtInRect
+
+var bgImg : int := 0
+
+proc pauseScreen()
+    var mX,mY,mB,lMB : int := 0
+    loop
+        formerChars := chars
+        Input.KeyDown (chars)
+        Mouse.Where(mX,mY,mB)
+        
+        Pic.Draw(bgImg,0,0,0)
+        
+        Font.Draw("Paused",round((maxx/2)-(Font.Width("Paused",Font1)/2)),maxy-100,Font1,black)
+        Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
+        Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
+        Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
+        Font.Draw("Space to fire laser",round((maxx/2)-(Font.Width("Space to fire laser",Font2)/2)),maxy-260,Font2,black)
+        
+        
+        
+        exit when chars(KEY_ESC) and not formerChars(KEY_ESC)
+        View.Update()
+        cls()
+        delay (10)
+        lMB := mB
+    end loop
+end pauseScreen
+
 var FRPlotX : int := 1
+
+var paused : boolean := false
 
 loop    % Main game logic loop
     
@@ -589,6 +633,9 @@ loop    % Main game logic loop
         if chars ('r') then
             Player -> Reload()
         end if
+        if chars(KEY_ESC) and not formerChars(KEY_ESC) then
+            paused := true
+        end if
         if mB =1 and not mLB = 1 and Player -> CanFire() then
             new bullets, upper(bullets)+1
             bullets(upper(bullets)) := Player -> Fire() %SHOOT FROM THE TANK!
@@ -609,34 +656,43 @@ loop    % Main game logic loop
         
     var RemoveTheseBullets : flexible array 0..-1 of int
     var RemoveTheseLasers : flexible array 0..-1 of int
+    var RemoveTheseWalls : flexible array 0..-1 of int
     
     for i : 1..upper(bullets)
         var alive: boolean := true
         
         if (bullets(i) -> update() not= true) then
             new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-            RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets) 
+            RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
         end if
         
         if (alive) then
             for o : 1..upper(walls)
                 if ( bullets(i) -> checkWallCol(walls(o))) then
-                    
                     % TODO: Blast holes in walls.
-                    
                     var hitLoc : pointer to Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), bullets(i)->getLoc()->Add(bullets(i)->getVel()))
                     
                     if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
-                        walls(o)->Init(hitLoc,walls(o)->getP2())
+                        if (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                            new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o% - upper (RemoveTheseWalls)
+                        else
+                            walls(o)->Init(hitLoc,walls(o)->getP2())
+                        end if
                     elsif (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
-                        walls(o)->Init(walls(o)->getP1(),hitLoc)
+                        if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                            new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o% - upper (RemoveTheseWalls)
+                        else
+                            walls(o)->Init(hitLoc,walls(o)->getP1())
+                        end if
                     else
                         new walls, upper(walls)+1
                         walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
                     end if
                     
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := o% - upper (RemoveTheseBullets)
                     alive := false
                 end if
             end for
@@ -649,7 +705,7 @@ loop    % Main game logic loop
         if (alive) then
             var lState := lasers(i) -> update()
             if (lState = 0 ) then
-                new RemoveTheseLasers, upper (RemoveTheseLasers) + 1 
+                new RemoveTheseLasers, upper (RemoveTheseLasers) + 1
                 RemoveTheseLasers (upper (RemoveTheseLasers)) := i - upper (RemoveTheseLasers) 
             elsif (lState = 1) then
                 for o : 1..upper(walls)
@@ -686,12 +742,30 @@ loop    % Main game logic loop
         
     end for
         
+    for i : 0 .. upper (RemoveTheseWalls)
+        
+        for j : RemoveTheseWalls (i) .. upper (walls) - 1 
+            walls (j) := walls (j + 1)
+        end for
+            if (upper(walls) > 0) then
+            new walls, upper (walls) - 1
+        end if
+        
+    end for
+        
     
     
     %put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
+    
+    if (paused) then
+        bgImg := Pic.New(0,0,maxx,maxy)
+        bgImg := Pic.Blur(bgImg,10)
+        pauseScreen()
+        paused := false
+    end if
     
     View.Update()
     cls()
