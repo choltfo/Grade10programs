@@ -39,13 +39,14 @@ for x : 1..20
     for y : 1..20
         grid(x,y).wall := false
         grid(x,y).gScore := 1000000
-        grid(x,y).fScore := Math.sqrt((20-x)*(20-x)+(20-y)*(20-y))
+        grid(x,y).fScore := Math.Distance(x,y,20,20)
         grid(x,y).closed := false
     end for
 end for
 
 grid(1,1).wall := false
 grid(1,1).gScore := 0
+grid(1,1).fScore := 10000
 
 grid(20,20).wall := false
 grid(20,20).fScore := 0
@@ -98,7 +99,6 @@ loop    % Allow map creation.
     Draw.Text("Done",maxx-Font.Width("Done", font),0,font,black)
     exit when PtInRect(mX,mY, maxx-Font.Width("Done", font),0,maxx,50) and mB = 1
 
-    %put "X: ",pX,", Y: ",pY
     lMB := mB
     View.Update()
     cls()
@@ -121,10 +121,8 @@ var a : int := 0
 loop
     exit when done
     
-    var lowestF : real := 1000000
-    var bestX,bestY,bestI:int:= 0
     Draw.FillBox(openSet(a).x*CELL_WIDTH,openSet(a).y*CELL_HEIGHT,(openSet(a).x+1)*CELL_WIDTH,(openSet(a).y+1)*CELL_HEIGHT,blue)
-    Draw.Text(intstr(grid(openSet(a).x,openSet(a).y).gScore),openSet(a).x*CELL_WIDTH+2,openSet(a).y*CELL_HEIGHT+2,font2,white)
+    %Draw.Text(realstr(grid(openSet(a).x,openSet(a).y).fScore,2),openSet(a).x*CELL_WIDTH+2,openSet(a).y*CELL_HEIGHT+2,font2,black)
     grid(openSet(a).x,openSet(a).y).closed := true
     for addX : -1..1
         for addY : -1..1
@@ -135,11 +133,14 @@ loop
                 openSet(upper(openSet)).x := x
                 openSet(upper(openSet)).y := y
                 Draw.FillBox(x*CELL_WIDTH,y*CELL_HEIGHT,(x+1)*CELL_WIDTH,(y+1)*CELL_HEIGHT,red)
-                Draw.Text(intstr(grid(x,y).gScore),x*CELL_WIDTH+2,y*CELL_HEIGHT+2,font2,white)
+                Draw.Text(realstr(grid(x,y).fScore,2),x*CELL_WIDTH+2,y*CELL_HEIGHT+2,font2,black)
                 grid(x,y).fScore := grid(openSet(a).x,openSet(a).y).gScore +1
             end if
         end for
     end for
+    
+    var lowestF : real := 1000000
+    var bestX,bestY,bestI:int:= 0
     
     for i : 0..upper(openSet)
             if (not grid(openSet(i).x,openSet(i).y).wall and not grid(openSet(i).x,openSet(i).y).closed) then
