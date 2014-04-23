@@ -1,3 +1,7 @@
+/*
+    An A* pathfinder, written by Charles Holtforster
+*/
+
 
 type point : record
     wall : boolean
@@ -22,6 +26,7 @@ function PtInRect (x,y,x1,y1,x2,y2:int):boolean
 end PtInRect
 
 var font : int := Font.New("arial:24")
+var font2 : int := Font.New("arial:6")
 
 var start, finish : point
 
@@ -100,7 +105,6 @@ loop    % Allow map creation.
     delay(10)
 end loop
 
-var cur : coord
 const ENDX : int := 20
 const ENDY : int := 20
 
@@ -109,18 +113,83 @@ var openSet : flexible array 0..0 of coord
 openSet(0).x := 1
 openSet(0).y := 1
 
-cur.x := openSet(0).x
-cur.y := openSet(0).y
-
 %Draw.FillBox(x*CELL_WIDTH,y*CELL_HEIGHT,(x+1)*CELL_WIDTH,(y+1)*CELL_HEIGHT,cyan)
 
 var done : boolean := false
+var a : int := 0
 
 loop
     exit when done
     
+    var lowestF : real := 1000000
+    var bestX,bestY,bestI:int:= 0
+    Draw.FillBox(openSet(a).x*CELL_WIDTH,openSet(a).y*CELL_HEIGHT,(openSet(a).x+1)*CELL_WIDTH,(openSet(a).y+1)*CELL_HEIGHT,blue)
+    Draw.Text(intstr(grid(openSet(a).x,openSet(a).y).gScore),openSet(a).x*CELL_WIDTH+2,openSet(a).y*CELL_HEIGHT+2,font2,white)
+    grid(openSet(a).x,openSet(a).y).closed := true
+    for addX : -1..1
+        for addY : -1..1
+            var x : int := openSet(a).x+addX
+            var y : int := openSet(a).y+addY
+            if (not grid(x,y).wall and not grid(x,y).closed) then
+                new openSet, upper(openSet)+1
+                openSet(upper(openSet)).x := x
+                openSet(upper(openSet)).y := y
+                Draw.FillBox(x*CELL_WIDTH,y*CELL_HEIGHT,(x+1)*CELL_WIDTH,(y+1)*CELL_HEIGHT,red)
+                Draw.Text(intstr(grid(x,y).gScore),x*CELL_WIDTH+2,y*CELL_HEIGHT+2,font2,white)
+                grid(x,y).fScore := grid(openSet(a).x,openSet(a).y).gScore +1
+            end if
+        end for
+    end for
     
+    for i : 0..upper(openSet)
+            if (not grid(openSet(i).x,openSet(i).y).wall and not grid(openSet(i).x,openSet(i).y).closed) then
+                if (grid(openSet(i).x,openSet(i).y).fScore < lowestF) then
+                    bestX := openSet(i).x
+                    bestY := openSet(i).y
+                    bestI := i
+                    lowestF:=grid(openSet(i).x,openSet(i).y).fScore
+                    if (openSet(i).x = ENDX and openSet(i).y = ENDY) then
+                        done:=true
+                    end if
+                end if
+            end if
+    end for
     
+    %grid(openSet(bestI).x,openSet(bestI).y).gScore := grid(openSet(a).x,openSet(a).y).gScore +1
+    a := bestI
+    put openSet(a).x,", ",openSet(a).y
+    Text.Locate(1,1)
+    View.Update()
+end loop
+
+var cur:coord
+
+cur.x := ENDX
+cur.y := ENDY
+
+var Directions : flexible array 0..0 of coord
+
+var lowestG : int := grid(cur.x,cur.y).gScore
+delay(10000)
+loop
+    Draw.FillBox(cur.x*CELL_WIDTH,cur.y*CELL_HEIGHT,(cur.x+1)*CELL_WIDTH,(cur.y+1)*CELL_HEIGHT,yellow)
+    Draw.Text(intstr(grid(cur.x,cur.y).gScore),cur.x*CELL_WIDTH+2,cur.y*CELL_HEIGHT+2,font2,black)
+    new Directions, upper(Directions)+1
+    Directions(upper(Directions)) := cur
+    for addX : -1..1
+        for addY : -1..1
+            var x : int := cur.x+addX
+            var y : int := cur.y+addY
+            if (not grid(x,y).wall) then
+                if (grid(x,y).gScore < lowestG) then
+                    cur.x := x
+                    cur.y := y
+                    lowestG := grid(x,y).gScore
+                end if
+            end if
+        end for
+    end for
+    View.Update()
 end loop
 
 
