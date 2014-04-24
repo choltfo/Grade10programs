@@ -7,7 +7,7 @@
 type point : record
     wall : boolean
     fScore : real   % The distance from this point to the end
-    gScore : int    % The cost to reach this point
+    gScore : real    % The cost to reach this point
     used : boolean
 end record
 
@@ -25,6 +25,8 @@ function PtInRect (x,y,x1,y1,x2,y2:int):boolean
     end if
     result (x > x1) and (x < x2) and (y > y1) and (y < y2)
 end PtInRect
+
+const rt2 : real := Math.sqrt(2)
 
 var font : int := Font.New("arial:24")
 var font2 : int := Font.New("arial:6")
@@ -140,7 +142,11 @@ loop    % Populate gScores
                     openSet(upper(openSet)).y := y
                     Draw.Box(x*CELL_WIDTH+1,y*CELL_HEIGHT+1,(x+1)*CELL_WIDTH-1,(y+1)*CELL_HEIGHT-1,cyan)
                     %Draw.Text(realstr(grid(x,y).fScore,2),x*CELL_WIDTH+2,y*CELL_HEIGHT+2,font2,black)
-                    grid(x,y).gScore := grid(openSet(a).x,openSet(a).y).gScore +1
+                    if (addX = addY) then
+                        grid(x,y).gScore := grid(openSet(a).x,openSet(a).y).gScore + rt2
+                    else
+                        grid(x,y).gScore := grid(openSet(a).x,openSet(a).y).gScore + 1
+                    end if
                 end if
             end if
         end for
@@ -179,7 +185,7 @@ cur.y := ENDY
 
 var Directions : flexible array 0..0 of coord
 
-var lowestG : int := grid(cur.x,cur.y).gScore
+var lowestG : real := grid(cur.x,cur.y).gScore
 %delay(10000)
 loop
     %put cur.x,", ",cur.y
