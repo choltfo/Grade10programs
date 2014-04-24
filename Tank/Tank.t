@@ -2,6 +2,7 @@
 
 include "Vector2.t"
 include "Lightning.t"
+include "Particles.t"
 
 View.Set("Graphics:900;600,offscreenonly")
 
@@ -77,6 +78,8 @@ class Wall
     proc draw
         drawVectorThickLine (p1,p2,5,black)
         %Draw.FillOval(0,round(b),5,5,red)
+        Draw.FillOval(round(p1->getX()),round(p1->getY()),5,5,red)
+        Draw.FillOval(round(p2->getX()),round(p2->getY()),5,5,red)
     end draw
     
     function realBetween(a,x,y : real) : boolean
@@ -518,6 +521,9 @@ var bullets : flexible array 1..0 of pointer to Bullet
 var lasers : flexible array 1..0 of pointer to Laser
 var walls : flexible array -1..0 of pointer to Wall
 
+var PS : pointer to ParticleSystem
+new ParticleSystem, PS
+
 % generate map from walls and vector points
 
 var stream : int
@@ -691,11 +697,19 @@ loop    % Main game logic loop
                         walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
                     end if
                     
+                    
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,20,red,1,20,150)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,20,yellow,1,20,150)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,grey,2,2,10)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,100,black,1,2,5)
+                    %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
+                    
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := o% - upper (RemoveTheseBullets)
                     alive := false
                 end if
             end for
+            
         end if
     end for
         
@@ -716,6 +730,9 @@ loop    % Main game logic loop
     end for
         
     Player -> render()
+    
+    PS -> update()
+    PS -> draw()
     
     for i : 1..upper(walls)
         Player -> checkWallCol(walls(i))
@@ -755,7 +772,7 @@ loop    % Main game logic loop
         
     
     
-    %put (LastFrame + frameMillis) - Time.Elapsed
+    put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
@@ -769,6 +786,7 @@ loop    % Main game logic loop
     
     View.Update()
     cls()
+    Draw.FillBox(0,0,maxx,maxy,brown)
     loop
         exit when (LastFrame + frameMillis) < Time.Elapsed
     end loop
