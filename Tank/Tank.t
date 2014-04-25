@@ -690,7 +690,7 @@ loop    % Main game logic loop
                             new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
                             RemoveTheseWalls (upper (RemoveTheseWalls)) := o% - upper (RemoveTheseWalls)
                         else
-                            walls(o)->Init(hitLoc,walls(o)->getP1())
+                            walls(o)->Init(walls(o)->getP1(),hitLoc)
                         end if
                     else
                         new walls, upper(walls)+1
