@@ -14,6 +14,9 @@ var formerChars : array char of boolean
 
 var GUIBase : int := maxy - 50
 
+var PS : pointer to ParticleSystem
+new ParticleSystem, PS
+
 var mX, mY, mB, mLB : int := 0      % Mouse vars
 var hasWaited := false
 loop    % Title screen loop
@@ -78,8 +81,8 @@ class Wall
     proc draw
         drawVectorThickLine (p1,p2,5,black)
         %Draw.FillOval(0,round(b),5,5,red)
-        Draw.FillOval(round(p1->getX()),round(p1->getY()),5,5,red)
-        Draw.FillOval(round(p2->getX()),round(p2->getY()),5,5,red)
+        %Draw.FillOval(round(p1->getX()),round(p1->getY()),5,5,red)
+        %Draw.FillOval(round(p2->getX()),round(p2->getY()),5,5,red)
     end draw
     
     function realBetween(a,x,y : real) : boolean
@@ -146,7 +149,7 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween, GUIBase
+        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS
     export update, Init, checkWallCol, getLoc, getVel
     
     % Location
@@ -181,6 +184,10 @@ class Bullet
     function update () : boolean
         Location := Location -> Add(Velocity)
         
+        PS -> Init(Location -> getX(),Location -> getY(),2,2,15,grey,2,1,10)
+             %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
+        
+        
         %drawVectorThickLine(Location, Location->Add(Velocity),3,red)
         Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
         result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < GUIBase and Location->getY() > 0
@@ -205,8 +212,8 @@ end Bullet
 
 class Laser
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween
-    export update, Init, checkWallCol
+        doVectorsCollide, getVectorCollision, realBetween, PS
+    export update, Init, checkWallCol, getEnd
     
     % Location
     var Location : pointer to Vector2
@@ -215,6 +222,10 @@ class Laser
     
     var TTL : int := 5
     var maxTTL : int := 5
+    
+    function getEnd() : pointer to Vector2
+        result EndPoint
+    end getEnd
     
     procedure Init (Loc : pointer to Vector2, rot:real)
         new Vector2, Location
@@ -247,13 +258,14 @@ class Laser
                 realBetween(hit->getX(),EndPoint->getX(),Location->getX()) then
             EndPoint := hit
         end if
+        
     end checkWallCol
     
 end Laser
 
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render
     
     var health := 100
@@ -481,6 +493,13 @@ class Tank
         Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), 90+turretRotation, 15)
         curAmmo -= 1
         
+        var vel : pointer to Vector2 := Velocity -> Add(zero -> AddDir(0,10) ->RotateD(turretRotation,zero))
+        
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),100,darkgrey,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),15,yellow,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),15,41,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),30,red,2,10,20)
+        %Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         result Bul
     end Fire
     
@@ -520,9 +539,6 @@ Player -> Init(vel,loc,fric,0)
 var bullets : flexible array 1..0 of pointer to Bullet
 var lasers : flexible array 1..0 of pointer to Laser
 var walls : flexible array -1..0 of pointer to Wall
-
-var PS : pointer to ParticleSystem
-new ParticleSystem, PS
 
 % generate map from walls and vector points
 
@@ -564,7 +580,8 @@ for i : 1..upper(mapFile)
         
     end if
 end for
-    put "Done!"
+
+put "Done!"
 View.Update()
 delay(500)
 
@@ -669,7 +686,7 @@ loop    % Main game logic loop
         
         if (bullets(i) -> update() not= true) then
             new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-            RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
+            RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
         end if
         
         if (alive) then
@@ -681,14 +698,14 @@ loop    % Main game logic loop
                     if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
                         if (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
                             new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o% - upper (RemoveTheseWalls)
+                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         else
                             walls(o)->Init(hitLoc,walls(o)->getP2())
                         end if
                     elsif (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
                         if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
                             new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o% - upper (RemoveTheseWalls)
+                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         else
                             walls(o)->Init(walls(o)->getP1(),hitLoc)
                         end if
@@ -698,19 +715,24 @@ loop    % Main game logic loop
                     end if
                     
                     
-                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,20,red,1,20,150)
-                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,20,yellow,1,20,150)
-                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,grey,2,2,10)
-                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 5,5,100,black,1,2,5)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 2,2,20,red,5,20,20)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 2,2,20,yellow,5,20,20)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,grey,2,20,75)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,black,1,20,75)
                     %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
                     
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := o% - upper (RemoveTheseBullets)
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
                     alive := false
                 end if
             end for
             
         end if
+        
+        /*if (alive) then
+            new KeepTheseBullets, upper (KeepTheseBullets) + 1 
+            KeepTheseBullets (upper (KeepTheseBullets)) := o
+        end if*/
     end for
         
     for i : 1..upper(lasers)
@@ -727,6 +749,10 @@ loop    % Main game logic loop
                 end for
             end if
         end if
+        
+        
+        PS -> Init (lasers(i) -> getEnd() ->getX(),lasers(i) -> getEnd() -> getY(),10,10,10,cyan,2,1,2)
+        %     Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
     end for
         
     Player -> render()
@@ -772,14 +798,14 @@ loop    % Main game logic loop
         
     
     
-    put (LastFrame + frameMillis) - Time.Elapsed
+    %put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
     
     if (paused) then
         bgImg := Pic.New(0,0,maxx,maxy)
-        bgImg := Pic.Blur(bgImg,10)
+        %bgImg := Pic.Blur(bgImg,10)
         pauseScreen()
         paused := false
     end if

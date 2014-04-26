@@ -60,7 +60,7 @@ proc update ()
         points(i).x := x1+(i*seperation)
         points(i).y := y1+round((y2-y1)/2)+Rand.Int(-abs(round((y2-y1)/3)), abs(round((y2-y1)/3)))
     end for
-        
+    
     points(upper(points)).y := y1+round((y2-y1)/2)
 end update
 

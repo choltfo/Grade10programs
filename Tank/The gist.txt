@@ -1,0 +1,3 @@
+Charles Holtforster's summative idea:
+
+"Okay, so, here's the idea: I'm going to make a top-down tank shooter, with particle explosions, vector-based collisions, enemy tanks, multiple levels, a level editor, and human readable map files."

@@ -505,7 +505,7 @@ for i : 1..upper(mapFile)
         y1 := strint(mapFile (i+2))
         x2 := strint(mapFile (i+3))
         y2 := strint(mapFile (i+4))
-        c  := strint(mapFile (i+5))
+        c  := i*5%strint(mapFile (i+5))
         
         put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,"),",c,"."
         

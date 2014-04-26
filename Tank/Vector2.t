@@ -131,8 +131,12 @@ function getVectorCollision (s1,e1,s2,e2 : pointer to Vector2) : pointer to Vect
         if (foundX) then
             y := (m1*x)+a1
         else
-            x := (a2-a1)/(m1-m2)
-            y := (m1*x)+a1
+            if (m1-m2 = 0) then
+                % Lines are parallel, and we're screwed.
+            else
+                x := (a2-a1)/(m1-m2)
+                y := (m1*x)+a1
+            end if
         end if
     else                                % Line 1 is vertical
         var m2 : real := (s2 -> getY() - e2 -> getY()) / (s2 -> getX() - e2 -> getX())
