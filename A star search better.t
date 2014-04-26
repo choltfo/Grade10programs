@@ -64,8 +64,8 @@ end for
 View.Set("offscreenonly")
 var pX,pY,lMB : int := 0
 
-const CELL_WIDTH := 10
-const CELL_HEIGHT:= 10
+const CELL_WIDTH := 15
+const CELL_HEIGHT:= 15
 
 loop    % Allow map creation.
     var mX,mY,mB : int := 0
