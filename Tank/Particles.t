@@ -66,7 +66,8 @@ procedure update
         particles(removeThese(i)) := temp
         new particles, upper(particles) - 1
     end for
-        
+    
+    free removeThese
 end update
 
 procedure draw

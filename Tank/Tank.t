@@ -795,7 +795,6 @@ loop    % Main game logic loop
         end if
         
     end for
-        
     
     
     %put (LastFrame + frameMillis) - Time.Elapsed
@@ -813,9 +812,10 @@ loop    % Main game logic loop
     View.Update()
     cls()
     Draw.FillBox(0,0,maxx,maxy,brown)
-    loop
-        exit when (LastFrame + frameMillis) < Time.Elapsed
-    end loop
+    %loop
+    %    exit when (LastFrame + frameMillis) < Time.Elapsed
+    %end loop
+    Time.DelaySinceLast(frameMillis)
     LastFrame := Time.Elapsed
     mLB := mB
 end loop
