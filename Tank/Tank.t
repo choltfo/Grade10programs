@@ -580,6 +580,7 @@ Player -> Init(vel,loc,fric,0)
 var bullets :   flexible array 1..0 of pointer to Bullet
 var lasers :    flexible array 1..0 of pointer to Laser
 var walls :     flexible array 1..0 of pointer to Wall
+var enemies :     flexible array 1..0 of pointer to Tank
 
 % generate map from walls and vector points
 
@@ -695,6 +696,11 @@ loop    % Main game logic loop
         if chars ('a') then
             H += 1
         end if
+        if chars (KEY_ENTER) then
+            new enemies, upper(enemies) + 1
+            new Tank, enemies(upper(enemies))
+            Tank->Init()
+        end if
         if chars ('r') then
             Player -> Reload()
         end if
@@ -799,6 +805,10 @@ loop    % Main game logic loop
     end for
         
     Player -> render()
+    
+    for i : 1..upper(enemies)
+        enemies(i)->render()
+    end for
     
     PS -> update()
     PS -> draw()
