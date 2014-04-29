@@ -1,8 +1,6 @@
-% The second attampt at a Tank game, this time, no leaks!
-
 % Let's drive a Tank!
 
-include "Vectors.t"
+include "Vector2.t"
 include "Lightning.t"
 include "Particles.t"
 
@@ -51,19 +49,19 @@ end loop
 var frameMillis : int := 10
 
 class Wall
-    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
+    import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox
     export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture
     
     
-    var p1, p2 : Vector2
+    var p1, p2 : pointer to Vector2
     
     var m,b : real := 0 % As in Y=mX+b
     
-    function getP1() : Vector2
+    function getP1() : pointer to Vector2
         result p1
     end getP1
     
-    function getP2() : Vector2
+    function getP2() : pointer to Vector2
         result p2
     end getP2
     
@@ -75,7 +73,7 @@ class Wall
         result b
     end getB
     
-    proc Init (e, s : Vector2)
+    proc Init (e, s : pointer to Vector2)
         
         p1 := e
         p2 := s
@@ -109,7 +107,7 @@ class Wall
     
     end checkWallCol*/
     
-    function getWallIntersect (w : pointer to Wall) : Vector2
+    function getWallIntersect (w : pointer to Wall) : pointer to Vector2
         
         var x : real := (b - (w -> getB()) ) / ((w -> getM()) - m)
         
@@ -117,31 +115,32 @@ class Wall
         
         var y : real := (m*x)+b
         
-        var vec : Vector2
+        var vec : pointer to Vector2
         
-        vec.x := x
-        vec.y := y
+        new Vector2, vec
         
-        result vec
+        vec -> Set(x,y)
+        
+        result (vec)
         
     end getWallIntersect
     
-    function Puncture(point : Vector2, holeWidth : real) : pointer to Wall
+    function Puncture(point : pointer to Vector2, holeWidth : real) : pointer to Wall
         var res : pointer to Wall
-        var hP1,hP2,dif : Vector2
+        var hP1,hP2,dif : pointer to Vector2
         /*
         Hole point 1 and 2
         hP1 is the point nearest p1, while hP2 is nearest p2.
         dif is that massive line of math.
         */
+        new Vector2, hP1
+        new Vector2, hP2
         new Wall, res
         
-        %dif := zero->AddDir(0,holeWidth/2)->RotateD(arctand((p1->getY()-p2->getY())/(p1->getX()-p2->getX()))+90, zero)
+        dif := zero->AddDir(0,holeWidth/2)->RotateD(arctand((p1->getY()-p2->getY())/(p1->getX()-p2->getX()))+90, zero)
         
-        dif := Vector.RotateD(Vector.AddDir(zero,0,holeWidth/2),zero,arctand((p1.y-p2.y)/(p1.x-p2.x))+90)
-        
-        hP1 := Vector.Subtract(point,dif)
-        hP2 := Vector.Add(point,dif)
+        hP1 := point->Subtract(dif)
+        hP2 := point->Add(dif)
         
         res -> Init (hP2, p2)
         p2 := hP1
@@ -153,58 +152,67 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector
+        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS
     export update, Init, checkWallCol, getLoc, getVel
     
     % Location
-    var Location : Vector2
+    var Location : pointer to Vector2
     
     % Local velocity
-    var Velocity : Vector2
+    var Velocity : pointer to Vector2
     
     var m, b : real := 0
     
-    function getLoc() : Vector2
+    function getLoc() : pointer to Vector2
         result Location
     end getLoc
     
-    function getVel() : Vector2
+    function getVel() : pointer to Vector2
         result Velocity
     end getVel
     
-    procedure Init (Loc, Vel: Vector2, rot,speed:real)
+    procedure Init (Loc, Vel: pointer to Vector2, rot,speed:real)
         
+        new Vector2, Location
         Velocity := Vel
         
         Location := Loc
-        Velocity := Vector.AddDir(Velocity,cosd(rot)*speed,sind(rot)*speed)
+        Velocity := Velocity -> AddDir(cosd(rot)*speed,sind(rot)*speed)
         
-        m := (Location .y - Vector.Add(Location,Velocity).y) / (Location.x - Vector.Add(Location,Velocity).x)
-        b := Location.y - (Vector.Add(Location,Velocity).x * m)
+        m := (Location -> getY() - Location -> Add(Velocity) -> getY()) / (Location -> getX() - Location -> Add(Velocity) -> getX())
+        b := Location->getY() - (Location -> Add(Velocity)->getX() * m)
         
     end Init
     
     function update () : boolean
         
-        Location := Vector.Add(Location,Velocity)
+        var temp : ^Vector2
+        temp := Location -> Add(Velocity)
+        free Location
+        Location := temp
         
-        PS -> Init(Location.x,Location.y,2,2,15,grey,2,1,10)
+        PS -> Init(Location -> getX(),Location -> getY(),2,2,15,grey,2,1,10)
              %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
+        
+        
         %drawVectorThickLine(Location, Location->Add(Velocity),3,red)
-        Draw.FillOval(round(Location.x), round(Location.y), 2, 2, black)
-        result Location.x < maxx and Location.x > 0 and Location.y < GUIBase and Location.y > 0
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 2, 2, black)
+        result Location->getX() < maxx and Location->getX() > 0 and Location->getY() < GUIBase and Location->getY() > 0
         
     end update
     
     function checkWallCol (w : pointer to Wall) : boolean
         %if (doVectorsCollide(Location, Location->Add(Velocity), w->getP1(),w->getP2())) then
-        var temp : Vector2 := Vector.Add(Location,Velocity)
-        var hit : Vector2 := getVectorCollision(Location, temp, w->getP1(),w->getP2())
+        var temp : ^Vector2 := Location -> Add(Velocity)
+        var hit : pointer to Vector2 := getVectorCollision(Location, temp,
+            w->getP1(),w->getP2())
+        
+        free temp
         
         %Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,cyan)
         
-        result realBetween(hit.x,w->getP1().x,w->getP2().x) and
-            realBetween(hit.x,Vector.Add(Location,Velocity).x,Location.x)
+        result realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+            realBetween(hit->getX(),Location->Add(Velocity)->getX(),Location->getX())
         % else
         %    result false
         %end if
@@ -214,25 +222,26 @@ end Bullet
 
 class Laser
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween, PS, Vector
+        doVectorsCollide, getVectorCollision, realBetween, PS
     export update, Init, checkWallCol, getEnd
     
     % Location
-    var Location : Vector2
+    var Location : pointer to Vector2
     
-    var EndPoint : Vector2
+    var EndPoint : pointer to Vector2
     
     var TTL : int := 5
     var maxTTL : int := 5
     
-    function getEnd() : Vector2
+    function getEnd() : pointer to Vector2
         result EndPoint
     end getEnd
     
-    procedure Init (Loc : Vector2, rot:real)
+    procedure Init (Loc : pointer to Vector2, rot:real)
+        new Vector2, Location
         
         Location := Loc
-        EndPoint := Vector.AddDir(Location,cosd(rot)*100000,sind(rot)*100000)
+        EndPoint := Location -> AddDir(cosd(rot)*100000,sind(rot)*100000)
         
     end Init
     
@@ -250,13 +259,13 @@ class Laser
     end update
     
     proc checkWallCol (w : pointer to Wall)
-        var hit : Vector2 := getVectorCollision(Location, EndPoint,
+        var hit : pointer to Vector2 := getVectorCollision(Location, EndPoint,
             w->getP1(),w->getP2())
         %Draw.FillOval(round(hit->getX()),round(hit->getY()),10,10,red)
         
         
-        if realBetween(hit.x,w->getP1().x,w->getP2().x) and
-                realBetween(hit.x,EndPoint.x,Location.x) then
+        if realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+                realBetween(hit->getX(),EndPoint->getX(),Location->getX()) then
             EndPoint := hit
         end if
         
@@ -265,7 +274,7 @@ class Laser
 end Laser
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render
     
     var health := 100
@@ -289,14 +298,14 @@ class Tank
     
     
     % Location
-    var Location : Vector2
-    var PLoc     : Vector2
+    var Location : pointer to Vector2
+    var PLoc     : pointer to Vector2
     
     % Local velocity
-    var Velocity : Vector2
+    var Velocity : pointer to Vector2
     
     % Local friction
-    var Fric : Vector2
+    var Fric : pointer to Vector2
     
     var Rotation,turretRotation : real := 0
     
@@ -309,25 +318,16 @@ class Tank
         end if
     end Reload
     
-    procedure Init (Vel, Loc, Fri : Vector2, rot : real)
+    procedure Init (Vel, Loc, Fri : pointer to Vector2, rot : real)
         
         Location := Loc
         Velocity := Vel
         Rotation := rot
         Fric     := Fri
         
-        Fric.x := 0
-        Fric.y := 0
-        
-        Velocity.x := 0
-        Velocity.y := 0
-        
-        Location.x := 100
-        Location.y := 100
-        
+        Fric ->Set(0,0)
         new LightningBox, LB
         LB -> Init (10,maxy-10,230,GUIBase+10,black,yellow,darkgrey)
-        
         PLoc := Location
     end Init
     
@@ -340,65 +340,119 @@ class Tank
     
     proc render()
         % Health Bar
-        Draw.FillBox(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) + 25, round(Location.y) + 30, red)
-        Draw.FillBox(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) - 25 + floor(health*50/100), round(Location.y) + 30, green)
-            
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) + 25, round(Location.y) + 25,black)
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 30,
-            round(Location.x) + 25, round(Location.y) + 30,black)
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 30,
-            round(Location.x) - 25, round(Location.y) + 25,black)
-        Draw.Line(round(Location.x) + 25, round(Location.y) + 30,
-            round(Location.x) + 25, round(Location.y) + 25,black)
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
+            round(Location -> getX()) + 25, round(Location -> getY()) + 30, red)
+        Draw.FillBox(round(Location -> getX()) - 25, round(Location -> getY()) + 25,
+            round(Location -> getX()) - 25 + floor(health*50/100), round(Location -> getY()) + 30, green)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 25,round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,round(Location -> getX()) + 25, round(Location -> getY()) + 30,black)
+        Draw.Line(round(Location -> getX()) - 25, round(Location -> getY()) + 30,
+            round(Location -> getX()) - 25, round(Location -> getY()) + 25,black)
+        Draw.Line(round(Location -> getX()) + 25, round(Location -> getY()) + 30,
+            round(Location -> getX()) + 25, round(Location -> getY()) + 25,black)
         
         
         
         % Draw the main body of the tank.
         
-        var a,b,c,d,e,f : Vector2
+        var a,b,c,d,e,f,ar,br,cr,dr,er,fr : ^Vector2
         
-        a := Vector.RotateD(Vector.AddDir(Location, 10, 20), Location, Rotation)
-        b := Vector.RotateD(Vector.AddDir(Location, 10,-20), Location, Rotation)
-        c := Vector.RotateD(Vector.AddDir(Location,  5, 20), Location, Rotation)
-        d := Vector.RotateD(Vector.AddDir(Location,-10,-20), Location, Rotation)
-        e := Vector.RotateD(Vector.AddDir(Location,-10, 20), Location, Rotation)
-        f := Vector.RotateD(Vector.AddDir(Location, -5, 20), Location, Rotation)
+        a := Location -> AddDir(10,20)
+        ar:= a -> RotateD(Rotation, Location)
         
-        drawVectorThickLine(a, b,1,black)
-        drawVectorThickLine(a, c,1,black)
-        drawVectorThickLine(d, b,1,black)
-        drawVectorThickLine(e, d,1,black)
-        drawVectorThickLine(e, f,1,black)
+        b := Location -> AddDir(10,-20)
+        br:= b -> RotateD(Rotation, Location)
+        
+        c := Location -> AddDir(5,20)
+        cr:= c -> RotateD(Rotation, Location)
+        
+        d := Location -> AddDir(-10,-20)
+        dr:= d -> RotateD(Rotation, Location)
+        
+        e := Location -> AddDir(-10,20)
+        er:= e -> RotateD(Rotation, Location)
+        
+        f := Location -> AddDir(-5,20)
+        fr:= f -> RotateD(Rotation, Location)
+        
+        drawVectorThickLine(ar, br,1,black)
+        drawVectorThickLine(ar, cr,1,black)
+        drawVectorThickLine(dr, br,1,black)
+        drawVectorThickLine(er, dr,1,black)
+        drawVectorThickLine(er, fr,1,black)
+        
+        free a
+        free b
+        free c
+        free d
+        free e
+        free f
+        free ar
+        free br
+        free cr
+        free dr
+        free er
+        free fr
         
         % Reassign these variable for use in drawing the laser gun
-        a := Vector.RotateD(Vector.AddDir(Location, 5, 22), Location, Rotation)
-        b := Vector.RotateD(Vector.AddDir(Location,-5, 22), Location, Rotation)
-        c := Vector.RotateD(Vector.AddDir(Location,-5, 5 ), Location, Rotation)
-        d := Vector.RotateD(Vector.AddDir(Location, 5, 5 ), Location, Rotation)
+        a := Location -> AddDir(5,22)
+        ar:= a -> RotateD(Rotation, Location)
+        
+        b := Location -> AddDir(-5,22)
+        br:= b -> RotateD(Rotation, Location)
+        
+        c := Location -> AddDir(-5,5)
+        cr:= c -> RotateD(Rotation, Location)
+        
+        d := Location -> AddDir(5,5)
+        dr:= d -> RotateD(Rotation, Location)
         
         
         % Draw the Laser Gun!
-        drawVectorThickLine(a,b,1,black)
-        drawVectorThickLine(a,d,1,black)
-        drawVectorThickLine(c,b,1,black)
-        drawVectorThickLine(c,d,1,black)
-        var Forward := Vector.RotateD(Vector.AddDir(Location,0,10),Location,Rotation)
-        Draw.Fill(floor(Forward.x),floor(Forward.y),grey,black)
-        Draw.Fill(floor(Location.x),floor(Location.y),green,black)
+        drawVectorThickLine(ar,br,1,black)
+        drawVectorThickLine(ar,dr,1,black)
+        drawVectorThickLine(cr,br,1,black)
+        drawVectorThickLine(cr,dr,1,black)
+        var Forward := Location -> AddDir(0,10) -> RotateD(Rotation, Location)
+        Draw.Fill(floor(Forward -> getX()),floor(Forward -> getY()),grey,black)
+        Draw.Fill(floor(Location -> getX()),floor(Location -> getY()),green,black)
+        
+        
+        free a
+        free b
+        free c
+        free d
+        free ar
+        free br
+        free cr
+        free dr
+        free Forward
+        
+        
+        a := Location -> AddDir(1,0)
+        ar:= a -> RotateD(turretRotation, Location)
+        b := Location -> AddDir(-1,0)
+        br:= b -> RotateD(turretRotation, Location)
+        c := Location -> AddDir(-1,10)
+        cr:= c -> RotateD(turretRotation, Location)
+        d := Location -> AddDir(1,10)
+        dr:= d -> RotateD(turretRotation, Location)
+        
         
         % And the cannon
-        a := Vector.RotateD(Vector.AddDir(Location, 1, 0), Location, turretRotation)
-        b := Vector.RotateD(Vector.AddDir(Location,-1, 0), Location, turretRotation)
-        c := Vector.RotateD(Vector.AddDir(Location,-1,10), Location, turretRotation)
-        d := Vector.RotateD(Vector.AddDir(Location, 1,10), Location, turretRotation)
+        drawVectorBox(ar,br,cr,dr,black,black)
+            
+        free a
+        free b
+        free c
+        free d
+        free ar
+        free br
+        free cr
+        free dr
         
-        drawVectorBox(a,b,c,d,black,black)
-        
-        Draw.FillOval(round(Location.x), round(Location.y), 3, 3, grey)
-        Draw.Oval(round(Location.x), round(Location.y), 3, 3, black)
+        Draw.FillOval(round(Location -> getX()), round(Location -> getY()), 3, 3, grey)
+        Draw.Oval(round(Location -> getX()), round(Location -> getY()), 3, 3, black)
         
         Draw.FillBox(0,GUIBase, maxx,maxy,grey)
         Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
@@ -437,48 +491,59 @@ class Tank
         
         PLoc := Location
         
-        var RelPos, NewSpeed : Vector2
+        var RelPos, NewSpeed : pointer to Vector2
+        new Vector2, RelPos
+        new Vector2, NewSpeed
         
         % Friction
         %Velocity -> SetX(Velocity -> getX() * (1 - Fric -> getX()))
         %Velocity -> SetY(Velocity -> getY() * (1 - Fric -> getY()))
-        Velocity := Vector.Multiply(Velocity,0.99)
+        Velocity := Velocity -> Multiply(0.99)
         
-        NewSpeed.x := 0
-        NewSpeed.y := Gas                         %Okay, so the idea is, create a vector with
+        NewSpeed -> Set(0,Gas)                          %Okay, so the idea is, create a vector with
         %NewSpeed := NewSpeed -> RotateD(Steering*Gas/maxThrottle,zero->AddDir(0, Gas) )  % The magnitude of the Gas, and rotate it by steering.
         
         % Add extra speed
-        Velocity := Vector.Add(Velocity,NewSpeed)
+        var temp : ^Vector2 := Velocity -> Add(NewSpeed)
+        free Velocity
+        Velocity := temp
+        %free temp
         
         % Rotate to get relative new position
-        RelPos := Vector.RotateD(Velocity,zero,Rotation)
-        Location := Vector.Add(Location,RelPos)
+        RelPos := Velocity -> RotateD(Rotation, zero)
+        
+        temp := Location -> Add (RelPos)
+        %free Location
+        Location := temp
         
         Rotation += Steering*(frameMillis/1000)
         
-        if (Location.x not= mX) then
-            turretRotation := (arctand((Location.y- mY) / (Location.x- mX)) +270) mod 360
-            if (Location.x > mX) then
+        if (Location -> getX() not= mX) then
+            turretRotation := (arctand((Location -> getY()- mY) / (Location -> getX()- mX)) +270) mod 360
+            if (Location -> getX() > mX) then
                 turretRotation += 180
             end if
         end if
         
-        if (Location.x > maxx) then
-            Location.x := maxx-1
+        if (Location -> getX() > maxx) then
+            Location -> SetX(maxx-1)
         end if
         
-        if (Location.y > GUIBase) then
-            Location.y := GUIBase-1
+        if (Location -> getY() > GUIBase) then
+            Location -> SetY(GUIBase-1)
         end if
         
-        if (Location.x < 0) then
-            Location.x := 1
+        if (Location -> getX() < 0) then
+            Location -> SetX(1)
         end if
         
-        if (Location.y < 0) then
-            Location.y := 1
+        if (Location -> getY() < 0) then
+            Location -> SetY(1)
         end if
+        
+        
+        free RelPos
+        
         
     end update
     
@@ -492,13 +557,13 @@ class Tank
         
     end realBetween
     
-    procedure checkPointWall (loc : Vector2, w : pointer to Wall)
-        var newLoc : Vector2 := Vector.Add(loc,Velocity)
+    procedure checkPointWall (loc : pointer to Vector2, w : pointer to Wall)
+        var newLoc : pointer to Vector2 := loc->Add(Velocity)
         if (doVectorsCollide(loc, PLoc, w->getP1(),w->getP2())) then
-            var hit : Vector2 := getVectorCollision(loc, PLoc,
+            var hit : pointer to Vector2 := getVectorCollision(loc, PLoc,
                 w->getP1(),w->getP2())
-            var didIHit : boolean := realBetween(hit.x,w->getP1().x,w->getP2().x) and
-                realBetween(hit.x,PLoc.x,loc.x)
+            var didIHit : boolean := realBetween(hit->getX(),w->getP1()->getX(),w->getP2()->getX()) and
+                realBetween(hit->getX(),PLoc->getX(),loc->getX())
             if (didIHit) then
                 /*Velocity := Velocity -> Multiply(0.5) -> RotateD(180,zero)
                 Location := Location -> Add(Velocity)*/
@@ -509,12 +574,17 @@ class Tank
     
     procedure checkWallCol (w : pointer to Wall)
         
-        var a,b,c,d : Vector2
-
-        a := Vector.RotateD(Vector.AddDir(Location, 10, 20),Location,Rotation)
-        b := Vector.RotateD(Vector.AddDir(Location,-10, 20),Location,Rotation)
-        c := Vector.RotateD(Vector.AddDir(Location,-10,-20),Location,Rotation)
-        d := Vector.RotateD(Vector.AddDir(Location, 10,-20),Location,Rotation)
+        var a,b,c,d,ar,br,cr,dr : ^Vector2
+        
+        a := Location->AddDir(10,20)
+        ar:= a->RotateD(Rotation,Location)
+        b := Location->AddDir(-10,20)
+        br:= a->RotateD(Rotation,Location)
+        c := Location->AddDir(-10,-20)
+        cr:= a->RotateD(Rotation,Location)
+        d := Location->AddDir(10,-20)
+        dr:= a->RotateD(Rotation,Location)
+        
         
         checkPointWall(a,w)
         checkPointWall(b,w)
@@ -532,15 +602,15 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,15)
+        Bul -> Init(Location, Velocity -> RotateD(Rotation,zero), 90+turretRotation, 15)
         curAmmo -= 1
         
-        var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,10),zero,turretRotation))
+        var vel : pointer to Vector2 := Velocity -> Add(zero -> AddDir(0,10) ->RotateD(turretRotation,zero))
         
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 100,darkgrey,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 15,yellow,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 15,41,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 30,red,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),100,darkgrey,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),15,yellow,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),15,41,2,10,20)
+        PS -> InitAngular (Location->getX(), Location -> getY(),vel->getX(), vel -> getY(),30,red,2,10,20)
         %Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         result Bul
     end Fire
@@ -553,7 +623,7 @@ class Tank
         var laser : pointer to Laser
         new Laser, laser
         
-        laser -> Init(Vector.RotateD(Vector.AddDir(Location,0,15),Location,Rotation), Rotation+90)
+        laser -> Init(Location -> AddDir(0,15)->RotateD(Rotation, Location), Rotation+90)
         curLasers-=1
         result laser
     end FireLaser
@@ -567,19 +637,20 @@ new Tank, Player
 
 var LastFrame : int := 0
 
-var loc, vel,fric : Vector2
+var loc, vel,fric : pointer to Vector2
 
-fric.x := 0.1
-fric.y := 0.1
+new Vector2, vel
+new Vector2, loc
+new Vector2, fric
 
-loc.x := 100
-loc.y := 100
+fric ->Set(0.1,0.1)
+loc -> Set(100,100)
 
 Player -> Init(vel,loc,fric,0)
 
-var bullets :   flexible array 1..0 of pointer to Bullet
-var lasers :    flexible array 1..0 of pointer to Laser
-var walls :     flexible array 1..0 of pointer to Wall
+var bullets : flexible array 1..0 of pointer to Bullet
+var lasers : flexible array 1..0 of pointer to Laser
+var walls : flexible array -1..0 of pointer to Wall
 
 % generate map from walls and vector points
 
@@ -611,12 +682,11 @@ for i : 1..upper(mapFile)
         new walls, upper(walls)+1
         new Wall, walls(upper(walls))
         
-        var e,s : Vector2
-        
-        s.x:=x1+0.01
-        s.y:=y1+0.01
-        e.x:=x2+0.01
-        e.y:=y2+0.01
+        var e,s : pointer to Vector2
+        new Vector2, e
+        new Vector2, s
+        s -> Set (x1+0.01,y1+0.01)
+        e -> Set (x2+0.01,y2+0.01)
         
         walls(upper(walls)) -> Init (e,s)
         
@@ -735,18 +805,17 @@ loop    % Main game logic loop
             for o : 1..upper(walls)
                 if ( bullets(i) -> checkWallCol(walls(o))) then
                     % TODO: Blast holes in walls.
+                    var hitLoc : pointer to Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), bullets(i)->getLoc()->Add(bullets(i)->getVel()))
                     
-                    var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
-                    
-                    if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                        if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                    if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                        if (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
                             new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
                             RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         else
                             walls(o)->Init(hitLoc,walls(o)->getP2())
                         end if
-                    elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
-                        if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
+                    elsif (walls(o)->getP2()->Subtract(hitLoc)->getSqrMag() < (100)) then
+                        if (walls(o)->getP1()->Subtract(hitLoc)->getSqrMag() < (100)) then
                             new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
                             RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         else
@@ -758,10 +827,10 @@ loop    % Main game logic loop
                     end if
                     
                     
-                    PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
-                    PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
-                    PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
-                    PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 2,2,20,red,5,20,20)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 2,2,20,yellow,5,20,20)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,grey,2,20,75)
+                    PS -> Init (hitLoc -> getX(), hitLoc -> getY(), 10,10,100,black,1,20,75)
                     %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
                     
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
@@ -794,7 +863,7 @@ loop    % Main game logic loop
         end if
         
         
-        PS -> Init (lasers(i) -> getEnd().x,lasers(i) -> getEnd().y,10,10,10,cyan,2,1,2)
+        PS -> Init (lasers(i) -> getEnd() ->getX(),lasers(i) -> getEnd() -> getY(),10,10,10,cyan,2,1,2)
         %     Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
     end for
         
@@ -803,13 +872,9 @@ loop    % Main game logic loop
     PS -> update()
     PS -> draw()
     
-    %put "Pre Check!"
-    
     for i : 1..upper(walls)
-        Player -> checkWallCol(walls(i))    % The gitch!
+        Player -> checkWallCol(walls(i))
     end for
-    
-    %put "Post Check!"
         
     for i : 0 .. upper (RemoveTheseBullets)
         for j : RemoveTheseBullets (i) .. upper (bullets) - 1 
