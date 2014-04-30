@@ -182,6 +182,11 @@ class Bullet
         m := (Location .y - Vector.Add(Location,Velocity).y) / (Location.x - Vector.Add(Location,Velocity).x)
         b := Location.y - (Vector.Add(Location,Velocity).x * m)
         
+        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 100,darkgrey,2,10,20)
+        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,yellow,2,10,20)
+        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,41,2,10,20)
+        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 30,red,2,10,20)
+        
     end Init
     
     function update () : boolean
@@ -266,15 +271,16 @@ end Laser
 
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage
     
     var health := 100
     
     var LB : pointer to LightningBox
+    var col : int := red
     
     % The gun
     var maxAmmo, curAmmo : int := 10
-    var damage := 10
+    var gunDamage := 10
     var curLasers, maxLasers : real := 100
     var laserDamage := 5
     var canLase : boolean := true
@@ -309,12 +315,13 @@ class Tank
         end if
     end Reload
     
-    procedure Init (Vel, Loc, Fri : Vector2, rot : real)
+    procedure Init (Vel, Loc, Fri : Vector2, rot : real,c : int)
         
         Location := Loc
         Velocity := Vel
         Rotation := rot
         Fric     := Fri
+        col := c
         
         Fric.x := 0
         Fric.y := 0
@@ -322,8 +329,8 @@ class Tank
         Velocity.x := 0
         Velocity.y := 0
         
-        Location.x := 100
-        Location.y := 100
+        %Location.x := 100
+        %Location.y := 100
         
         new LightningBox, LB
         LB -> Init (10,maxy-10,230,GUIBase+10,black,yellow,darkgrey)
@@ -338,7 +345,33 @@ class Tank
         
     end setControls
     
+    proc drawGUI ()
+        
+        Draw.FillBox(0,GUIBase, maxx,maxy,grey)
+        Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
+        
+        LB -> update()
+        LB -> draw(round(curLasers),round(maxLasers), not canLase)
+        
+        if (lastReload = 0) then
+            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
+            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
+        else
+            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
+        end if
+        
+    end drawGUI
+    
+    proc damage(d : int)
+        health -= d
+    end damage
+    
+    function checkHealth() : boolean
+        result health > 0
+    end checkHealth
+    
     proc render()
+        
         % Health Bar
         Draw.FillBox(round(Location.x) - 25, round(Location.y) + 25,
             round(Location.x) + 25, round(Location.y) + 30, red)
@@ -353,8 +386,6 @@ class Tank
             round(Location.x) - 25, round(Location.y) + 25,black)
         Draw.Line(round(Location.x) + 25, round(Location.y) + 30,
             round(Location.x) + 25, round(Location.y) + 25,black)
-        
-        
         
         % Draw the main body of the tank.
         
@@ -387,7 +418,7 @@ class Tank
         drawVectorThickLine(c,d,1,black)
         var Forward := Vector.RotateD(Vector.AddDir(Location,0,10),Location,Rotation)
         Draw.Fill(floor(Forward.x),floor(Forward.y),grey,black)
-        Draw.Fill(floor(Location.x),floor(Location.y),green,black)
+        Draw.Fill(floor(Location.x),floor(Location.y),col,black)
         
         % And the cannon
         a := Vector.RotateD(Vector.AddDir(Location, 1, 0), Location, turretRotation)
@@ -399,19 +430,6 @@ class Tank
         
         Draw.FillOval(round(Location.x), round(Location.y), 3, 3, grey)
         Draw.Oval(round(Location.x), round(Location.y), 3, 3, black)
-        
-        Draw.FillBox(0,GUIBase, maxx,maxy,grey)
-        Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
-        
-        LB -> update()
-        LB -> draw(round(curLasers),round(maxLasers), not canLase)
-        
-        if (lastReload = 0) then
-            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
-            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
-        else
-            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
-        end if
         
     end render
     
@@ -536,11 +554,6 @@ class Tank
         curAmmo -= 1
         
         var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,10),zero,turretRotation))
-        
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 100,darkgrey,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 15,yellow,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 15,41,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, vel.x, vel.y, 30,red,2,10,20)
         %Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         result Bul
     end Fire
@@ -557,6 +570,39 @@ class Tank
         curLasers-=1
         result laser
     end FireLaser
+    
+    function checkBulletCollision (b : pointer to Bullet) : boolean
+        
+        var p1,p2 : Vector2
+        
+        p1 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,0, 20),zero,Rotation))
+        p2 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,0,-20),zero,Rotation))
+        
+        
+        %drawVectorThickLine (Vector.Add(b->getLoc(),b->getVel()),b->getLoc(),5,red)
+        %drawVectorThickLine (p1,p2,5,black)
+        
+        if (doVectorsCollide(p1, p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel()))) then
+            
+            var hit : Vector2 := getVectorCollision(p1,p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel()))
+            
+            %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
+            
+            result realBetween(hit.x,p1.x,p2.x) and
+                    realBetween(hit.x,Vector.Add(b->getLoc(),b->getVel()).x,
+                            b->getLoc().x)
+        else
+            result false
+        end if
+    end checkBulletCollision
+    
+    function getLoc() : Vector2
+        result Location
+    end getLoc
+    
+    function getRot() : real
+        result Rotation
+    end getRot
     
 end Tank
 
@@ -575,7 +621,7 @@ fric.y := 0.1
 loc.x := 100
 loc.y := 100
 
-Player -> Init(vel,loc,fric,0)
+Player -> Init(vel,loc,fric,0,green)
 
 var bullets :   flexible array 1..0 of pointer to Bullet
 var lasers :    flexible array 1..0 of pointer to Laser
@@ -696,10 +742,10 @@ loop    % Main game logic loop
         if chars ('a') then
             H += 1
         end if
-        if chars (KEY_ENTER) then
+        if chars (KEY_ENTER) and not formerChars (KEY_ENTER) then
             new enemies, upper(enemies) + 1
             new Tank, enemies(upper(enemies))
-            Tank->Init()
+            enemies(upper(enemies))->Init(vel,Player->getLoc(),fric,45,red)
         end if
         if chars ('r') then
             Player -> Reload()
@@ -728,6 +774,7 @@ loop    % Main game logic loop
     var RemoveTheseBullets : flexible array 0..-1 of int
     var RemoveTheseLasers : flexible array 0..-1 of int
     var RemoveTheseWalls : flexible array 0..-1 of int
+    var RemoveTheseEnemies : flexible array 0..-1 of int
     
     for i : 1..upper(bullets)
         var alive: boolean := true
@@ -776,6 +823,29 @@ loop    % Main game logic loop
                 end if
             end for
             
+            for o : 1..upper(enemies)
+                
+                if (enemies(o) -> checkBulletCollision(bullets(i))) then
+                    enemies(o) -> damage(10)
+                    alive := false
+                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
+                    
+                    PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,red,1,10,20)
+                    PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,yellow,1,10,20)
+                    PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,41,1,10,20)
+                end if
+                
+            end for
+            
+            if (Player -> checkBulletCollision(bullets(i))) then
+                Player -> damage(10)
+                alive := false
+                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
+            end if
+            
+            
         end if
         
         /*if (alive) then
@@ -805,9 +875,28 @@ loop    % Main game logic loop
     end for
         
     Player -> render()
+    Player -> drawGUI()
     
     for i : 1..upper(enemies)
-        enemies(i)->render()
+        enemies(i) -> render()
+        if ( not enemies(i) -> checkHealth()) then
+            PS -> Init (enemies(i)->getLoc().x, enemies(i)->getLoc().y, 2,2,50,red,1,20,50)
+            PS -> Init (enemies(i)->getLoc().x, enemies(i)->getLoc().y, 2,2,50,yellow,1,20,50)
+            PS -> Init (enemies(i)->getLoc().x, enemies(i)->getLoc().y, 2,2,50,41,1,20,50)
+            PS -> Init (enemies(i)->getLoc().x, enemies(i)->getLoc().y, 2,2,100,grey,1,100,150)
+            PS -> Init (enemies(i)->getLoc().x, enemies(i)->getLoc().y, 2,2,100,black,1,100,150)
+            new RemoveTheseEnemies, upper (RemoveTheseEnemies) + 1 
+            RemoveTheseEnemies (upper (RemoveTheseEnemies)) := i
+        end if
+    end for
+    
+    for i : 0 .. upper (RemoveTheseEnemies)
+        for j : RemoveTheseEnemies (i) .. upper (enemies) - 1 
+            enemies (j) := enemies (j + 1)
+        end for
+            if (upper(enemies) > 0) then
+            new enemies, upper (enemies) - 1
+        end if
     end for
     
     PS -> update()
@@ -854,14 +943,14 @@ loop    % Main game logic loop
     end for
     
     
-    %put (LastFrame + frameMillis) - Time.Elapsed
+    put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
     
     if (paused) then
         bgImg := Pic.New(0,0,maxx,maxy)
-        %bgImg := Pic.Blur(bgImg,10)
+        bgImg := Pic.Blur(bgImg,10)
         pauseScreen()
         paused := false
     end if
