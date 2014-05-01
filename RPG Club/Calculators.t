@@ -22,11 +22,9 @@ type player : record
     Willpower : int
 end record
 
-<<<<<<< HEAD
-=======
+
 var toolTitle : int := Font.New("Arial:9")
 
->>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
 function PTInRect (x,y,x1,y1,x2,y2:int):boolean
     if x1 > x2 then
         put "x1 > x2, retrying"
@@ -63,30 +61,6 @@ function momentaryButtonBox (x,y,button,lmb,x1,y1,x2,y2,c1,c2:int):boolean
     result false
 end momentaryButtonBox
 
-
-<<<<<<< HEAD
-function displayStatEdit (mx,my,mz,lmb,x,y,m:int, var c: int, c1:int) : int
-    for i : 1 .. c
-        Draw.FillBox((x+44)+(i*10),y,(x+44)+(i*10)-8,y+8,c1)
-    end for
-    for i : 1 .. m
-        Draw.Box((x+43)+(i*10),y+1,(x+44)+(i*10)-7,y+7,gray)
-        Draw.Box((x+44)+(i*10),y,(x+44)+(i*10)-8,y+8,black)
-    end for
-    if (momentaryButtonBox(mx,my,mz,lmb,x,y,x+8,y+8,red,black)) then
-        c-=1
-        if (c < 0) then
-            c := 0
-        end if
-    end if
-    if (momentaryButtonBox(mx,my,mz,lmb,x+10,y,x+18,y+8,red,black)) then
-        c+=1
-        if (c > 20) then
-            c := 20
-        end if
-    end if
-    result c
-=======
 function displayStatEdit (title : string,mx,my,mz,lmb,x,y,m:int, var c: int, c1:int) : int
     for i : 0 .. c-1
         %Draw.FillBox((x+100)+(((i mod 20)+1)*10),y-10*ceil((i) / 20),(x+100)+(((i mod 20)+1)*10)-8,y-10*ceil((i)/ 20)+8,c1)
@@ -114,7 +88,6 @@ function displayStatEdit (title : string,mx,my,mz,lmb,x,y,m:int, var c: int, c1:
     else
         result ceil(m / 20)
     end if
->>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
 end displayStatEdit
 
 function createNewPlayer : player
@@ -137,13 +110,7 @@ function createNewPlayer : player
     var x,y,z,lmb : int := 0
     loop
         Mouse.Where(x,y,z)
-        
-<<<<<<< HEAD
-        newPlayer.Level := displayStatEdit(x,y,z,lmb,50,60,20,newPlayer.Level,green)
-        
-        View.Update()
-        cls
-=======
+
         var i : int := 0
         
         newPlayer.name := "THIS IS A NAME, BITCH!"
@@ -162,7 +129,7 @@ function createNewPlayer : player
         i+=displayStatEdit("Willpower",x,y,z,lmb,50,maxy-100-(10*i),20,newPlayer.Willpower,green)
         View.Update()
         cls()
->>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
+%>>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
         lmb := z
     end loop
     

@@ -66,13 +66,10 @@ procedure update
         var temp : Particle := particles(upper(particles) - i+1)
         particles(upper(particles)-1+1) := particles(removeThese(i))
         particles(removeThese(i)) := temp
-<<<<<<< HEAD
-        new particles, upper(particles) -1
-=======
->>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
     end for
+    
     new particles, upper(particles) - upper(removeThese)
-    put upper(particles)
+    %put upper(particles)
     free removeThese
 end update
 
