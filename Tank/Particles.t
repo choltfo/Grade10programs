@@ -59,14 +59,20 @@ procedure update
             removeThese(upper(removeThese)) := i
         end if
     end for
-        
-    for decreasing i : upper(removeThese) .. 1
-        var temp : Particle := particles(upper(particles))
-        particles(upper(particles)) := particles(removeThese(i))
-        particles(removeThese(i)) := temp
-        new particles, upper(particles) -1
-    end for
     
+    % These will be ordered ascending, with (1) := 1, and (6) := 100
+    
+    for decreasing i : upper(removeThese) .. 1
+        var temp : Particle := particles(upper(particles) - i+1)
+        particles(upper(particles)-1+1) := particles(removeThese(i))
+        particles(removeThese(i)) := temp
+<<<<<<< HEAD
+        new particles, upper(particles) -1
+=======
+>>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
+    end for
+    new particles, upper(particles) - upper(removeThese)
+    put upper(particles)
     free removeThese
 end update
 
