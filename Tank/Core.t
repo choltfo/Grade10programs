@@ -581,7 +581,24 @@ class Tank
             result realBetween(hit.x,p1.x,p2.x) and
                     realBetween(hit.x,l->getEnd().x,l->getLoc().x)
         else
-            result false
+            p1 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero, 10,0),zero,Rotation))
+            p2 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,-10,0),zero,Rotation))
+            
+            
+            %drawVectorThickLine (Vector.Add(b->getLoc(),b->getVel()),b->getLoc(),5,red)
+            %drawVectorThickLine (p1,p2,5,black)
+            
+            if (doVectorsCollide(p1, p2, l->getLoc(), l->getEnd())) then
+                
+                var hit : Vector2 := getVectorCollision(p1,p2, l->getLoc(), l->getEnd())
+                    
+                %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
+                
+                result realBetween(hit.x,p1.x,p2.x) and
+                        realBetween(hit.x,l->getEnd().x,l->getLoc().x)
+            else
+                result false
+            end if
         end if
     end checkLaserCollision
     
@@ -603,8 +620,7 @@ class Tank
             %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
             
             result realBetween(hit.x,p1.x,p2.x) and
-                    realBetween(hit.x,Vector.Add(b->getLoc(),b->getVel()).x,
-                            b->getLoc().x)
+                    realBetween(hit.x,Vector.Add(b->getLoc(),b->getVel()).x,b->getLoc().x)
         else
             result false
         end if
@@ -629,7 +645,14 @@ class Tank
             end if
         end if
         
-        setControls (1,1,0)
+        var sqDist : real := Vector.getSqrMag(Vector.Subtract(target->getLoc(),Location))
+        
+        
+        if (sqDist > 10000) then
+            setControls (1,(turretRotation-Rotation)/2,0)
+        else
+            setControls (-1,(turretRotation-Rotation),0)
+        end if
         
         if (CanFire()) then
             result true

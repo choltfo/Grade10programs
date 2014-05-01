@@ -36,7 +36,16 @@ loop    % Title screen loop
 end loop
 
 loadMap("map1.txt")
-    put playLoadedLevel()
+loop
+    if playLoadedLevel() then
+        put "VICTORY BIATCH!"
+        View.Update()
+        exit
+    else
+        put "YOU IDIOT!"
+        View.Update()
+    end if
+end loop
 
 
 
