@@ -90,7 +90,7 @@ loop
     end if
     
     if chars('s') and not formerChars('s') then
-        save()
+        save("map2.txt")
     end if
     
     if (mB=1 and mLB=0) then
