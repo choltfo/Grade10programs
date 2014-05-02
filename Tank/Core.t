@@ -835,9 +835,10 @@ end pauseScreen
 
 function playLoadedLevel() : boolean
 var paused : boolean := false
+
 loop    % Main game logic loop
     
-    if (playerHasControl) then 
+    if (playerHasControl) then
         Mouse.Where(mX,mY,mB)
         formerChars := chars
         Input.KeyDown (chars)
@@ -878,8 +879,21 @@ loop    % Main game logic loop
         
         Player -> setControls(V,H,L)
         Player -> update(mX, mY, mB)
-        
     end if
+    
+    if Player->getLoc().x < maxx/2 then
+        offsetX := 0
+    else
+        offsetX := round(Player->getLoc().x - maxx/2)
+    end if
+    
+    if Player->getLoc().y < maxy/2 then
+        offsetY := 0
+    else
+        offsetY := round(Player->getLoc().y - maxy/2)
+    end if
+    
+    PS -> setOffset(offsetX,offsetY)
     
     for i : 1..upper(walls) 
         walls(i) -> draw()

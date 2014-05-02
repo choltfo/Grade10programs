@@ -170,15 +170,17 @@ function doVectorsCollide (s1,e1,s2,e2 : Vector2) : boolean
     end if
 end doVectorsCollide
 
+var offsetY := 0
+var offsetX := 0
 
 proc drawVectorThickLine (a,b : Vector2, w, c : int)
-    Draw.ThickLine(round(a.x),round(a.y),
-        round(b.x),round(b.y),w,c)
+    Draw.ThickLine(round(a.x)+offsetX,round(a.y)+offsetY,
+        round(b.x)+offsetX,round(b.y)+offsetY,w,c)
 end drawVectorThickLine
 
 proc drawVectorBox (a,b,c,d : Vector2, col, o : int)
-    Draw.Line(round(a.x),round(a.y),round(b.x),round(b.y),o)
-    Draw.Line(round(a.x),round(a.y),round(d.x),round(d.y),o)
-    Draw.Line(round(b.x),round(b.y),round(c.x),round(c.y),o)
-    Draw.Line(round(c.x),round(c.y),round(d.x),round(d.y),o)
+    Draw.Line(round(a.x)+offsetX,round(a.y)+offsetY,round(b.x)+offsetX,round(b.y)+offsetY,o)
+    Draw.Line(round(a.x)+offsetX,round(a.y)+offsetY,round(d.x)+offsetX,round(d.y)+offsetY,o)
+    Draw.Line(round(b.x)+offsetX,round(b.y)+offsetY,round(c.x)+offsetX,round(c.y)+offsetY,o)
+    Draw.Line(round(c.x)+offsetX,round(c.y)+offsetY,round(d.x)+offsetX,round(d.y)+offsetY,o)
 end drawVectorBox

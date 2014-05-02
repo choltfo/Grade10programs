@@ -15,9 +15,15 @@ end record
 
 class ParticleSystem
 import Particle
-export Init, update, draw,InitAngular
+export Init, update, draw,InitAngular, setOffset
 
 var particles : flexible array 1..0 of Particle
+var ox, oy : int := 0
+
+proc setOffset(x,y : int)
+    ox := x
+    oy := y
+end setOffset
 
 procedure Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
     for i : 1 .. numOfP
