@@ -572,15 +572,18 @@ class Tank
         %drawVectorThickLine (Vector.Add(b->getLoc(),b->getVel()),b->getLoc(),5,red)
         %drawVectorThickLine (p1,p2,5,black)
         
+        var firstHit, secondHit : boolean := false
+        
         if (doVectorsCollide(p1, p2, l->getLoc(), l->getEnd())) then
             
             var hit : Vector2 := getVectorCollision(p1,p2, l->getLoc(), l->getEnd())
             
             %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
             
-            result realBetween(hit.x,p1.x,p2.x) and
+            firstHit := realBetween(hit.x,p1.x,p2.x) and
                     realBetween(hit.x,l->getEnd().x,l->getLoc().x)
-        else
+        end if
+        if (not firstHit) then
             p1 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero, 10,0),zero,Rotation))
             p2 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,-10,0),zero,Rotation))
             
@@ -594,12 +597,12 @@ class Tank
                     
                 %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
                 
-                result realBetween(hit.x,p1.x,p2.x) and
+                secondHit := realBetween(hit.x,p1.x,p2.x) and
                         realBetween(hit.x,l->getEnd().x,l->getLoc().x)
-            else
-                result false
             end if
         end if
+        
+        result firstHit or secondHit
     end checkLaserCollision
     
     function checkBulletCollision (b : pointer to Bullet) : boolean
@@ -613,17 +616,32 @@ class Tank
         %drawVectorThickLine (Vector.Add(b->getLoc(),b->getVel()),b->getLoc(),5,red)
         %drawVectorThickLine (p1,p2,5,black)
         
+        var firstHit,secondHit : boolean := false
+        
         if (doVectorsCollide(p1, p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel()))) then
             
             var hit : Vector2 := getVectorCollision(p1,p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel()))
             
             %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
             
-            result realBetween(hit.x,p1.x,p2.x) and
+            firstHit := realBetween(hit.x,p1.x,p2.x) and
                     realBetween(hit.x,Vector.Add(b->getLoc(),b->getVel()).x,b->getLoc().x)
-        else
-            result false
         end if
+        if (not firstHit) then
+            p1 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,10,0),zero,Rotation))
+            p2 := Vector.Add(Location,Vector.RotateD(Vector.AddDir(zero,-10,0),zero,Rotation))
+            if (doVectorsCollide(p1, p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel()))) then
+            
+                var hit : Vector2 := getVectorCollision(p1,p2, b->getLoc(), Vector.Add(b->getLoc(),b->getVel    ()))
+            
+                %Draw.FillOval(round(hit.x),round(hit.y),5,5,blue)
+                
+                secondHit := realBetween(hit.x,p1.x,p2.x) and
+                        realBetween(hit.x,Vector.Add(b->getLoc(),b->getVel()).x,b->getLoc().x)
+            end if
+        end if
+        
+        result firstHit or secondHit
     end checkBulletCollision
     
     
@@ -668,24 +686,14 @@ end Tank
 
 var Player : pointer to Tank
 
-new Tank, Player
-
 var LastFrame : int := 0
 
 var loc, vel,fric : Vector2
 
-fric.x := 0.1
-fric.y := 0.1
-
-loc.x := 100
-loc.y := 100
-
-Player -> Init(vel,loc,fric,0,green)
-
 var bullets :   flexible array 1..0 of pointer to Bullet
 var lasers :    flexible array 1..0 of pointer to Laser
 var walls :     flexible array 1..0 of pointer to Wall
-var enemies :     flexible array 1..0 of pointer to Tank
+var enemies :   flexible array 1..0 of pointer to Tank
 
 proc loadMap (map : string)
 % generate map from walls and vector points
@@ -734,7 +742,7 @@ for i : 1..upper(mapFile)
         
         x := strint(mapFile (i+1))
         y := strint(mapFile (i+2))
-        
+        put "Found enemy at (",x,", ",y,")."
         new enemies, upper(enemies) + 1
         new Tank, enemies(upper(enemies))
         enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,red)
@@ -744,6 +752,17 @@ end for
 put "Done!"
 View.Update()
 delay(500)
+
+
+fric.x := 0.1
+fric.y := 0.1
+
+loc.x := 100
+loc.y := 100
+
+new Tank, Player
+Player -> Init(vel,loc,fric,0,green)
+
 end loadMap
 
 
@@ -763,6 +782,30 @@ end PtInRect
 
 var bgImg : int := 0
 
+proc clearLevel ()
+    for i : 1..upper(bullets)
+        free bullets(i)
+    end for
+    free bullets
+    
+    for i : 1..upper(lasers)
+        free lasers(i)
+    end for
+    free lasers
+    
+    for i : 1..upper(walls)
+        free walls(i)
+    end for
+    free walls
+    
+    for i : 1..upper(enemies)
+        free enemies(i)
+    end for
+    free enemies
+    
+    free Player
+    
+end clearLevel
 
 proc pauseScreen()
     var mX,mY,mB,lMB : int := 0
@@ -1055,11 +1098,15 @@ loop    % Main game logic loop
     mLB := mB
     
     if (upper(enemies) = 0) then
+        clearLevel()
         result true
     end if
     if (Player -> getHealth() <= 0) then
+        clearLevel()
         result false
     end if
     
 end loop
+
 end playLoadedLevel
+

@@ -35,8 +35,10 @@ loop    % Title screen loop
 
 end loop
 
-loadMap("map1.txt")
+        % IMPORTANT: NUMBER OF LEVELS HERE
+for i : 1..2
 loop
+    loadMap("map"+intstr(i)+".txt")
     if playLoadedLevel() then
         put "VICTORY BIATCH!"
         View.Update()
@@ -46,6 +48,21 @@ loop
         View.Update()
     end if
 end loop
+end for
+
+
+loop
+    loadMap("map1.txt")
+    if playLoadedLevel() then
+        put "VICTORY BIATCH!"
+        View.Update()
+        exit
+    else
+        put "YOU IDIOT!"
+        View.Update()
+    end if
+end loop
+
 
 
 
