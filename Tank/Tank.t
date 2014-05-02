@@ -1,5 +1,4 @@
 % The second attampt at a Tank game, this time, no leaks!
-
 % Let's drive a Tank!
 
 
@@ -51,17 +50,6 @@ end loop
 end for
 
 
-loop
-    loadMap("map1.txt")
-    if playLoadedLevel() then
-        put "VICTORY BIATCH!"
-        View.Update()
-        exit
-    else
-        put "YOU IDIOT!"
-        View.Update()
-    end if
-end loop
 
 
 
