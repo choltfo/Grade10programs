@@ -82,7 +82,7 @@ end update
 procedure draw
     for i : 1 .. upper(particles)
         if (particles(i).TTL > 0) then
-            Draw.FillOval(round(particles(i).x),round(particles(i).y),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
+            Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
         end if
     end for
 end draw

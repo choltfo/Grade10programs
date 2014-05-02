@@ -1,3 +1,5 @@
+2000
+2000
 All lines must go from left to right!
 Wall:
 200

@@ -23,6 +23,7 @@ var frameMillis : int := 10
 
 var mX, mY, mB, mLB : int := 0      % Mouse vars
 
+var mapX, mapY : int := 0
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
@@ -127,7 +128,7 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector
+        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector, offsetX, offsetY, mapX, mapY
     export update, Init, checkWallCol, getLoc, getVel
     
     % Location
@@ -168,8 +169,8 @@ class Bullet
         PS -> Init(Location.x,Location.y,2,2,15,grey,2,1,10)
              %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         %drawVectorThickLine(Location, Location->Add(Velocity),3,red)
-        Draw.FillOval(round(Location.x), round(Location.y), 2, 2, black)
-        result Location.x < maxx and Location.x > 0 and Location.y < GUIBase and Location.y > 0
+        Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 2, 2, black)
+        result Location.x < mapX and Location.x > 0 and Location.y < mapY and Location.y > 0
         
     end update
     
@@ -246,7 +247,7 @@ class Laser
 end Laser
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth
     
     var health := 100
@@ -362,19 +363,19 @@ class Tank
     proc render()
         
         % Health Bar
-        Draw.FillBox(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) + 25, round(Location.y) + 30, red)
-        Draw.FillBox(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) - 25 + floor(health*50/100), round(Location.y) + 30, green)
+        Draw.FillBox(round(Location.x) - 25+offsetX, round(Location.y) + 25+offsetY,
+            round(Location.x) + 25+offsetX, round(Location.y) + 30+offsetY, red)
+        Draw.FillBox(round(Location.x) - 25 + offsetX, round(Location.y) + 25+offsetY,
+            round(Location.x) - 25 + floor(health*50/100)+offsetX, round(Location.y) + 30+offsetY, green)
             
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 25,
-            round(Location.x) + 25, round(Location.y) + 25,black)
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 30,
-            round(Location.x) + 25, round(Location.y) + 30,black)
-        Draw.Line(round(Location.x) - 25, round(Location.y) + 30,
-            round(Location.x) - 25, round(Location.y) + 25,black)
-        Draw.Line(round(Location.x) + 25, round(Location.y) + 30,
-            round(Location.x) + 25, round(Location.y) + 25,black)
+        Draw.Line(round(Location.x) - 25+offsetX, round(Location.y) + 25+offsetY,
+            round(Location.x) + 25+offsetX, round(Location.y) + 25+offsetY,black)
+        Draw.Line(round(Location.x) - 25+offsetX, round(Location.y) + 30+offsetY,
+            round(Location.x) + 25+offsetX, round(Location.y) + 30+offsetY,black)
+        Draw.Line(round(Location.x) - 25+offsetX, round(Location.y) + 30+offsetY,
+            round(Location.x) - 25+offsetX, round(Location.y) + 25+offsetY,black)
+        Draw.Line(round(Location.x) + 25+offsetX, round(Location.y) + 30+offsetY,
+            round(Location.x) + 25+offsetX, round(Location.y) + 25+offsetY,black)
         
         % Draw the main body of the tank.
         
@@ -406,8 +407,8 @@ class Tank
         drawVectorThickLine(c,b,1,black)
         drawVectorThickLine(c,d,1,black)
         var Forward := Vector.RotateD(Vector.AddDir(Location,0,10),Location,Rotation)
-        Draw.Fill(floor(Forward.x),floor(Forward.y),grey,black)
-        Draw.Fill(floor(Location.x),floor(Location.y),col,black)
+        Draw.Fill(floor(Forward.x)+offsetX,floor(Forward.y)+offsetY,grey,black)
+        Draw.Fill(floor(Location.x)+offsetX,floor(Location.y)+offsetY,col,black)
         
         % And the cannon
         a := Vector.RotateD(Vector.AddDir(Location, 1, 0), Location, turretRotation)
@@ -417,8 +418,8 @@ class Tank
         
         drawVectorBox(a,b,c,d,black,black)
         
-        Draw.FillOval(round(Location.x), round(Location.y), 3, 3, grey)
-        Draw.Oval(round(Location.x), round(Location.y), 3, 3, black)
+        Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, grey)
+        Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, black)
         
     end render
     
@@ -465,18 +466,18 @@ class Tank
         Rotation += Steering*(frameMillis/1000)
         
         if (Location.x not= mX) then
-            turretRotation := (arctand((Location.y- mY) / (Location.x- mX)) +270) mod 360
+            turretRotation := (arctand((Location.y-mY) / (Location.x-mX)) +270) mod 360
             if (Location.x > mX) then
                 turretRotation += 180
             end if
         end if
         
-        if (Location.x > maxx) then
-            Location.x := maxx-1
+        if (Location.x > mapX) then
+            Location.x := mapX-1
         end if
         
-        if (Location.y > GUIBase) then
-            Location.y := GUIBase-1
+        if (Location.y > mapY) then
+            Location.y := mapY-1
         end if
         
         if (Location.x < 0) then
@@ -710,7 +711,10 @@ loop
     get : stream, mapFile(upper(mapFile))
 end loop
 
-for i : 1..upper(mapFile)
+mapX := strint(mapFile (1))
+mapY := strint(mapFile (2))
+
+for i : 3..upper(mapFile)
     if (mapFile(i) = "Wall:") then
         
         var x1,x2,y1,y2 : int := 0
@@ -878,19 +882,19 @@ loop    % Main game logic loop
         end if
         
         Player -> setControls(V,H,L)
-        Player -> update(mX, mY, mB)
+        Player -> update(mX-offsetX, mY-offsetY, mB)
     end if
     
     if Player->getLoc().x < maxx/2 then
         offsetX := 0
     else
-        offsetX := round(Player->getLoc().x - maxx/2)
+        offsetX := -round(Player->getLoc().x - maxx/2)
     end if
     
     if Player->getLoc().y < maxy/2 then
         offsetY := 0
     else
-        offsetY := round(Player->getLoc().y - maxy/2)
+        offsetY := -round(Player->getLoc().y - maxy/2)
     end if
     
     PS -> setOffset(offsetX,offsetY)
@@ -1089,7 +1093,7 @@ loop    % Main game logic loop
     end for
     
     
-    %put (LastFrame + frameMillis) - Time.Elapsed
+    put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
@@ -1103,7 +1107,7 @@ loop    % Main game logic loop
     
     View.Update()
     cls()
-    Draw.FillBox(0,0,maxx,maxy,brown)
+    Draw.FillBox(offsetX,offsetX,mapX+offsetX,mapY+offsetY,brown)
     %loop
     %    exit when (LastFrame + frameMillis) < Time.Elapsed
     %end loop
