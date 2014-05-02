@@ -1,0 +1,1 @@
+To run the game, run Tank.t. The map files are in map1.txt and map2.txt.

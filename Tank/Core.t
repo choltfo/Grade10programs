@@ -25,6 +25,12 @@ var mX, mY, mB, mLB : int := 0      % Mouse vars
 
 var mapX, mapY : int := 0
 
+type colourArea : record
+    BLcorner : Vector2
+    TRcorner : Vector2
+    col : int
+end record
+
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
     export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture
@@ -695,6 +701,7 @@ var bullets :   flexible array 1..0 of pointer to Bullet
 var lasers :    flexible array 1..0 of pointer to Laser
 var walls :     flexible array 1..0 of pointer to Wall
 var enemies :   flexible array 1..0 of pointer to Tank
+var cas     :   flexible array 1..0 of            colourArea
 
 proc loadMap (map : string)
 % generate map from walls and vector points
@@ -740,6 +747,33 @@ for i : 3..upper(mapFile)
         
     end if
     
+    if (mapFile(i) = "Colour:") then
+        
+        var x1,x2,y1,y2 : int := 0
+        
+        x1 := strint(mapFile (i+1))
+        y1 := strint(mapFile (i+2))
+        x2 := strint(mapFile (i+3))
+        y2 := strint(mapFile (i+4))
+        
+        put "Found a colour area declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
+        
+        new cas, upper(cas)+1
+        
+        var e,s : Vector2
+        
+        s.x:=x1+0.01
+        s.y:=y1+0.01
+        e.x:=x2+0.01
+        e.y:=y2+0.01
+        
+        cas(upper(cas)).TRcorner := s
+        cas(upper(cas)).BLcorner := e
+        cas(upper(cas)).col := strint(mapFile(i+5))
+        
+        
+    end if
+    
     if (mapFile(i) = "Enemy:") then
         
         var x, y : real := 0
@@ -749,8 +783,9 @@ for i : 3..upper(mapFile)
         put "Found enemy at (",x,", ",y,")."
         new enemies, upper(enemies) + 1
         new Tank, enemies(upper(enemies))
-        enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,red)
+        enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)))
     end if
+    
 end for
 
 put "Done!"
@@ -898,6 +933,10 @@ loop    % Main game logic loop
     end if
     
     PS -> setOffset(offsetX,offsetY)
+    
+    for i : 1..upper(cas)
+        drawVectorFillBox(cas(i).TRcorner,cas(i).BLcorner,cas(i).col)
+    end for
     
     for i : 1..upper(walls) 
         walls(i) -> draw()

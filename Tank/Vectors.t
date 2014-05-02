@@ -184,3 +184,7 @@ proc drawVectorBox (a,b,c,d : Vector2, col, o : int)
     Draw.Line(round(b.x)+offsetX,round(b.y)+offsetY,round(c.x)+offsetX,round(c.y)+offsetY,o)
     Draw.Line(round(c.x)+offsetX,round(c.y)+offsetY,round(d.x)+offsetX,round(d.y)+offsetY,o)
 end drawVectorBox
+
+proc drawVectorFillBox (a,b : Vector2, col : int)
+    Draw.FillBox(round(a.x)+offsetX,round(a.y)+offsetY,round(b.x)+offsetX,round(b.y)+offsetY,col)
+end drawVectorFillBox

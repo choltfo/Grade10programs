@@ -35,7 +35,7 @@ loop    % Title screen loop
 end loop
 
         % IMPORTANT: NUMBER OF LEVELS HERE
-for i : 1..1
+for i : 1..2
 loop
     loadMap("map"+intstr(i)+".txt")
     if playLoadedLevel() then
