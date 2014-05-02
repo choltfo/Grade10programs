@@ -842,6 +842,8 @@ proc clearLevel ()
     end for
     free enemies
     
+    free cas
+    
     free Player
     
 end clearLevel
