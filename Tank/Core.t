@@ -1051,7 +1051,7 @@ loop    % Main game logic loop
     %put "Pre Check!"
     
     for i : 1..upper(walls)
-        Player -> checkWallCol(walls(i))    % The gitch!
+        Player -> checkWallCol(walls(i))
         for o : 1..upper(enemies)
             enemies(o) -> checkWallCol(walls(i))
         end for
