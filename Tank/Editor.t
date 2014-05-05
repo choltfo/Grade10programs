@@ -108,6 +108,7 @@ proc editorPauseScreen()
         Font.Draw("F : decrease colour value by 1",220-Font.Width("F",Font2),maxy-320,Font2,black)
         Font.Draw("T : increase colour value by 10",220-Font.Width("T",Font2),maxy-340,Font2,black)
         Font.Draw("G : decrease colour value by 10",220-Font.Width("G",Font2),maxy-360,Font2,black)
+        Font.Draw("Shift-ESC : Quits editor without saving file.",220-Font.Width("Shift-ESC",Font2),maxy-380,Font2,black)
         
         
         exit when chars(KEY_ESC) and not formerChars(KEY_ESC)
@@ -156,6 +157,10 @@ proc EditLoadedMap()
         
         if chars(KEY_ESC) and not formerChars(KEY_ESC) then
             paused := true
+        end if
+        
+        if chars(KEY_ESC) and not formerChars(KEY_ESC) and chars(KEY_SHIFT) then
+            exit
         end if
         
         if (mB=1 and mLB=0) then
