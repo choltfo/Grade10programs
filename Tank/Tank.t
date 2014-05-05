@@ -2,7 +2,27 @@
 % Let's drive a Tank!
 
 
-include "Core.t"
+include "Editor.t"
+
+
+proc playCampaign
+    % IMPORTANT: NUMBER OF LEVELS HERE
+    for i : 1..2
+        loop
+            loadMap("map"+intstr(i)+".txt")
+            if playLoadedLevel() then
+                put "VICTORY BIATCH!"
+                View.Update()
+                exit
+            else
+                put "YOU IDIOT!"
+                View.Update()
+            end if
+        end loop
+    end for
+        
+    put "VICTORY!"
+end playCampaign
 
 var hasWaited := false
 loop    % Title screen loop
@@ -18,39 +38,27 @@ loop    % Title screen loop
     if (not hasWaited) then
         View.Update()
         delay(2000)
-    else
-        Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-400,Font2,black*(round(Time.Elapsed() / 200)) mod 2)
+        hasWaited := true
     end if
     
-    hasWaited := true
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Click to start!",Font2)/2))-10,maxy-400,round((maxx/2)+(Font.Width("Click to start!",Font2)/2))+10,maxy-370,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
+        
+        playCampaign
+    end if
+    Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-395,Font2,black)
     
-    exit when mB = 1 and mLB not=1
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Map editor",Font2)/2))-10,maxy-440,round((maxx/2)+(Font.Width("Map Editor",Font2)/2))+10,maxy-410,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
+        
+        EditLoadedMap
+    end if
+    Font.Draw("Map editor",round((maxx/2)-(Font.Width("Map editor",Font2)/2)),maxy-435,Font2,black)
+    
+    
+    %((round(Time.Elapsed() / 200)) mod 2)*green
+    
     mLB := mB
     View.Update()
     cls()
     delay(10)
-    
-    
-
 end loop
 
-        % IMPORTANT: NUMBER OF LEVELS HERE
-for i : 1..2
-loop
-    loadMap("map"+intstr(i)+".txt")
-    if playLoadedLevel() then
-        put "VICTORY BIATCH!"
-        View.Update()
-        exit
-    else
-        put "YOU IDIOT!"
-        View.Update()
-    end if
-end loop
-end for
-
-
-
-
-
-put "VICTORY!"

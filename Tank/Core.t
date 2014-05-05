@@ -254,7 +254,7 @@ end Laser
 
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol
     
     var health := 100
     
@@ -265,7 +265,7 @@ class Tank
     var maxAmmo, curAmmo : int := 10
     var gunDamage := 10
     var lastShot := 0
-    var shotDelay := 100
+    var shotDelay := 1000
     
     var curLasers, maxLasers : real := 100
     var laserDamage := 5
@@ -297,6 +297,10 @@ class Tank
     function getLoc() : Vector2
         result Location
     end getLoc
+    
+    function getCol() : int
+        result col
+    end getCol
     
     function getRot() : real
         result Rotation
@@ -925,13 +929,21 @@ loop    % Main game logic loop
     if Player->getLoc().x < maxx/2 then
         offsetX := 0
     else
-        offsetX := -round(Player->getLoc().x - maxx/2)
+        if (Player->getLoc().x > mapX - maxx/2) then
+            offsetX:= -mapX+maxx
+        else
+            offsetX := -round(Player->getLoc().x - maxx/2)
+        end if
     end if
     
-    if Player->getLoc().y < maxy/2 then
+    if Player->getLoc().y < GUIBase/2 then
         offsetY := 0
     else
-        offsetY := -round(Player->getLoc().y - maxy/2)
+        if (Player->getLoc().y > mapY - GUIBase/2) then
+            offsetY := -mapY+GUIBase
+        else
+            offsetY := -round(Player->getLoc().y - GUIBase/2)
+        end if
     end if
     
     PS -> setOffset(offsetX,offsetY)
