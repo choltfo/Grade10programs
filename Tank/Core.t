@@ -1148,7 +1148,7 @@ loop    % Main game logic loop
     
     View.Update()
     cls()
-    Draw.FillBox(offsetX,offsetX,mapX+offsetX,mapY+offsetY,brown)
+    %Draw.FillBox(offsetX,offsetX,mapX+offsetX,mapY+offsetY,brown)
     %loop
     %    exit when (LastFrame + frameMillis) < Time.Elapsed
     %end loop
