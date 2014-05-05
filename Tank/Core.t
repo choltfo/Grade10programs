@@ -518,8 +518,8 @@ class Tank
             var didIHit : boolean := realBetween(hit.x,w->getP1().x,w->getP2().x) and
                 realBetween(hit.x,PLoc.x,loc.x)
             if (didIHit) then
-                /*Velocity := Velocity -> Multiply(0.5) -> RotateD(180,zero)
-                Location := Location -> Add(Velocity)*/
+                %Velocity := Velocity -> Multiply(0.5) -> RotateD(180,zero)
+                Location := Vector.Add(Location,Velocity)
                 Velocity := zero
             end if
         end if
@@ -848,8 +848,6 @@ proc clearLevel ()
     
     free cas
     
-    free Player
-    
 end clearLevel
 
 proc pauseScreen()
@@ -880,6 +878,9 @@ end pauseScreen
 
 function playLoadedLevel() : boolean
 var paused : boolean := false
+
+new Tank, Player
+Player -> Init(vel,loc,fric,0,green)
 
 loop    % Main game logic loop
     

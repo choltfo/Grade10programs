@@ -3,13 +3,49 @@
 
 
 include "Editor.t"
+include "cutscenes.t"
 
+var levels : flexible array 1..0 of string
+
+proc loadCampaign
+    var stream : int
+    var campaignData : flexible array 1..0 of string
+    
+    open : stream, "Campaign/Campaign.map", get
+    
+    put "Loading campaign..."
+    
+    loop
+        exit when eof(stream)
+        new campaignData, upper(campaignData) + 1
+        get : stream, campaignData(upper(campaignData)) : *
+    end loop
+    
+    for i : 1..upper(campaignData)
+        if (campaignData(i)="Map:") then
+            new levels, upper(levels)+1
+            levels(upper(levels)) := campaignData(i+1)
+            put levels(upper(levels))
+            if (campaignData(i+2)="CS:") then
+                cutscene.addLine(campaignData(i+3),strint(campaignData(i+4)),campaignData(i+5)="true",campaignData(i+6)="true")
+            end if
+        end if
+    end for
+    
+    View.Update
+    
+    close : stream
+    
+end loadCampaign
 
 proc playCampaign
     % IMPORTANT: NUMBER OF LEVELS HERE
-    for i : 1..2
+    loadCampaign
+    for i : 1..upper(levels)
         loop
-            loadMap("map"+intstr(i)+".txt")
+            clearLevel
+            loadMap("Campaign/"+levels(i))
+            cutscene.displayLines
             if playLoadedLevel() then
                 put "VICTORY BIATCH!"
                 View.Update()

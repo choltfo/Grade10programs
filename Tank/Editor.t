@@ -5,6 +5,7 @@ include "Core.t"
 
 procedure save (fileName:string)
     % generate map from walls and vector points
+    put "Saving map..."
     var stream : int
     open : stream, fileName, put
     
@@ -36,7 +37,6 @@ procedure save (fileName:string)
         
     close( stream)
     cls
-    put "Loading map..."
     
 end save
 
@@ -108,7 +108,10 @@ proc editorPauseScreen()
         Font.Draw("F : decrease colour value by 1",220-Font.Width("F",Font2),maxy-320,Font2,black)
         Font.Draw("T : increase colour value by 10",220-Font.Width("T",Font2),maxy-340,Font2,black)
         Font.Draw("G : decrease colour value by 10",220-Font.Width("G",Font2),maxy-360,Font2,black)
-        Font.Draw("Shift-ESC : Quits editor without saving file.",220-Font.Width("Shift-ESC",Font2),maxy-380,Font2,black)
+        Font.Draw("Ctrl-ESC : Quits editor without saving file.",220-Font.Width("Ctrl-ESC",Font2),maxy-380,Font2,black)
+        Font.Draw("Ctrl-Z : Removes last added item in current edit mode.",220-Font.Width("Ctrl-Z",Font2),maxy-400,Font2,black)
+        Font.Draw("Ctrl-O : Reloads the last saved file.",220-Font.Width("Ctrl-O",Font2),maxy-420,Font2,black)
+        Font.Draw("Ctrl-R : Playtests this map.",220-Font.Width("Ctrl-R",Font2),maxy-440,Font2,black)
         
         
         exit when chars(KEY_ESC) and not formerChars(KEY_ESC)
@@ -139,9 +142,6 @@ proc EditLoadedMap()
         if chars('3') and not formerChars('3') then
             editMode := 3   % Colour area
         end if
-        if chars('s') and not formerChars('s') then
-            save("map2.txt")
-        end if
         if chars('r') and not formerChars('r') then
             selectedColour := (selectedColour+1) mod 255
         end if
@@ -159,8 +159,41 @@ proc EditLoadedMap()
             paused := true
         end if
         
-        if chars(KEY_ESC) and not formerChars(KEY_ESC) and chars(KEY_SHIFT) then
+        if chars(KEY_ESC) and not formerChars(KEY_ESC) and chars(KEY_CTRL) then
             exit
+        end if
+        
+        if chars('s') and not formerChars('s') and chars(KEY_CTRL) then
+            save("map2.txt")
+        end if
+        
+        if chars('z') and not formerChars('z') and chars(KEY_CTRL) then
+            if (editMode = 1) then
+                if (upper(walls) not= 0) then
+                    free walls(upper(walls))
+                    new walls, upper(walls)-1
+                end if
+            elsif (editMode = 2) then
+                if (upper(enemies) not= 0) then
+                    free enemies(upper(enemies))
+                    new enemies, upper(enemies)-1
+                end if
+            elsif (editMode = 3) then
+                if (upper(cas) not= 0) then
+                    new cas, upper(cas)-1
+                end if
+            end if
+        end if
+        
+        if chars('o') and not formerChars('o') and chars(KEY_CTRL) then
+            loadMap("map2.txt")
+        end if
+        
+        if chars('r') and not formerChars('r') and chars(KEY_CTRL) then
+            save("map2.txt")
+            clearLevel
+            loadMap("map2.txt")
+            put playLoadedLevel()
         end if
         
         if (mB=1 and mLB=0) then
