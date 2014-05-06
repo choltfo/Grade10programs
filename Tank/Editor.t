@@ -108,7 +108,7 @@ proc editorPauseScreen()
         Font.Draw("F : decrease colour value by 1",220-Font.Width("F",Font2),maxy-320,Font2,black)
         Font.Draw("T : increase colour value by 10",220-Font.Width("T",Font2),maxy-340,Font2,black)
         Font.Draw("G : decrease colour value by 10",220-Font.Width("G",Font2),maxy-360,Font2,black)
-        Font.Draw("Ctrl-ESC : Quits editor without saving file.",220-Font.Width("Ctrl-ESC",Font2),maxy-380,Font2,black)
+        Font.Draw("Shift-ESC : Quits editor without saving file.",220-Font.Width("Shift-ESC",Font2),maxy-380,Font2,black)
         Font.Draw("Ctrl-Z : Removes last added item in current edit mode.",220-Font.Width("Ctrl-Z",Font2),maxy-400,Font2,black)
         Font.Draw("Ctrl-O : Reloads the last saved file.",220-Font.Width("Ctrl-O",Font2),maxy-420,Font2,black)
         Font.Draw("Ctrl-R : Playtests this map.",220-Font.Width("Ctrl-R",Font2),maxy-440,Font2,black)
@@ -159,7 +159,7 @@ proc EditLoadedMap()
             paused := true
         end if
         
-        if chars(KEY_ESC) and not formerChars(KEY_ESC) and chars(KEY_CTRL) then
+        if chars(KEY_ESC) and not formerChars(KEY_ESC) and chars(KEY_SHIFT) then
             exit
         end if
         

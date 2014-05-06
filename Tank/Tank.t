@@ -15,6 +15,8 @@ proc loadCampaign
     
     put "Loading campaign..."
     
+    new levels, 0
+    
     loop
         exit when eof(stream)
         new campaignData, upper(campaignData) + 1
