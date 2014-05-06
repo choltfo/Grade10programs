@@ -2,14 +2,19 @@ Map:
 map1.map
 CS:
 Have some fun! Drive a tank!
-1000
+500
+false
+false
+CS:
+Just don't get it shot, right? The paint just dried.
+2000
+false
 true
-false
-Just don't get it shot, right? The paint's freshly done.
-1000
-false
-false
 
 Map:
 map2.map
-End mapfile
+CS:
+Maybe you didn't hear me. Don't scratch the damn paint!
+2000
+false
+true

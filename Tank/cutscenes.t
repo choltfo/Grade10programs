@@ -27,21 +27,25 @@ proc displayLines
     cls
     View.Update
     var font : int
-    font := Font.New("Arial:24")
-    var y := 100
+    font := Font.New("Arial:16")
+    var y := 40
+    Draw.FillBox(0,0,maxx,maxy,white)
     loop
         exit when CSLoop >= upper(lines)
         CSLoop += 1
-        Draw.FillBox(0,0,maxx,maxy,white)
         Draw.Text(lines(CSLoop).text,40,maxy-y,font,black)
+        %put lines(CSLoop).text,", delay:",lines(CSLoop).del,", clear: ",lines(CSLoop).clear,", ECS: ",lines(CSLoop).endCS
+        
         View.Update
         delay(lines(CSLoop).del)
         
+        y := y+20
+        
         if (lines(CSLoop).clear) then
             cls
-            y := 100
+            y := 40
         end if
-        y := y-24
+        
         exit when lines(CSLoop).endCS
         exit when CSLoop = upper(lines)
     end loop

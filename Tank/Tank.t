@@ -28,9 +28,9 @@ proc loadCampaign
             new levels, upper(levels)+1
             levels(upper(levels)) := campaignData(i+1)
             put levels(upper(levels))
-            if (campaignData(i+2)="CS:") then
-                cutscene.addLine(campaignData(i+3),strint(campaignData(i+4)),campaignData(i+5)="true",campaignData(i+6)="true")
-            end if
+        end if
+        if (campaignData(i)="CS:") then
+            cutscene.addLine(campaignData(i+1),strint(campaignData(i+2)),campaignData(i+3)="true",campaignData(i+4)="true")
         end if
     end for
     
@@ -44,10 +44,10 @@ proc playCampaign
     % IMPORTANT: NUMBER OF LEVELS HERE
     loadCampaign
     for i : 1..upper(levels)
+        cutscene.displayLines
         loop
             clearLevel
             loadMap("Campaign/"+levels(i))
-            cutscene.displayLines
             if playLoadedLevel() then
                 put "VICTORY BIATCH!"
                 View.Update()
