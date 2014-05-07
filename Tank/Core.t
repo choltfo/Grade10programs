@@ -19,7 +19,7 @@ new ParticleSystem, PS
 
 var playerHasControl := true
 
-var frameMillis : int := 10
+var frameMillis : int := 15
 
 var mX, mY, mB, mLB : int := 0      % Mouse vars
 
@@ -431,6 +431,8 @@ class Tank
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, grey)
         Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, black)
         
+        Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 500, 500, yellow)
+        
     end render
     
     procedure update (mX, mY, mB : int)
@@ -684,12 +686,13 @@ class Tank
         end if
         
         if (CanFire()) then
-            result true
+            result sqDist < 250000
         else
-            if (lastReload = 0) then
+            if (curAmmo = 0 and lastReload = 0) then
                 Reload()
             end if
         end if
+        
         result false
     end updateAI
 end Tank
@@ -1012,7 +1015,7 @@ loop    % Main game logic loop
             for o : 1..upper(enemies)
                 
                 if (enemies(o) -> checkBulletCollision(bullets(i))) then
-                    enemies(o) -> damage(10)
+                    enemies(o) -> damage(40)
                     alive := false
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := i
@@ -1025,7 +1028,7 @@ loop    % Main game logic loop
             end for
             
             if (Player -> checkBulletCollision(bullets(i))) then
-                Player -> damage(10)
+                Player -> damage(40)
                 alive := false
                 new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := i

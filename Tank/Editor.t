@@ -168,7 +168,7 @@ proc EditLoadedMap()
         end if
         
         if chars('z') and not formerChars('z') and chars(KEY_CTRL) then
-            if (editMode = 1) then
+            if (editMode = 1) then 
                 if (upper(walls) not= 0) then
                     free walls(upper(walls))
                     new walls, upper(walls)-1
@@ -221,9 +221,14 @@ proc EditLoadedMap()
                                 secondPoint.y := mY
                                 
                                 if (editMode = 1) then
+                                    % line must go from left to right
                                     new walls, upper(walls)+1
                                     new Wall, walls(upper(walls))
-                                    walls(upper(walls))->Init(firstPoint,secondPoint)
+                                    if (firstPoint.x < secondPoint.x) then
+                                        walls(upper(walls))->Init(firstPoint,secondPoint)
+                                    else
+                                        walls(upper(walls))->Init(secondPoint,firstPoint)
+                                    end if
                                 end if
                                 if (editMode = 3) then
                                     new cas, upper(cas)+1
