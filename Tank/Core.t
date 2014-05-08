@@ -31,6 +31,35 @@ type colourArea : record
     col : int
 end record
 
+type weaponType : record
+    UID : int
+    name : string
+    damage : real
+    speed : real
+    ammo : int
+    clipSize : int
+    shotDelay : int
+    reloadDelay : int
+    automatic : boolean
+    trail : particleBurst
+    hit : particleBurst
+end record
+
+type weaponStorageInv : record
+    weapon : weaponType
+    ammunition : int
+    pickup : boolean
+end record
+
+type weaponPickup : record
+    weapon : weaponType
+    ammunition : int
+    position : Vector2
+    used : boolean
+    returnTime : int
+    respawnDelay : int
+end record
+
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
     export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture
@@ -145,6 +174,8 @@ class Bullet
     
     var m, b : real := 0
     
+    var damage : real := 40
+    
     function getLoc() : Vector2
         result Location
     end getLoc
@@ -153,7 +184,7 @@ class Bullet
         result Velocity
     end getVel
     
-    procedure Init (Loc, Vel: Vector2, rot,speed:real)
+    procedure Init (Loc, Vel: Vector2, rot,speed,damage:real)
         
         Velocity := Vel
         
@@ -253,17 +284,17 @@ class Laser
 end Laser
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol
     
-    var health := 100
+    var health : real := 100
     
     var LB : pointer to LightningBox
     var col : int := red
     
     % The gun
     var maxAmmo, curAmmo : int := 10
-    var gunDamage := 10
+    var gunDamage := 40
     var lastShot := 0
     var shotDelay := 1000
     
@@ -279,6 +310,12 @@ class Tank
     var maxSteer : real := 90 % Degrees of max steering
     var maxThrottle:real:= 3
     
+    var currentWeapon : int := 0
+    var weapons : flexible array 1..0 of weaponStorageInv
+    
+    function getWeapon() : weaponStorageInv
+        result weapons(currentWeapon)
+    end getWeapon
     
     % Location
     var Location : Vector2
@@ -306,7 +343,7 @@ class Tank
         result Rotation
     end getRot
     
-    function getHealth() : int
+    function getHealth() : real
         result health
     end getHealth
     
@@ -332,6 +369,11 @@ class Tank
         
         %Location.x := 100
         %Location.y := 100
+        
+        new weapons, 1
+        
+        weapons(1).weapon.name := "Basic cannon"
+        weapons(1).weapon.UID := 0
         
         new LightningBox, LB
         LB -> Init (10,maxy-10,230,GUIBase+10,black,yellow,darkgrey)
@@ -362,7 +404,7 @@ class Tank
         
     end drawGUI
     
-    proc damage(d : int)
+    proc damage(d : real)
         health -= d
     end damage
     
@@ -552,7 +594,7 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,15)
+        Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,15,gunDamage)
         curAmmo -= 1
         
         var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,10),zero,turretRotation))
@@ -695,6 +737,18 @@ class Tank
         
         result false
     end updateAI
+    
+    function weaponControls (mb,lmb,ws) : boolean
+        if (ws not= -1) then
+            if (ws < upper(weapons)) then
+                currentWeapon := ws
+            end if
+        end if
+        
+        
+        
+    end weaponControls
+    
 end Tank
 
 
@@ -709,6 +763,7 @@ var lasers :    flexible array 1..0 of pointer to Laser
 var walls :     flexible array 1..0 of pointer to Wall
 var enemies :   flexible array 1..0 of pointer to Tank
 var cas     :   flexible array 1..0 of            colourArea
+var pickup  :   flexible array 1..0 of            weaponPickup
 
 proc loadMap (map : string)
 % generate map from walls and vector points
@@ -722,7 +777,7 @@ put "Loading map..."
 loop
     exit when eof(stream)
     new mapFile, upper(mapFile) + 1
-    get : stream, mapFile(upper(mapFile))
+    get : stream, mapFile(upper(mapFile)) : *
 end loop
 
 mapX := strint(mapFile (1))
@@ -751,6 +806,79 @@ for i : 3..upper(mapFile)
         e.y:=y2+0.01
         
         walls(upper(walls)) -> Init (e,s)
+        
+    end if
+    
+    if (mapFile(i) = "Weapon:") then
+        /*
+            Weapon:
+            1 UID
+            Missile Launcher name
+            50 damage
+            100 speed
+            2 magazine size
+            4000 shotDelay in milliseconds
+            4000 reloadDelay in milliseconds
+            true automatic
+            Trail: particleBurst
+            2 maxXSpeed
+            2 maxYSpeed
+            5 numOfP
+            41 colour
+            5 size
+            10  TTILMin
+            15  TTLMax
+            Hit: particleBurst
+            2 maxXSpeed
+            2 maxYSpeed
+            5 numOfP
+            41 colour
+            5 size
+            10  TTILMin
+            15  TTLMax
+            10 Ammo
+            
+            X
+            Y
+            10000 Respawn Delay
+        */
+        
+        var WP : weaponPickup
+        
+        WP.weapon.UID := strint(mapFile(i+1))
+        WP.weapon.name := mapFile(i+2)
+        WP.weapon.damage := strint(mapFile(i+3))
+        WP.weapon.speed := strint(mapFile(i+4))
+        WP.weapon.clipSize := strint(mapFile(i+5))
+        WP.weapon.shotDelay := strint(mapFile(i+6))
+        WP.weapon.reloadDelay := strint(mapFile(i+7))
+        WP.weapon.automatic := mapFile(i+8) = "true"
+        WP.weapon.trail.maxXSpeed := strint(mapFile(i+10))
+        WP.weapon.trail.maxYSpeed := strint(mapFile(i+11))
+        WP.weapon.trail.numOfP := strint(mapFile(i+12))
+        WP.weapon.trail.Colour := strint(mapFile(i+13))
+        WP.weapon.trail.size := strint(mapFile(i+14))
+        WP.weapon.trail.TTLMin := strint(mapFile(i+15))
+        WP.weapon.trail.TTLMax := strint(mapFile(i+16))
+        
+        WP.weapon.hit.maxXSpeed := strint(mapFile(i+18))
+        WP.weapon.hit.maxYSpeed := strint(mapFile(i+19))
+        WP.weapon.hit.numOfP := strint(mapFile(i+20))
+        WP.weapon.hit.Colour := strint(mapFile(i+21))
+        WP.weapon.hit.size := strint(mapFile(i+22))
+        WP.weapon.hit.TTLMin := strint(mapFile(i+23))
+        WP.weapon.hit.TTLMax := strint(mapFile(i+24))
+        WP.position.x := strint(mapFile(i+25))
+        WP.position.y := strint(mapFile(i+26))
+        WP.respawnDelay := strint(mapFile(i+27))
+        
+        WP.used := false
+        WP.returnTime := 0
+        WP.weapon.ammo := WP.weapon.clipSize
+        
+        
+        new pickup, upper(pickup)+1
+        pickup(upper(pickup)) := WP
         
     end if
     
@@ -921,12 +1049,21 @@ loop    % Main game logic loop
             new bullets, upper(bullets)+1
             bullets(upper(bullets)) := Player -> Fire() %SHOOT FROM THE TANK!
         end if
+        
+        var weaponSelection := -1
+        for i : '1'..'9'
+            if (chars(i) and not formerChars(i)) then
+                weaponSelection := i-'1'
+            end if
+        end for
+        
         if chars (' ') and Player -> CanFireLaser() then
             new lasers, upper(lasers)+1
             lasers(upper(lasers)) := Player -> FireLaser() %SHOOT FROM THE TANK!
         end if
         
         Player -> setControls(V,H,L)
+        Player -> weaponControls(mB,MLB,weaponSelection)
         Player -> update(mX-offsetX, mY-offsetY, mB)
     end if
     
@@ -958,6 +1095,22 @@ loop    % Main game logic loop
     
     for i : 1..upper(walls) 
         walls(i) -> draw()
+    end for
+    
+    for i : 1.. upper (pickup)
+        if (pickup(i).used) then
+            if Time.Elapsed > pickup(i).returnTime then
+                pickup(i).used := false
+            end if
+        else
+            if (Vector.getSqrMag(Vector.Subtract(pickup(i).position,Player->getLoc()))) < 100 then
+                pickup(i).used := true
+                pickup(i).returnTime := pickup(i).respawnDelay + Time.Elapsed
+            end if
+            Draw.FillOval(round(pickup(i).position.x),round(pickup(i).position.y),10,10,
+            (((round(Time.Elapsed() / 200)) mod 2)*red)
+            )
+        end if
     end for
         
     var RemoveTheseBullets : flexible array 0..-1 of int
@@ -1015,7 +1168,7 @@ loop    % Main game logic loop
             for o : 1..upper(enemies)
                 
                 if (enemies(o) -> checkBulletCollision(bullets(i))) then
-                    enemies(o) -> damage(40)
+                    enemies(o) -> damage(20)
                     alive := false
                     new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := i
@@ -1028,7 +1181,7 @@ loop    % Main game logic loop
             end for
             
             if (Player -> checkBulletCollision(bullets(i))) then
-                Player -> damage(40)
+                Player -> damage(20)
                 alive := false
                 new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
                     RemoveTheseBullets (upper (RemoveTheseBullets)) := i
@@ -1061,7 +1214,7 @@ loop    % Main game logic loop
         for o : 1..upper(enemies)
             if (alive) then
                 if (enemies(o)->checkLaserCollision(lasers(i))) then
-                    enemies(o)->damage(1)
+                    enemies(o)->damage(0.5)
                     PS -> Init (enemies(o) -> getLoc().x,enemies(o) -> getLoc().y,10,10,10,blue,2,5,10)
                 end if
             end if

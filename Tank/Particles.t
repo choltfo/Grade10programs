@@ -1,5 +1,15 @@
 % The particles library
 
+type particleBurst : record
+    maxXSpeed : real
+    maxYSpeed : real
+    numOfP : int
+    Colour : int
+    size : int
+    TTLMin : int
+    TTLMax : int
+end record
+
 type Particle : record
 col : int
 TTL : int
@@ -14,7 +24,7 @@ yVel : real
 end record
 
 class ParticleSystem
-import Particle
+import Particle, particleBurst
 export Init, update, draw,InitAngular, setOffset
 
 var particles : flexible array 1..0 of Particle
@@ -38,6 +48,10 @@ procedure Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax
         particles(upper(particles)).maxTTL:=particles(upper(particles)).TTL
     end for
 end Init
+
+procedure InitPreset (x,y : real, a:particleBurst)
+    Init (x,y,a.maxXSpeed,a.maxYSpeed, a.numOfP,a.Colour,a.size,a.TTLMin,a.TTLMax)
+end InitPreset
 
 procedure InitAngular (x,y,maxSpeedX,maxSpeedY:real, numOfP,Colour,size,TTLMin,TTLMax : int)
     for i : 1 .. numOfP
