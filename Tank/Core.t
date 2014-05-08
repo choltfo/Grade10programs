@@ -43,12 +43,13 @@ type weaponType : record
     automatic : boolean
     trail : particleBurst
     hit : particleBurst
+    lastReload : int
+    lastShot : int
 end record
 
 type weaponStorageInv : record
     weapon : weaponType
     ammunition : int
-    pickup : boolean
 end record
 
 type weaponPickup : record
@@ -59,6 +60,36 @@ type weaponPickup : record
     returnTime : int
     respawnDelay : int
 end record
+
+var defWeapon : weaponStorageInv
+defWeapon.weapon.UID := 0
+defWeapon.weapon.name := "Standard Cannon"
+defWeapon.weapon.damage := 20
+defWeapon.weapon.speed := 5
+defWeapon.weapon.ammo := 10
+defWeapon.weapon.clipSize := 10
+defWeapon.weapon.shotDelay := 100
+defWeapon.weapon.reloadDelay := 5000
+defWeapon.weapon.automatic := false
+defWeapon.weapon.lastReload := 0
+defWeapon.weapon.lastShot := 0
+
+defWeapon.weapon.trail.maxXSpeed := 10
+defWeapon.weapon.trail.maxYSpeed := 10
+defWeapon.weapon.trail.numOfP := 5
+defWeapon.weapon.trail.Colour := grey
+defWeapon.weapon.trail.size := 5
+defWeapon.weapon.trail.TTLMax := 15
+defWeapon.weapon.trail.TTLMin := 10
+
+defWeapon.weapon.hit.maxXSpeed := 20
+defWeapon.weapon.hit.maxYSpeed := 20
+defWeapon.weapon.hit.numOfP := 100
+defWeapon.weapon.hit.Colour := yellow
+defWeapon.weapon.hit.size := 7
+defWeapon.weapon.hit.TTLMax := 150
+defWeapon.weapon.hit.TTLMin := 100
+defWeapon.ammunition := 999999999
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
@@ -284,8 +315,9 @@ class Laser
 end Laser
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon
+    
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls
     
     var health : real := 100
     
@@ -310,8 +342,10 @@ class Tank
     var maxSteer : real := 90 % Degrees of max steering
     var maxThrottle:real:= 3
     
-    var currentWeapon : int := 0
-    var weapons : flexible array 1..0 of weaponStorageInv
+    var currentWeapon : int := 1
+    var weapons : flexible array 1..1 of weaponStorageInv
+    
+    weapons(1) := defWeapon
     
     function getWeapon() : weaponStorageInv
         result weapons(currentWeapon)
@@ -348,8 +382,8 @@ class Tank
     end getHealth
     
     procedure Reload()
-        if (curAmmo < maxAmmo) then
-            lastReload := Time.Elapsed
+        if (weapons(currentWeapon).weapon.ammo < weapons(currentWeapon).weapon.clipSize) then
+            weapons(currentWeapon).weapon.lastReload := Time.Elapsed
         end if
     end Reload
     
@@ -490,10 +524,10 @@ class Tank
             canLase := true
         end if
         
-        if (lastReload not= 0) then
-            if (lastReload + reloadMillis < Time.Elapsed) then
-                curAmmo := maxAmmo
-                lastReload := 0
+        if (weapons(currentWeapon).weapon.lastReload not= 0) then
+            if (weapons(currentWeapon).weapon.lastReload + weapons(currentWeapon).weapon.reloadDelay < Time.Elapsed) then
+                weapons(currentWeapon).weapon.ammo := weapons(currentWeapon).weapon.clipSize
+                weapons(currentWeapon).weapon.lastReload := 0
             end if
         end if
         
@@ -587,7 +621,7 @@ class Tank
     end checkWallCol
     
     function CanFire() : boolean
-        result curAmmo > 0 and lastReload = 0 and Time.Elapsed > (lastShot + shotDelay)
+        result weapons(currentWeapon).weapon.ammo > 0 and weapons(currentWeapon).weapon.lastReload = 0 and Time.Elapsed > (weapons(currentWeapon).weapon.lastShot + weapons(currentWeapon).weapon.shotDelay)
     end CanFire
     
     function Fire() : pointer to Bullet
@@ -595,11 +629,11 @@ class Tank
         new Bullet, Bul
         
         Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,15,gunDamage)
-        curAmmo -= 1
+        weapons(currentWeapon).weapon.ammo -= 1
         
-        var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,10),zero,turretRotation))
+        var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,weapons(currentWeapon).weapon.speed),zero,turretRotation))
         %Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
-        lastShot := Time.Elapsed
+        weapons(currentWeapon).weapon.lastShot := Time.Elapsed
         result Bul
     end Fire
     
@@ -730,7 +764,7 @@ class Tank
         if (CanFire()) then
             result sqDist < 250000
         else
-            if (curAmmo = 0 and lastReload = 0) then
+            if (weapons(currentWeapon).weapon.ammo = 0 and weapons(currentWeapon).weapon.lastReload = 0) then
                 Reload()
             end if
         end if
@@ -738,15 +772,14 @@ class Tank
         result false
     end updateAI
     
-    function weaponControls (mb,lmb,ws) : boolean
+    function weaponControls (mb,lmb,ws:int) : boolean
         if (ws not= -1) then
             if (ws < upper(weapons)) then
                 currentWeapon := ws
             end if
         end if
         
-        
-        
+        result (mb =1 and (weapons(currentWeapon).weapon.automatic or lmb not= 1) and CanFire()) 
     end weaponControls
     
 end Tank
@@ -1045,15 +1078,11 @@ loop    % Main game logic loop
         if chars(KEY_ESC) and not formerChars(KEY_ESC) then
             paused := true
         end if
-        if mB =1 and not mLB = 1 and Player -> CanFire() then
-            new bullets, upper(bullets)+1
-            bullets(upper(bullets)) := Player -> Fire() %SHOOT FROM THE TANK!
-        end if
         
         var weaponSelection := -1
         for i : '1'..'9'
             if (chars(i) and not formerChars(i)) then
-                weaponSelection := i-'1'
+                weaponSelection := ord(i)-ord('0')
             end if
         end for
         
@@ -1063,7 +1092,10 @@ loop    % Main game logic loop
         end if
         
         Player -> setControls(V,H,L)
-        Player -> weaponControls(mB,MLB,weaponSelection)
+        if (Player -> weaponControls(mB,mLB,weaponSelection)) then
+            new bullets, upper(bullets)+1
+            bullets(upper(bullets)) := Player -> Fire()
+        end if
         Player -> update(mX-offsetX, mY-offsetY, mB)
     end if
     

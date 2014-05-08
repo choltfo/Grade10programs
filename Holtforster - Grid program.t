@@ -72,7 +72,7 @@ loop    % Allow map creation.
     Mouse.Where(mX,mY,mB)
 
     Draw.Text("Draw a maze starting at the green,", 20,maxy-26,font,black)
-    Draw.Text("ending at the red.", 20,maxy-52,font,black)
+    Draw.Text("ending at the red. Diagonals are passable.", 20,maxy-52,font,black)
 
     for i : 0..21
         Draw.FillBox(i*CELL_WIDTH,0*CELL_HEIGHT,(i+1)*CELL_WIDTH,(0+1)*CELL_HEIGHT,black)
@@ -99,7 +99,7 @@ loop    % Allow map creation.
     Draw.FillBox(1*CELL_WIDTH,1*CELL_HEIGHT,(1+1)*CELL_WIDTH,(1+1)*CELL_HEIGHT,green)
     
     Draw.FillBox(maxx-Font.Width("Done", font),0,maxx,50,red)
-    Draw.Text("Done",maxx-Font.Width("Done", font),0,font,black)
+    Draw.Text("Done",maxx-Font.Width("Done", font),10,font,black)
     exit when PtInRect(mX,mY, maxx-Font.Width("Done", font),0,maxx,50) and mB = 1
     
     lMB := mB
@@ -124,6 +124,8 @@ grid  (ENDX,ENDY).wall := false
 
 var done : boolean := false
 var a : int := 0
+
+var lastLength := 0
 
 loop    % Populate gScores
     exit when done
@@ -176,6 +178,14 @@ loop    % Populate gScores
     put openSet(a).x,", ",openSet(a).y
     Text.Locate(1,1)
     View.Update()
+    
+    if (lastLength = upper(openSet)) then
+        Draw.FillBox(0,maxy,maxx,maxy-60,white)
+        put "Impossible maze!"
+        quit
+    end if
+    
+    lastLength := upper(openSet)
 end loop
 
 var cur:coord

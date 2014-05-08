@@ -34,7 +34,7 @@ proc loadCampaign
         end if
     end for
     
-    View.Update
+    View.Update()
     
     close : stream
     
