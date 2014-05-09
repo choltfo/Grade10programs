@@ -179,11 +179,11 @@ loop    % Populate gScores
     Text.Locate(1,1)
     View.Update()
     
-    if (lastLength = upper(openSet)) then
+    /*if (lastLength = upper(openSet)) then
         Draw.FillBox(0,maxy,maxx,maxy-60,white)
         put "Impossible maze!"
         quit
-    end if
+    end if*/
     
     lastLength := upper(openSet)
 end loop
@@ -234,7 +234,7 @@ for i : 0..21
     Draw.Line(i*CELL_WIDTH,0,i*CELL_WIDTH,21*CELL_HEIGHT,black)
 end for
 
-
+Draw.FillBox(0,maxy,maxx,maxy-60,white)
 put "Done! (Took ", Time.Elapsed-startTime," ms)"
 View.Update()
 

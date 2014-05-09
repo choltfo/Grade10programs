@@ -327,6 +327,7 @@ class Tank
     % The gun
     var maxAmmo, curAmmo : int := 10
     var gunDamage := 40
+    
     var lastShot := 0
     var shotDelay := 1000
     
@@ -429,12 +430,13 @@ class Tank
         LB -> update()
         LB -> draw(round(curLasers),round(maxLasers), not canLase)
         
-        if (lastReload = 0) then
-            var ammoLine : string := "Ammo remaining: " + intstr(curAmmo) +"/"+intstr(maxAmmo)
+        if (weapons(currentWeapon).weapon.lastReload = 0) then
+            var ammoLine : string := weapons(currentWeapon).weapon.name+" : " + intstr(weapons(currentWeapon).weapon.ammo) +"/"+intstr(weapons(currentWeapon).weapon.clipSize)
             Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
         else
             Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
         end if
+                put upper(weapons)
         
     end drawGUI
     
@@ -628,10 +630,12 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
-        Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,15,gunDamage)
+        Bul -> Init(Location, Vector.RotateD(Velocity, zero, Rotation),90+turretRotation,weapons(currentWeapon).weapon.speed,weapons(currentWeapon).weapon.damage)
         weapons(currentWeapon).weapon.ammo -= 1
         
-        var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,weapons(currentWeapon).weapon.speed),zero,turretRotation))
+        lastShot := Time.Elapsed
+        
+        %var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,weapons(currentWeapon).weapon.speed),zero,turretRotation))
         %Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         weapons(currentWeapon).weapon.lastShot := Time.Elapsed
         result Bul
@@ -762,7 +766,7 @@ class Tank
         end if
         
         if (CanFire()) then
-            result sqDist < 250000
+            result sqDist < 250000 and lastShot + shotDelay < Time.Elapsed
         else
             if (weapons(currentWeapon).weapon.ammo = 0 and weapons(currentWeapon).weapon.lastReload = 0) then
                 Reload()
@@ -782,6 +786,11 @@ class Tank
         result (mb =1 and (weapons(currentWeapon).weapon.automatic or lmb not= 1) and CanFire()) 
     end weaponControls
     
+
+    proc getWeapon (wp : weaponPickup)
+        new weapons, upper(weapons)+1
+        weapons(upper(weapons)) := wp.weapon
+    end getWeapon
 end Tank
 
 
@@ -1138,8 +1147,9 @@ loop    % Main game logic loop
             if (Vector.getSqrMag(Vector.Subtract(pickup(i).position,Player->getLoc()))) < 100 then
                 pickup(i).used := true
                 pickup(i).returnTime := pickup(i).respawnDelay + Time.Elapsed
+                Player -> getWeapon(pickup(i))
             end if
-            Draw.FillOval(round(pickup(i).position.x),round(pickup(i).position.y),10,10,
+            Draw.FillOval(round(pickup(i).position.x+offsetX),round(pickup(i).position.y+offsetY),10,10,
             (((round(Time.Elapsed() / 200)) mod 2)*red)
             )
         end if
@@ -1335,7 +1345,7 @@ loop    % Main game logic loop
     end for
     
     
-    put (LastFrame + frameMillis) - Time.Elapsed
+    %put (LastFrame + frameMillis) - Time.Elapsed
     
     %FRPlotX := (FRPlotX+1) mod 200
     %draw.
