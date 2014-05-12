@@ -92,6 +92,7 @@ loop    % Title screen loop
     Font.Draw("Map editor",round((maxx/2)-(Font.Width("Map editor",Font2)/2)),maxy-435,Font2,black)
     
     
+    
     %((round(Time.Elapsed() / 200)) mod 2)*green
     
     mLB := mB
