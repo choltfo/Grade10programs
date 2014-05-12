@@ -6,6 +6,8 @@ include "Particles.t"
 
 View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
 
+Music.PreLoad("CannonShot.mp3")
+
 var Font1 := Font.New ("Impact:72")
 var Font2 := Font.New ("Arial:18")
 
@@ -90,6 +92,10 @@ defWeapon.weapon.hit.size := 7
 defWeapon.weapon.hit.TTLMax := 150
 defWeapon.weapon.hit.TTLMin := 100
 defWeapon.ammunition := 999999999
+
+process gunShot
+    Music.PlayFileReturn("CannonShot.mp3")
+end gunShot
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
@@ -321,7 +327,7 @@ class Laser
 end Laser
 
 class Tank
-    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon, weaponPickup
+    import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon, weaponPickup, gunShot
     
     export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon
     
@@ -637,6 +643,8 @@ class Tank
         var Bul : pointer to Bullet
         new Bullet, Bul
         
+        fork gunShot
+        
         var vel : Vector2 := Vector.RotateD(Vector.AddDir(Velocity,0,21), zero, turretRotation)
         
         Bul -> Init(Vector.Add(Location,vel), zero,90+turretRotation,weapons(currentWeapon).weapon.speed,weapons(currentWeapon).weapon.damage)
@@ -819,6 +827,8 @@ var enemies :   flexible array 1..0 of pointer to Tank
 var cas     :   flexible array 1..0 of            colourArea
 var pickup  :   flexible array 1..0 of            weaponPickup
 
+var BGMusicFile : string := ""
+
 proc loadMap (map : string)
 % generate map from walls and vector points
 var stream : int
@@ -836,8 +846,9 @@ end loop
 
 mapX := strint(mapFile (1))
 mapY := strint(mapFile (2))
+BGMusicFile := mapFile (3)
 
-for i : 3..upper(mapFile)
+for i : 4..upper(mapFile)
     if (mapFile(i) = "Wall:") then
         
         var x1,x2,y1,y2 : int := 0
@@ -1038,6 +1049,7 @@ end clearLevel
 
 proc pauseScreen()
     var mX,mY,mB,lMB : int := 0
+    Music.PlayFileStop
     loop
         formerChars := chars
         Input.KeyDown (chars)
@@ -1059,10 +1071,14 @@ proc pauseScreen()
         delay (10)
         lMB := mB
     end loop
+    Music.PlayFileLoop("Music/"+BGMusicFile)
 end pauseScreen
 
 
 function playLoadedLevel() : boolean
+
+Music.PlayFileLoop("Music/"+BGMusicFile)
+
 var paused : boolean := false
 
 new Tank, Player

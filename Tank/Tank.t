@@ -41,7 +41,6 @@ proc loadCampaign
 end loadCampaign
 
 proc playCampaign
-    % IMPORTANT: NUMBER OF LEVELS HERE
     loadCampaign
     for i : 1..upper(levels)
         cutscene.displayLines
