@@ -94,7 +94,7 @@ defWeapon.weapon.hit.TTLMin := 100
 defWeapon.ammunition := 999999999
 
 process gunShot
-    Music.PlayFileReturn("CannonShot.mp3")
+    Music.PlayFile("CannonShot.mp3")
 end gunShot
 
 class Wall
@@ -1049,7 +1049,7 @@ end clearLevel
 
 proc pauseScreen()
     var mX,mY,mB,lMB : int := 0
-    Music.PlayFileStop
+    %Music.PlayFileStop
     loop
         formerChars := chars
         Input.KeyDown (chars)
@@ -1071,13 +1071,13 @@ proc pauseScreen()
         delay (10)
         lMB := mB
     end loop
-    Music.PlayFileLoop("Music/"+BGMusicFile)
+    %Music.PlayFileLoop("Music/"+BGMusicFile)
 end pauseScreen
 
 
 function playLoadedLevel() : boolean
 
-Music.PlayFileLoop("Music/"+BGMusicFile)
+%Music.PlayFileLoop("Music/"+BGMusicFile)
 
 var paused : boolean := false
 

@@ -11,6 +11,7 @@ procedure save (fileName:string)
     
     put : stream, maxx
     put : stream, maxy
+    put : stream, "Encounter by Richard Bowig.wav"
     for i : 1.. upper (walls)
         put : stream, "Wall:"
         put : stream, round(walls(i)->getP1().x)
