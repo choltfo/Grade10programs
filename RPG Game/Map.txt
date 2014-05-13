@@ -1,0 +1,6 @@
+2
+2
+Tile:1:Tex1.bmp
+Tile:1:Tex1.bmp
+Tile:1:Tex1.bmp
+Tile:1:Tex1.bmp

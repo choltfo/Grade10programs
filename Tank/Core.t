@@ -1128,6 +1128,10 @@ loop    % Main game logic loop
             end if
         end for
         
+        if (Window.GetActive() = -5) then
+            paused := true
+        end if
+        
         if chars (' ') and Player -> CanFireLaser() then
             new lasers, upper(lasers)+1
             lasers(upper(lasers)) := Player -> FireLaser() %SHOOT FROM THE TANK!
