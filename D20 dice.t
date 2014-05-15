@@ -3,7 +3,7 @@ var asdf : string :="asdf"
 var x,y,button,lmb := 0
 Mouse.Where(x,y,button)
 
-Rand.Set(669899503)
+Rand.Set(234513378)
 
 loop
     put Rand.Int(1,20)
