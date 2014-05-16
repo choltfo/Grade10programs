@@ -48,7 +48,8 @@ proc loadMap (map : string)
                     tiles(x,y).texture := strint(mapFile(i+y)(7*(x-1)+1..7*(x-1)+3))
                 end for
             end for
-                i+=upper(tiles,2)
+            
+            i+=upper(tiles,2)
         else
             i += 1
         end if
@@ -67,3 +68,4 @@ end drawMap
 
 loadMap("Map.txt")
 drawMap()
+

@@ -129,7 +129,6 @@ function createNewPlayer : player
         i+=displayStatEdit("Willpower",x,y,z,lmb,50,maxy-100-(10*i),20,newPlayer.Willpower,green)
         View.Update()
         cls()
-%>>>>>>> 7f48efbd499e04f162bb87208c15fd11f4dc6673
         lmb := z
     end loop
     
