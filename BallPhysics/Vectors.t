@@ -7,7 +7,7 @@ end record
 
 module Vector
     import Vector2
-    export Multiply, Add, AddDir, Subtract, RotateD, getMag, getSqrMag, normalize, Divide
+    export Multiply, Add, AddDir, Subtract, RotateD, getMag, getSqrMag, Normalize, Divide
     
     function * Multiply (v : Vector2, newMag : real) : Vector2
         var res : Vector2
@@ -66,13 +66,13 @@ module Vector
         result (a.x**2 + a.y**2)
     end getSqrMag
     
-    function normalize (a : Vector2) : Vector2
+    function Normalize (a : Vector2) : Vector2
         var res : Vector2
         var mag : real := getMag(a)
         res.x := a.x/mag
         res.y := a.y/mag
         result res
-    end normalize
+    end Normalize
     
 end Vector
 

@@ -94,7 +94,7 @@ defWeapon.weapon.hit.TTLMin := 100
 defWeapon.ammunition := 999999999
 
 process gunShot
-    Music.PlayFile("CannonShot.mp3")
+    %Music.PlayFile("CannonShot.mp3")
 end gunShot
 
 class Wall
@@ -756,8 +756,8 @@ class Tank
     function updateAI (target : pointer to Tank) : boolean
         % This needs to drive the tank!
         
-        result false
-        /*
+        %result false
+        
         if (Location.x not= target->getLoc().x) then
             if (Location.x < target->getLoc().x) then
                 turretRotation := (arctand((Location.y- target -> getLoc().y) / (Location.x- target -> getLoc().x)) +270) mod 360
@@ -790,7 +790,7 @@ class Tank
             end if
         end if
         
-        result false*/
+        result false
     end updateAI
     
     function weaponControls (mb,lmb,ws:int) : boolean
