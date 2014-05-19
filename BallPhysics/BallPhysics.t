@@ -113,6 +113,7 @@ const lvlSize := 20
 
 var mx,my,mb,lmb := 0
 var Tries : int := 0
+var levelComplete : boolean := false
 loop
     Mouse.Where(mx,my,mb)
     if (not ball.Alive) then
@@ -150,8 +151,10 @@ loop
             ball.Alive := false
         end if
         
+        % Have we won?
         if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 then
             ball.Alive := false
+            levelComplete := true
         end if
         
         
