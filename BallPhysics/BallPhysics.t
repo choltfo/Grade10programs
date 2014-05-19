@@ -5,10 +5,13 @@ View.Set("Graphics")
 
 var start,finish,startVel : Vector2
 
-start.x := 0
-start.y := 0
+start.x := 20
+start.y := 20
 startVel.x := 200
 startVel.y := 200
+
+finish.x := 200
+finish.y := 200
 
 var deltaT : real := 0.001
 
@@ -83,7 +86,9 @@ proc drawLevel(boxSize,x,y : int)
         end for
     end for
     
-    
+    Draw.FillOval(round(start.x),round(start.y),5,5,green)
+    Draw.FillOval(round(finish.x),round(finish.y),5,5,red)
+    Draw.Oval(round(finish.x),round(finish.y),20,20,red)
     
     Draw.FillOval(round(ball.Location.x),round(ball.Location.y),5,5,blue)
 end drawLevel
@@ -107,7 +112,7 @@ const lvlHeight := 30
 const lvlSize := 20
 
 var mx,my,mb,lmb := 0
-
+var Tries : int := 0
 loop
     Mouse.Where(mx,my,mb)
     if (not ball.Alive) then
@@ -145,6 +150,10 @@ loop
             ball.Alive := false
         end if
         
+        if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 then
+            ball.Alive := false
+        end if
+        
         
         drawVectorThickLine(ball.Location,Vector.Subtract(ball.Location,Vector.Multiply(ball.Velocity,deltaT)),5,black)
         
@@ -152,7 +161,7 @@ loop
         
         if (mb = 1 and lmb = 0) then
             ball.Alive := false
-            put "ZOINK!"
+            %put "ZOINK!"
             for i : 1..upper(wells)
                 if (Math.Distance(wells(i).x*lvlSize,wells(i).y*lvlSize,mx,my) < 5) then
                     ball.Alive := false
@@ -168,12 +177,13 @@ loop
                         exit when mb = 0 and lmb = 1
                         lmb := mb
                     end loop
+                    Tries += 1
                 end if
             end for
         end if
         
         if (mb = 1 and lmb = 0) then
-            put "ZOINK!"
+            %put "ZOINK!"
             for i : 1..upper(accels)
                 if (PTInRect(mx,my,accels(i).x*lvlSize-1,accels(i).y*lvlSize-1,(accels(i).x-1)*lvlSize,(accels(i).y-1)*lvlSize)) then
                     ball.Alive := false
@@ -189,6 +199,7 @@ loop
                         exit when mb = 0 and lmb = 1
                         lmb := mb
                     end loop
+                    Tries += 1
                 end if
             end for
         end if
@@ -198,7 +209,9 @@ loop
     ball.Force := zero
 
     drawLevel(lvlSize,lvlWidth,lvlHeight)
-
+    
+    put Tries
+    
     View.Update
     
     cls

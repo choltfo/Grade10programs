@@ -1,22 +1,4 @@
-% RPG club calculator for random stuff
-
-type character : record
-    Level : int
-    name : string
-    
-    HP : int
-    maxHP : int
-    Cons : int
-    maxCons : int
-    
-    Strength : int
-    Agility : int
-    Finesse : int
-    Awareness : int
-    Intelligence : int
-    Presence : int
-    Willpower : int
-end record
+% Character creator
 
 type player : record
     Level : int
@@ -37,20 +19,6 @@ type player : record
     Presence : int
     Willpower : int
 end record
-
-type gun : record
-    Name : string
-    
-    ROF : int       % RPM
-    DPS : int       % Damage per shot
-    Range : real    % Range in meters
-    Accuracy : real % Accuracy, from 100(Perfect) to 0(Crap)
-    magSize : int
-end record
-
-type bullet : enum (c9MM,c45C)
-%put cheat(bullet,1)
-
 
 var toolTitle : int := Font.New("Arial:9")
 
@@ -164,83 +132,4 @@ function createNewPlayer : player
 end createNewPlayer
 
 View.Set("offscreenonly")
-
-%var a := createNewPlayer
-
-
-% Accuracy is from 100 (dead on) to 0 (anywhere in front)
-% Mit is the percentage provided by armour or skin,
-function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real, Bdefense,enemyFinesse, Mitigation : int) : int
-    
-    var roundsFired := round(RPM/60) * 5
-    var defense := Bdefense + Rand.Int(1,20)
-    var strength := Bstrength + Rand.Int(1,20)
-    var finesse := Bfinesse + Rand.Int(1,20)
-    var accuracy := min(Baccuracy + Rand.Int(1,20),100)
-    
-    %put "Fired ", roundsFired, " rounds."
-    %put "STR: ",strength
-    %put "FIN: ",finesse
-    %put "ACC: ",accuracy
-    %put "DEF: ",defense
-    
-    % Yes, it's a real number. Not an Int. Makes sense later.
-    %* min((Dist/Range),1)
-    var roundsHit : real := roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100)
-    
-    %put "HITS: ",roundsHit
-    
-    var damageDealt : real := roundsHit*damagePerRound * ((60-defense-enemyFinesse) / 60) * ((100-Mitigation)/100)
-    
-    result max(floor(damageDealt),1)
-    
-end shootAuto
-
-% Accuracy is from 100 (dead on) to 0 (anywhere in front)
-% Mit is the percentage provided by armour or skin,
-function shootAutoAsEntity (Gun : gun, shooter : player, ) : int
-    
-    var roundsFired := round(RPM/60) * 5
-    var defense := Bdefense + Rand.Int(1,20)
-    var strength := Bstrength + Rand.Int(1,20)
-    var finesse := Bfinesse + Rand.Int(1,20)
-    var accuracy := min(Baccuracy + Rand.Int(1,20),100)
-    
-    %put "Fired ", roundsFired, " rounds."
-    %put "STR: ",strength
-    %put "FIN: ",finesse
-    %put "ACC: ",accuracy
-    %put "DEF: ",defense
-    
-    % Yes, it's a real number. Not an Int. Makes sense later.
-    %* min((Dist/Range),1)
-    var roundsHit : real := roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100)
-    
-    %put "HITS: ",roundsHit
-    
-    var damageDealt : real := roundsHit*damagePerRound * ((60-defense-enemyFinesse) / 60) * ((100-Mitigation)/100)
-    
-    result max(floor(damageDealt),1)
-    
-end shootAutoAsEntity
-
-loop
-    loop
-        var mx,my,mb := 0
-        Mouse.Where(mx,my,mb)
-        exit when mb = 1
-    end loop
-    
-    put "DMG: "+intstr(shootAuto (50, 500, 1200, 25, 10,10,1,10,10,20))
-    View.Update
-    loop
-        var mx,my,mb := 0
-        Mouse.Where(mx,my,mb)
-        exit when mb = 0
-    end loop
-end loop
-
-
-
-
-
+var a := createNewPlayer

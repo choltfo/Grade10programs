@@ -16,9 +16,9 @@ var tiles : flexible array 1..0,1..0 of Tile
 proc loadMap (map : string)
     var fileNum : int
     open : fileNum, map, get
-
+    
     var mapFile : flexible array 1..0 of string
-
+    
     loop
         new mapFile, upper(mapFile)+1
         get : fileNum, mapFile(upper(mapFile)) : *
