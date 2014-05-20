@@ -830,178 +830,178 @@ var pickup  :   flexible array 1..0 of            weaponPickup
 var BGMusicFile : string := ""
 
 proc loadMap (map : string)
-% generate map from walls and vector points
-var stream : int
-var mapFile : flexible array 1..0 of string
-open : stream, map, get
+    % generate map from walls and vector points
+    var stream : int
+    var mapFile : flexible array 1..0 of string
+    open : stream, map, get
 
-cls
-put "Loading map..."
+    cls
+    put "Loading map..."
 
-loop
-    exit when eof(stream)
-    new mapFile, upper(mapFile) + 1
-    get : stream, mapFile(upper(mapFile)) : *
-end loop
+    loop
+        exit when eof(stream)
+        new mapFile, upper(mapFile) + 1
+        get : stream, mapFile(upper(mapFile)) : *
+    end loop
 
-mapX := strint(mapFile (1))
-mapY := strint(mapFile (2))
-BGMusicFile := mapFile (3)
+    mapX := strint(mapFile (1))
+    mapY := strint(mapFile (2))
+    BGMusicFile := mapFile (3)
 
-for i : 4..upper(mapFile)
-    if (mapFile(i) = "Wall:") then
-        
-        var x1,x2,y1,y2 : int := 0
-        
-        x1 := strint(mapFile (i+1))
-        y1 := strint(mapFile (i+2))
-        x2 := strint(mapFile (i+3))
-        y2 := strint(mapFile (i+4))
-        
-        put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
-        
-        new walls, upper(walls)+1
-        new Wall, walls(upper(walls))
-        
-        var e,s : Vector2
-        
-        s.x:=x1+0.01
-        s.y:=y1+0.01
-        e.x:=x2+0.01
-        e.y:=y2+0.01
-        
-        walls(upper(walls)) -> Init (e,s)
-        
-    end if
-    
-    if (mapFile(i) = "Weapon:") then
-        /*
-            Weapon:
-            1 UID
-            Missile Launcher name
-            50 damage
-            100 speed
-            2 magazine size
-            4000 shotDelay in milliseconds
-            4000 reloadDelay in milliseconds
-            true automatic
-            Trail: particleBurst
-            2 maxXSpeed
-            2 maxYSpeed
-            5 numOfP
-            41 colour
-            5 size
-            10  TTILMin
-            15  TTLMax
-            Hit: particleBurst
-            2 maxXSpeed
-            2 maxYSpeed
-            5 numOfP
-            41 colour
-            5 size
-            10  TTILMin
-            15  TTLMax
-            10 Ammo
+    for i : 4..upper(mapFile)
+        if (mapFile(i) = "Wall:") then
             
-            X
-            Y
-            10000 Respawn Delay
-        */
+            var x1,x2,y1,y2 : int := 0
+            
+            x1 := strint(mapFile (i+1))
+            y1 := strint(mapFile (i+2))
+            x2 := strint(mapFile (i+3))
+            y2 := strint(mapFile (i+4))
+            
+            put "Found a wall declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
+            
+            new walls, upper(walls)+1
+            new Wall, walls(upper(walls))
+            
+            var e,s : Vector2
+            
+            s.x:=x1+0.01
+            s.y:=y1+0.01
+            e.x:=x2+0.01
+            e.y:=y2+0.01
+            
+            walls(upper(walls)) -> Init (e,s)
+            
+        end if
         
-        var WP : weaponPickup
+        if (mapFile(i) = "Weapon:") then
+            /*
+                Weapon:
+                1 UID
+                Missile Launcher name
+                50 damage
+                100 speed
+                2 magazine size
+                4000 shotDelay in milliseconds
+                4000 reloadDelay in milliseconds
+                true automatic
+                Trail: particleBurst
+                2 maxXSpeed
+                2 maxYSpeed
+                5 numOfP
+                41 colour
+                5 size
+                10  TTILMin
+                15  TTLMax
+                Hit: particleBurst
+                2 maxXSpeed
+                2 maxYSpeed
+                5 numOfP
+                41 colour
+                5 size
+                10  TTILMin
+                15  TTLMax
+                10 Ammo
+                
+                X
+                Y
+                10000 Respawn Delay
+            */
+            
+            var WP : weaponPickup
+            
+            WP.weapon.UID := strint(mapFile(i+1))
+            WP.weapon.name := mapFile(i+2)
+            WP.weapon.damage := strint(mapFile(i+3))
+            WP.weapon.speed := strint(mapFile(i+4))
+            WP.weapon.clipSize := strint(mapFile(i+5))
+            WP.weapon.shotDelay := strint(mapFile(i+6))
+            WP.weapon.reloadDelay := strint(mapFile(i+7))
+            WP.weapon.automatic := mapFile(i+8) = "true"
+            WP.weapon.trail.maxXSpeed := strint(mapFile(i+10))
+            WP.weapon.trail.maxYSpeed := strint(mapFile(i+11))
+            WP.weapon.trail.numOfP := strint(mapFile(i+12))
+            WP.weapon.trail.Colour := strint(mapFile(i+13))
+            WP.weapon.trail.size := strint(mapFile(i+14))
+            WP.weapon.trail.TTLMin := strint(mapFile(i+15))
+            WP.weapon.trail.TTLMax := strint(mapFile(i+16))
+            
+            WP.weapon.hit.maxXSpeed := strint(mapFile(i+18))
+            WP.weapon.hit.maxYSpeed := strint(mapFile(i+19))
+            WP.weapon.hit.numOfP := strint(mapFile(i+20))
+            WP.weapon.hit.Colour := strint(mapFile(i+21))
+            WP.weapon.hit.size := strint(mapFile(i+22))
+            WP.weapon.hit.TTLMin := strint(mapFile(i+23))
+            WP.weapon.hit.TTLMax := strint(mapFile(i+24))
+            WP.position.x := strint(mapFile(i+25))
+            WP.position.y := strint(mapFile(i+26))
+            WP.respawnDelay := strint(mapFile(i+27))
+            
+            WP.used := false
+            WP.returnTime := 0
+            WP.ammunition := strint(mapFile(i+28))
+            WP.weapon.ammo := WP.weapon.clipSize
+            
+            
+            new pickup, upper(pickup)+1
+            pickup(upper(pickup)) := WP
+            
+        end if
         
-        WP.weapon.UID := strint(mapFile(i+1))
-        WP.weapon.name := mapFile(i+2)
-        WP.weapon.damage := strint(mapFile(i+3))
-        WP.weapon.speed := strint(mapFile(i+4))
-        WP.weapon.clipSize := strint(mapFile(i+5))
-        WP.weapon.shotDelay := strint(mapFile(i+6))
-        WP.weapon.reloadDelay := strint(mapFile(i+7))
-        WP.weapon.automatic := mapFile(i+8) = "true"
-        WP.weapon.trail.maxXSpeed := strint(mapFile(i+10))
-        WP.weapon.trail.maxYSpeed := strint(mapFile(i+11))
-        WP.weapon.trail.numOfP := strint(mapFile(i+12))
-        WP.weapon.trail.Colour := strint(mapFile(i+13))
-        WP.weapon.trail.size := strint(mapFile(i+14))
-        WP.weapon.trail.TTLMin := strint(mapFile(i+15))
-        WP.weapon.trail.TTLMax := strint(mapFile(i+16))
+        if (mapFile(i) = "Colour:") then
+            
+            var x1,x2,y1,y2 : int := 0
+            
+            x1 := strint(mapFile (i+1))
+            y1 := strint(mapFile (i+2))
+            x2 := strint(mapFile (i+3))
+            y2 := strint(mapFile (i+4))
+            
+            put "Found a colour area declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
+            
+            new cas, upper(cas)+1
+            
+            var e,s : Vector2
+            
+            s.x:=x1+0.01
+            s.y:=y1+0.01
+            e.x:=x2+0.01
+            e.y:=y2+0.01
+            
+            cas(upper(cas)).TRcorner := s
+            cas(upper(cas)).BLcorner := e
+            cas(upper(cas)).col := strint(mapFile(i+5))
+            
+            
+        end if
         
-        WP.weapon.hit.maxXSpeed := strint(mapFile(i+18))
-        WP.weapon.hit.maxYSpeed := strint(mapFile(i+19))
-        WP.weapon.hit.numOfP := strint(mapFile(i+20))
-        WP.weapon.hit.Colour := strint(mapFile(i+21))
-        WP.weapon.hit.size := strint(mapFile(i+22))
-        WP.weapon.hit.TTLMin := strint(mapFile(i+23))
-        WP.weapon.hit.TTLMax := strint(mapFile(i+24))
-        WP.position.x := strint(mapFile(i+25))
-        WP.position.y := strint(mapFile(i+26))
-        WP.respawnDelay := strint(mapFile(i+27))
+        if (mapFile(i) = "Enemy:") then
+            
+            var x, y : real := 0
+            
+            x := strint(mapFile (i+1))
+            y := strint(mapFile (i+2))
+            put "Found enemy at (",x,", ",y,")."
+            new enemies, upper(enemies) + 1
+            new Tank, enemies(upper(enemies))
+            enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)))
+        end if
         
-        WP.used := false
-        WP.returnTime := 0
-        WP.ammunition := strint(mapFile(i+28))
-        WP.weapon.ammo := WP.weapon.clipSize
-        
-        
-        new pickup, upper(pickup)+1
-        pickup(upper(pickup)) := WP
-        
-    end if
-    
-    if (mapFile(i) = "Colour:") then
-        
-        var x1,x2,y1,y2 : int := 0
-        
-        x1 := strint(mapFile (i+1))
-        y1 := strint(mapFile (i+2))
-        x2 := strint(mapFile (i+3))
-        y2 := strint(mapFile (i+4))
-        
-        put "Found a colour area declaration: (", x1, ",",y1,"),(",x2,",",y2,")"
-        
-        new cas, upper(cas)+1
-        
-        var e,s : Vector2
-        
-        s.x:=x1+0.01
-        s.y:=y1+0.01
-        e.x:=x2+0.01
-        e.y:=y2+0.01
-        
-        cas(upper(cas)).TRcorner := s
-        cas(upper(cas)).BLcorner := e
-        cas(upper(cas)).col := strint(mapFile(i+5))
-        
-        
-    end if
-    
-    if (mapFile(i) = "Enemy:") then
-        
-        var x, y : real := 0
-        
-        x := strint(mapFile (i+1))
-        y := strint(mapFile (i+2))
-        put "Found enemy at (",x,", ",y,")."
-        new enemies, upper(enemies) + 1
-        new Tank, enemies(upper(enemies))
-        enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)))
-    end if
-    
-end for
+    end for
 
-put "Done!"
-View.Update()
-delay(500)
+    put "Done!"
+    View.Update()
+    delay(500)
 
 
-fric.x := 0.1
-fric.y := 0.1
+    fric.x := 0.1
+    fric.y := 0.1
 
-loc.x := 100
-loc.y := 100
+    loc.x := 100
+    loc.y := 100
 
-new Tank, Player
-Player -> Init(vel,loc,fric,0,green)
+    new Tank, Player
+    Player -> Init(vel,loc,fric,0,green)
 
 end loadMap
 
