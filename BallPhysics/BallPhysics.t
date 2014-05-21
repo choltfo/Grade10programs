@@ -112,13 +112,17 @@ const lvlHeight := 30
 const lvlSize := 20
 
 proc loadLevel (map : string)
+    
+    new accels, 0
+    new wells, 0
+    
     % generate map from walls and vector points
     var stream : int
     var mapFile : flexible array 1..0 of string
     
     open : stream, map, get
     %open : stream, "map1.map", get
-
+    
     cls
     put "Loading map..."
     
@@ -176,6 +180,7 @@ proc loadLevel (map : string)
         exit when i >= upper(mapFile)
     end loop
     
+    close : stream
     
 end loadLevel
 
@@ -296,10 +301,101 @@ function playLevel () : int
     end loop
 end playLevel
 
+type highscore : record
+    player : string
+    score : int
+end record
+
+var highscores : array 1..10 of highscore
+
+for i : 1..upper(highscores)
+    highscores(i).player := "NULL"
+    highscores(i).score  := 1000
+end for
+
+proc sortHS
+    var sortedHighscores : array 1..10 of highscore
+    
+    % We want them descending.
+    
+    for i : 1..upper(highscores)
+        var lowestInd : int := 1
+        
+        for o : 1..upper(highscores)-(i-1)
+            if (highscores(o).score < highscores(lowestInd).score) then
+                lowestInd := o
+            end if
+        end for
+        sortedHighscores (i) := highscores(lowestInd)
+        for o : lowestInd..upper(highscores)-i
+            highscores(o) := highscores(o+1)
+        end for
+    end for
+    
+    highscores := sortedHighscores
+end sortHS
+
+proc addHS (player : string, score : int)
+    sortHS
+    if (score < highscores(upper(highscores)).score) then
+        highscores(upper(highscores)).score := score
+        highscores(upper(highscores)).player := player
+    end if
+    sortHS
+end addHS
+
+function checkHS (score : int) : boolean
+    sortHS
+    result (score < highscores(upper(highscores)).score)
+end checkHS
+
+proc putHS
+    for i : 1..upper(highscores)
+        put i," : ",highscores(i).player," : ",highscores(i).score
+    end for
+end putHS
+
+proc saveHS
+    var stream : int
+    open : stream, "highscores.txt", write
+    
+    for i : 1..upper(highscores)
+        write : stream, highscores(i)
+    end for
+    close : stream
+end saveHS
+
+proc loadHS
+    var stream : int
+    open : stream, "highscores.txt", read
+    
+    for i : 1..upper(highscores)
+        read : stream, highscores(i)
+    end for
+    close : stream
+end loadHS
+
+
+loadHS
+var score : int := 0
 
 loadLevel("map1.map")
-put playLevel ()
+score += playLevel ()
+/*loadLevel("map2.map")
+score += playLevel ()
+loadLevel("map3.map")
+score += playLevel ()*/
+cls
+if (checkHS(score)) then
+    put "Congrats! You have a high score! Please enter your name!"
+    View.Update()
+    var name : string := ""
+    get name
+    addHS(name,score)
+end if
 
+putHS
+saveHS
 
 
 
