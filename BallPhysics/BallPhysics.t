@@ -1,9 +1,13 @@
 % A physics game!
 include "Vectors.t"
+include "Particles.t"
 
 View.Set("Graphics")
 
 var start,finish,startVel : Vector2
+var p : pointer to ParticleSystem
+
+new ParticleSystem, p
 
 start.x := 20
 start.y := 20
@@ -22,6 +26,62 @@ type Ball : record
     Alive : boolean
     Mass : real
 end record
+
+
+function getString (prompt:string,x,y,font,c,bgc : int) : string
+    var chars : array char of boolean
+    var formerChars : array char of boolean
+    var output : string := ""
+    Draw.FillBox(x-2,y-2,maxx,y+45,bgc)
+    Font.Draw("-> " + output,x,y,font,c)
+    Font.Draw(prompt,x,y+25,font,c)
+    Input.KeyDown (chars)
+    formerChars := chars
+    View.Update()
+    loop
+        Input.KeyDown (chars)
+        for i : 97 .. 122
+            if (chars(chr(i)) and not formerChars(chr(i)) ) then
+                if chars(cheat(char,180)) then
+                    output += chr(i-32)
+                else
+                    output += chr(i)
+                end if
+                Draw.FillBox(x,y-1,maxx,y+22,bgc)
+                Font.Draw("-> " + output,x,y,font,c)
+                View.Update()
+            end if
+        end for
+        if (chars(chr(32)) and not formerChars(chr(32)) ) then
+            output += ' '
+            Draw.FillBox(x,y-1,maxx,y+22,bgc)
+            Font.Draw("-> " + output,x,y,font,c)
+            View.Update()
+        end if
+        
+        
+        if (chars(cheat(char,8)) and not formerChars(cheat(char,8)) ) then
+            var newLine : string := ""
+            for i : 1..length(output)-1
+                newLine += output(i)
+            end for
+            output := newLine
+            
+            Draw.FillBox(x,y-1,maxx,y+22,bgc)
+            Font.Draw("-> " + output,x,y,font,c)
+            View.Update()
+        end if
+        
+        if (chars(cheat(char,10)) and not formerChars(cheat(char,10)) ) then
+            View.Update()
+            result output
+        end if
+        formerChars := chars
+        View.Update()
+    end loop
+end getString
+
+var f : int := Font.New("TimesNewRoman:12")
 
 var ball : Ball
 ball.Location := start
@@ -151,6 +211,7 @@ proc loadLevel (map : string)
             accels(upper(accels)).Force.x := strint(mapFile(i))
             i:=i+1
             accels(upper(accels)).Force.y := strint(mapFile(i))
+            p -> InitAngular (accels(upper(accels)).x*lvlWidth,accels(upper(accels)).y*lvlHeight,10,500,grey,5,50,50)
         elsif (mapFile(i) = "Well:") then
             new wells, upper(wells)+1
             i:=i+1
@@ -161,6 +222,7 @@ proc loadLevel (map : string)
             wells(upper(wells)).Pull := strint(mapFile(i))
             i:=i+1
             wells(upper(wells)).maxDist := strint(mapFile(i))
+            p -> InitAngular (wells(upper(wells)).x*lvlWidth,wells(upper(wells)).y*lvlHeight,10,500,41,5,50,50)
         elsif (mapFile(i) = "Start:") then
             i:=i+1
             start.x := strint(mapFile(i))
@@ -170,11 +232,13 @@ proc loadLevel (map : string)
             startVel.x := strint(mapFile(i))
             i:=i+1
             startVel.y := strint(mapFile(i))
+            p -> InitAngular (start.x,start.y,10,500,green,5,50,50)
         elsif (mapFile(i) = "Finish:") then
             i:=i+1
             finish.x := strint(mapFile(i))
             i:=i+1
             finish.y := strint(mapFile(i))
+            p -> InitAngular (finish.x,finish.x,10,500,red,5,50,50)
         end if
         i:=i+1
         exit when i >= upper(mapFile)
@@ -223,12 +287,14 @@ function playLevel () : int
 
             if (not PTInRect(ball.Location.x,ball.Location.y,0,0,lvlWidth*lvlSize,lvlHeight*lvlSize)) then
                 ball.Alive := false
+                p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,blue,5,75,75)
             end if
             
             % Have we won?
             if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 + 5**2 then
                 ball.Alive := false
                 levelComplete := true
+                p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,yellow,5,75,75)
             end if
             
             
@@ -241,6 +307,7 @@ function playLevel () : int
                 for i : 1..upper(wells)
                     if (Math.Distance(wells(i).x*lvlSize,wells(i).y*lvlSize,mx,my) < 5) then
                         ball.Alive := false
+                        p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,red,5,50,50)
                         loop
                             Mouse.Where(mx,my,mb)
                             
@@ -263,6 +330,7 @@ function playLevel () : int
                 for i : 1..upper(accels)
                     if (PTInRect(mx,my,accels(i).x*lvlSize-1,accels(i).y*lvlSize-1,(accels(i).x-1)*lvlSize,(accels(i).y-1)*lvlSize)) then
                         ball.Alive := false
+                        p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,red,5,50,50)
                         loop
                             Mouse.Where(mx,my,mb)
                             
@@ -286,7 +354,12 @@ function playLevel () : int
 
         drawLevel(lvlSize,lvlWidth,lvlHeight)
         
-        put Tries
+        %put Tries
+        
+        %p -> InitAngular (100,100,10,100,red,5,100,150)
+        
+        p -> update()
+        p -> draw()
         
         View.Update
         
@@ -297,7 +370,6 @@ function playLevel () : int
         if (levelComplete) then
             result Tries
         end if
-        
     end loop
 end playLevel
 
@@ -375,27 +447,63 @@ proc loadHS
     close : stream
 end loadHS
 
+proc titleScreen ()
+    var hasWaited := false
+    var mX,mY,mB,mLB : int := 0
+    loop    % Title screen loop
+        mLB := mB
+        Mouse.Where(mX, mY, mB)
+        Font.Draw("Marbles",round((maxx/2)-(Font.Width("Marbles",f)/2)),maxy-100,f,black)
+        Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",f)/2)),maxy-200,f,black)
+        Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",f)/2)),maxy-220,f,black)
+        Font.Draw("R tdo reload",round((maxx/2)-(Font.Width("R to reload",f)/2)),maxy-240,f,black)
+        Font.Draw("Space to fire laser",round((maxx/2)-(Font.Width("Space to fire laser",f)/2)),maxy-260,f,black)
+        
+        
+        if (not hasWaited) then
+            View.Update()
+            delay(2000)
+            hasWaited := true
+        end if
+        
+        
+        
+        %((round(Time.Elapsed() / 200)) mod 2)*green
+        
+        mLB := mB
+        View.Update()
+        cls()
+        delay(10)
+    end loop
+end titleScreen
+
+titleScreen
 
 loadHS
 var score : int := 0
 
 loadLevel("map1.map")
 score += playLevel ()
-/*loadLevel("map2.map")
+loadLevel("map2.map")
 score += playLevel ()
-loadLevel("map3.map")
+/*loadLevel("map3.map")
 score += playLevel ()*/
 cls
+
+
+
 if (checkHS(score)) then
     put "Congrats! You have a high score! Please enter your name!"
     View.Update()
     var name : string := ""
-    get name
+    name := getString("Enter your name: ",100,100,f,black,white)
     addHS(name,score)
+    cls
 end if
 
 putHS
 saveHS
+View.Update
 
 
 
