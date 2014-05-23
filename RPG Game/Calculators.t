@@ -234,8 +234,17 @@ loop
     var Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real
     var Bdefense,enemyFinesse, Mitigation : int
     
+    Baccuracy := 10
+    Baccuracy := 10
+    Bdefense := 10
+    Bstrength := 10
+    Bfinesse  := 10
+    enemyFinesse:=10
+    Mitigation:= 0
+    Dist := 50
+    
     put "Enter distance:"
-    get Dist
+    %get Dist
     put "Enter weapon range:"
     get Range
     put "Enter weapon RPM:"
@@ -243,18 +252,24 @@ loop
     put "Enter weapon accuracy:"
     get Baccuracy
     put "Enter strength:"
-    get Bstrength
+    %get Bstrength
     put "Enter finesse:"
-    get Bfinesse
+    %get Bfinesse
     put "Enter damage per hit:"
     get damagePerRound
     put "Enter defense of enemy:"
-    get Bdefense
+    %get Bdefense
     put "Enter finesse of enemy:"
-    get enemyFinesse
+    %get enemyFinesse
     put "Enter mitigation level of enemy armour:"
-    get Mitigation
+    %get Mitigation
     
+    cls
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
     put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
     
 end loop
