@@ -163,7 +163,7 @@ function createNewPlayer : player
     
 end createNewPlayer
 
-View.Set("offscreenonly")
+%View.Set("offscreenonly")
 
 %var a := createNewPlayer
 
@@ -186,7 +186,12 @@ function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerR
     
     % Yes, it's a real number. Not an Int. Makes sense later.
     %* min((Dist/Range),1)
-    var roundsHit : real := roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100)
+    
+    if (Dist > Range) then
+        result 0
+    end if
+    
+    var roundsHit : real := roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100) * ((Range-Dist)/Range)
     
     %put "HITS: ",roundsHit
     
@@ -196,9 +201,10 @@ function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerR
     
 end shootAuto
 
+/*
 % Accuracy is from 100 (dead on) to 0 (anywhere in front)
 % Mit is the percentage provided by armour or skin,
-function shootAutoAsEntity (Gun : gun, shooter : player, ) : int
+function shootAutoAsEntity (Gun : gun, shooter : player ) : int
     
     var roundsFired := round(RPM/60) * 5
     var defense := Bdefense + Rand.Int(1,20)
@@ -222,22 +228,35 @@ function shootAutoAsEntity (Gun : gun, shooter : player, ) : int
     
     result max(floor(damageDealt),1)
     
-end shootAutoAsEntity
+end shootAutoAsEntity*/
 
 loop
-    loop
-        var mx,my,mb := 0
-        Mouse.Where(mx,my,mb)
-        exit when mb = 1
-    end loop
+    var Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real
+    var Bdefense,enemyFinesse, Mitigation : int
     
-    put "DMG: "+intstr(shootAuto (50, 500, 1200, 25, 10,10,1,10,10,20))
-    View.Update
-    loop
-        var mx,my,mb := 0
-        Mouse.Where(mx,my,mb)
-        exit when mb = 0
-    end loop
+    put "Enter distance:"
+    get Dist
+    put "Enter weapon range:"
+    get Range
+    put "Enter weapon RPM:"
+    get RPM
+    put "Enter weapon accuracy:"
+    get Baccuracy
+    put "Enter strength:"
+    get Bstrength
+    put "Enter finesse:"
+    get Bfinesse
+    put "Enter damage per hit:"
+    get damagePerRound
+    put "Enter defense of enemy:"
+    get Bdefense
+    put "Enter finesse of enemy:"
+    get enemyFinesse
+    put "Enter mitigation level of enemy armour:"
+    get Mitigation
+    
+    put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound, Bdefense,enemyFinesse, Mitigation))
+    
 end loop
 
 
