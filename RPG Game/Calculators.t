@@ -170,10 +170,9 @@ end createNewPlayer
 
 % Accuracy is from 100 (dead on) to 0 (anywhere in front)
 % Mit is the percentage provided by armour or skin,
-function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real, Bdefense,enemyFinesse, Mitigation : int) : int
+function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real, enemyFinesse, Mitigation : int) : int
     
     var roundsFired := round(RPM/60) * 5
-    var defense := Bdefense + Rand.Int(1,20)
     var strength := Bstrength + Rand.Int(1,20)
     var finesse := Bfinesse + Rand.Int(1,20)
     var accuracy := min(Baccuracy + Rand.Int(1,20),100)
@@ -191,11 +190,11 @@ function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerR
         result 0
     end if
     
-    var roundsHit : real := roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100) * ((Range-Dist)/Range)
+    var roundsHit : int := ceil(roundsFired * (accuracy/100) * ((strength+finesse+Rand.Int(1,20)) / 100) * ((Range-Dist)/Range))
     
     %put "HITS: ",roundsHit
     
-    var damageDealt : real := roundsHit*damagePerRound * ((60-defense-enemyFinesse) / 60) * ((100-Mitigation)/100)
+    var damageDealt : real := roundsHit*damagePerRound * ((40-enemyFinesse) / 40) * ((100-Mitigation)/100)
     
     result max(floor(damageDealt),1)
     
@@ -230,6 +229,7 @@ function shootAutoAsEntity (Gun : gun, shooter : player ) : int
     
 end shootAutoAsEntity*/
 
+<<<<<<< HEAD
 loop
     var Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real
     var Bdefense,enemyFinesse, Mitigation : int
@@ -274,6 +274,44 @@ loop
     
 end loop
 
+=======
+proc manInputDMG
+        var Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real
+        var Bdefense,enemyFinesse, Mitigation : int
+        
+        put "Enter distance:"
+        get Dist
+        put "Enter weapon range:"
+        get Range
+        put "Enter weapon RPM:"
+        get RPM
+        put "Enter weapon accuracy:"
+        get Baccuracy
+        put "Enter strength:"
+        get Bstrength
+        put "Enter finesse:"
+        get Bfinesse
+        put "Enter damage per hit:"
+        get damagePerRound
+        put "Enter defense of enemy:"
+        get Bdefense
+        put "Enter finesse of enemy:"
+        get enemyFinesse
+        put "Enter mitigation level of enemy armour:"
+        get Mitigation
+        
+        cls
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        put "DMG: "+intstr(shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound,enemyFinesse, Mitigation))
+        
+end manInputDMG
+>>>>>>> 6f49a55ec333be05bbd35e055e44b0e73e8a8717
 
 
 
