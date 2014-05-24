@@ -9,17 +9,17 @@ end record
 
 var SDAP,Buzzsaw,Hammer : Gun
 
-SDAP.SF05 := 100
+SDAP.SFO5 := 100
 SDAP.damage := 1
 SDAP.range := 500
 SDAP.magSize := 50
 
-Buzzsaw.SF05 := 50
+Buzzsaw.SFO5 := 50
 Buzzsaw.damage := 3
 Buzzsaw.range := 500
 Buzzsaw.magSize := 50
 
-Spitter.SF05 := 67
-Spitter.damage := 3
-Spitter.range := 1500
-Spitter.magSize := 35
+Hammer.SFO5 := 67
+Hammer.damage := 3
+Hammer.range := 1500
+Hammer.magSize := 35
