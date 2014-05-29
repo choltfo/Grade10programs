@@ -231,21 +231,8 @@ proc loadLevel (map : string)
     
 end loadLevel
 
-function playLevel (map : string) : int
-    loadLevel(map)
-    var mx,my,mb,lmb := 0
-    var Tries : int := 0
-    var levelComplete : boolean := false
-    loop
-        Mouse.Where(mx,my,mb)
-        if (not ball.Alive) then
-            ball.Location := start
-            ball.Velocity := startVel
-            ball.Force := zero
-            ball.Alive := true
-        else
-            
-            for i : 1..upper(accels)
+proc applyPhysics
+    for i : 1..upper(accels)
                 if (PTInRect(ball.Location.x,ball.Location.y,accels(i).x*lvlSize-1,accels(i).y*lvlSize-1,(accels(i).x-1)*lvlSize,(accels(i).y-1)*lvlSize)) then
                     
                     ball.Force := Vector.Add(ball.Force,Vector.Multiply(accels(i).Force,deltaT))
@@ -269,17 +256,38 @@ function playLevel (map : string) : int
             
             ball.Velocity := Vector.Add(ball.Velocity,Vector.Multiply(Vector.Divide(ball.Force,ball.Mass),deltaT))
             ball.Location := Vector.Add(ball.Location,Vector.Multiply(ball.Velocity,deltaT))
-
+            
             if (not PTInRect(ball.Location.x,ball.Location.y,0,0,lvlWidth*lvlSize,lvlHeight*lvlSize)) then
                 ball.Alive := false
                 p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,blue,5,75,75)
             end if
+            ball.Force := zero
+end applyPhysics
+
+
+function playLevel (map : string) : int
+    loadLevel(map)
+    var mx,my,mb,lmb := 0
+    var Tries : int := 0
+    var levelComplete : boolean := false
+    ball.Alive := false
+    loop
+        Mouse.Where(mx,my,mb)
+        if (not ball.Alive) then
+            ball.Location := start
+            ball.Velocity := startVel
+            ball.Force := zero
+            ball.Alive := true
             
+        else
+            
+            applyPhysics
+
             % Have we won?
             if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 + 5**2 then
                 ball.Alive := false
                 levelComplete := true
-                p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,yellow,5,75,75)
+                p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,41,5,50,50)
             end if
             
             
@@ -359,6 +367,10 @@ function playLevel (map : string) : int
             Tries := 0
         end if
         
+        if not ball.Alive then
+            Music.PlayFileReturn("Failure.mp3")
+        end if
+        
         View.Update
         
         cls
@@ -366,6 +378,7 @@ function playLevel (map : string) : int
         Time.DelaySinceLast(round(deltaT*1000))
         lmb := mb
         if (levelComplete) then
+            Music.PlayFileReturn("Success.mp3")
             result Tries - parForTheCourse
         end if
     end loop
@@ -449,9 +462,8 @@ proc loadHS
     close : stream
 end loadHS
 
-proc titleScreen ()
+proc titleScreen (var mX,mY,mB,mLB : int)
     var hasWaited := false
-    var mX,mY,mB,mLB : int := 0
     loop    % Title screen loop
         mLB := mB
         Mouse.Where(mX, mY, mB)
@@ -488,17 +500,175 @@ proc titleScreen ()
     end loop
 end titleScreen
 
+proc tutorial(var mX,mY,mB,mLB : int)
+    % The grey squares accelerate the ball in a direction.
+    % The black balls with the orange circles have gravity.
+    
+    start.x := 100
+    start.y := 200
+    startVel.x := 500
+    startVel.y := 0
+    
+    finish.x := 700
+    finish.y := 200
+    
+    ball.Location.x := start.x
+    ball.Location.y := start.y
+    
+    ball.Velocity.x := startVel.x
+    ball.Velocity.y := startVel.y
+    
+    loop
+        mLB := mB
+        Mouse.Where(mX,mY,mB)
+        drawLevel(20,40,15)
+        if (not ball.Alive) then
+            ball.Location := start
+            ball.Velocity := startVel
+            ball.Force := zero
+            ball.Alive := true
+        else
+            applyPhysics
+        end if
+        
+        p -> update()
+        p -> draw()
+        
+        Font.Draw("The goal of the game:",round((maxx/2)-(Font.Width("The goal of the game:",f)/2)),maxy-140,f,black)
+        Font.Draw("Steer the blue ball into the red circle",round((maxx/2)-(Font.Width("Steer the blue ball into the red circle",f)/2)),maxy-160,f,black)
+        if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 + 5**2 then
+            ball.Alive := false
+            p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,41,5,50,50)
+            Music.PlayFileReturn("Success.mp3")
+        end if
+        
+        View.Update
+        cls
+        Time.DelaySinceLast(round(deltaT * 1000))
+        exit when mLB = 0 and mB = 1
+    end loop
+    
+    start.x := 100
+    start.y := 200
+    startVel.x := 500
+    startVel.y := 100
+    
+    finish.x := 700
+    finish.y := 200
+    
+    ball.Location.x := start.x
+    ball.Location.y := start.y
+    
+    ball.Velocity.x := startVel.x
+    ball.Velocity.y := startVel.y
+    
+    new accels, 1
+    
+    accels(1).x := 19
+    accels(1).y := 13
+    
+    accels(1).Force.y := -50000000
+    accels(1).Force.x := 0
+    
+    loop
+        mLB := mB
+        Mouse.Where(mX,mY,mB)
+        drawLevel(20,40,15)
+        if (not ball.Alive) then
+            ball.Location := start
+            ball.Velocity := startVel
+            ball.Force := zero
+            ball.Alive := true
+        else
+            applyPhysics
+        end if
+        
+        p -> update()
+        p -> draw()
+        
+        Font.Draw("The grey squares accelerate the ball in a consistent, but unknown manner.",round((maxx/2)-(Font.Width("The grey squares accelerate the ball in a consistent, but unknown manner.",f)/2)),maxy-140,f,black)
+        if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 + 5**2 then
+            ball.Alive := false
+            p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,41,5,50,50)
+            Music.PlayFileReturn("Success.mp3")
+        end if
+        
+        View.Update
+        cls
+        Time.DelaySinceLast(round(deltaT * 1000))
+        exit when mLB = 0 and mB = 1
+    end loop
+    
+    start.x := 100
+    start.y := 200
+    startVel.x := 500
+    startVel.y := 20
+    
+    finish.x := 700
+    finish.y := 200
+    
+    ball.Location.x := start.x
+    ball.Location.y := start.y
+    
+    ball.Velocity.x := startVel.x
+    ball.Velocity.y := startVel.y
+    
+    new accels, 0
+    new wells, 1
+    
+    wells(1).x := 32
+    wells(1).y := 11
+    
+    wells(1).Pull := 10000
+    wells(1).maxDist := 100
+    
+    loop
+        mLB := mB
+        Mouse.Where(mX,mY,mB)
+        drawLevel(20,40,15)
+        if (not ball.Alive) then
+            ball.Location := start
+            ball.Velocity := startVel
+            ball.Force := zero
+            ball.Alive := true
+        else
+            applyPhysics
+        end if
+        
+        p -> update()
+        p -> draw()
+        
+        Font.Draw("The black balls with orange rings pull the ball towards them with power equal to the inverse-square of their distance.",round((maxx/2)-(Font.Width("The black balls with orange rings pull the ball towards them with power equal to the inverse-square of their distance.",f)/2)),maxy-140,f,black)
+        if (ball.Location.x - finish.x)**2 + (ball.Location.y - finish.y)**2 < 20**2 + 5**2 then
+            ball.Alive := false
+            p -> InitAngular (ball.Location.x,ball.Location.y,10,1000,41,5,50,50)
+            Music.PlayFileReturn("Success.mp3")
+        end if
+        
+        View.Update
+        cls
+        Time.DelaySinceLast(round(deltaT * 1000))
+        exit when mLB = 0 and mB = 1
+    end loop
+    
+    
+end tutorial
+
+
 proc Play
-    titleScreen
+    var mX,mY,mB,mLB : int := 0
+    titleScreen(mX,mY,mB,mLB)
     loadHS
     var score : int := 0
-    score += playLevel ("map1.map")
-    score += playLevel ("map2.map")
-    score += playLevel ("map3.map")
+    var n : int := 1
+    tutorial(mX,mY,mB,mLB)
+    loop
+        exit when not File.Exists("map"+intstr(n)+".map")
+        score += playLevel ("map"+intstr(n)+".map")
+        n+=1
+    end loop
     cls
-
-
-
+    
     if (checkHS(score)) then
         %put "Congrats! You have a high score! Please enter your name!"
         View.Update()
@@ -514,8 +684,7 @@ proc Play
 
     View.Update()
     delay(2000) 
-        
-    var mX,mY,mB,mLB : int := 0
+    
     loop    % Title screen loop
         mLB := mB
         Mouse.Where(mX, mY, mB)
@@ -528,6 +697,7 @@ proc Play
         end if
     end loop
 end Play
+
 loop
     Play
 end loop

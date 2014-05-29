@@ -41,7 +41,7 @@ function shootAuto (Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerR
     
 end shootAuto
 
-
+/*
 % Accuracy is from 100 (dead on) to 0 (anywhere in front)
 % Mit is the percentage provided by armour or skin,
 function shootAutoAsEntity (gun : Gun, shooter : player ) : int
@@ -69,7 +69,7 @@ function shootAutoAsEntity (gun : Gun, shooter : player ) : int
     result max(floor(damageDealt),1)
     
 end shootAutoAsEntity
-
+*/
 proc manInputDMG
     var Dist, Range, RPM, Baccuracy, Bstrength, Bfinesse, damagePerRound : real
     var Bdefense,enemyFinesse, Mitigation : int
