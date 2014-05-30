@@ -1,12 +1,17 @@
-% The second attampt at a Tank game, this time, no leaks!
-% Let's drive a Tank!
+% The tank game
+% Charles Holtforster, 2014
+% Programming Summative, 2014 Sem. 2 for Mr. Reid's class.
 
-
+% The map editor extension.
+% This includes "Core.t", which contains all of the cool code.
 include "Editor.t"
+
+% The cutscene display controller.
 include "cutscenes.t"
 
 var levels : flexible array 1..0 of string
 
+% Loads into "levels" all of the map file locations, and the cutscene data.
 proc loadCampaign
     var stream : int
     var campaignData : flexible array 1..0 of string
@@ -40,6 +45,7 @@ proc loadCampaign
     
 end loadCampaign
 
+% Plays all maps loaded into "levels"
 proc playCampaign
     loadCampaign
     for i : 1..upper(levels)
@@ -61,6 +67,7 @@ proc playCampaign
     put "VICTORY!"
 end playCampaign
 
+% The only actual code outside of modules, procs, classes, and functions
 var hasWaited := false
 loop    % Title screen loop
     mLB := mB

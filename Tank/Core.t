@@ -1,7 +1,12 @@
 % All main game code
 
+% The Vectors library, for positions, directions, and other stuff.
 include "Vectors.t"
+
+% The Lightning library, for drawing the cool laser-bar.
 include "Lightning.t"
+
+% The particles library, for explosions.
 include "Particles.t"
 
 View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
@@ -63,6 +68,7 @@ type weaponPickup : record
     respawnDelay : int
 end record
 
+% The default weapon.
 var defWeapon : weaponStorageInv
 defWeapon.weapon.UID := 0
 defWeapon.weapon.name := "Standard Cannon"
@@ -430,7 +436,11 @@ class Tank
     
     procedure setControls (gas,steering,L : real)
         Gas := gas*(frameMillis/1000) * maxThrottle
-        Steering := (steering*maxSteer)
+        if (steering not= 0) then
+            Steering := (steering/abs(steering))*maxSteer
+        else
+            Steering := 0
+        end if
         turretRotation += L*(frameMillis/1000)*100
     end setControls
     
@@ -482,18 +492,37 @@ class Tank
         
         var a,b,c,d,e,f : Vector2
         
-        a := Vector.RotateD(Vector.AddDir(Location, 10, 20), Location, Rotation)
-        b := Vector.RotateD(Vector.AddDir(Location, 10,-20), Location, Rotation)
-        c := Vector.RotateD(Vector.AddDir(Location,  5, 20), Location, Rotation)
+        var bodyX : array 1..6 of int
+        var bodyY : array 1..6 of int
+        
+        b := Vector.RotateD(Vector.AddDir(Location, 10, 20), Location, Rotation)
+        c := Vector.RotateD(Vector.AddDir(Location, 10,-20), Location, Rotation)
+        a := Vector.RotateD(Vector.AddDir(Location,  5, 20), Location, Rotation)
         d := Vector.RotateD(Vector.AddDir(Location,-10,-20), Location, Rotation)
         e := Vector.RotateD(Vector.AddDir(Location,-10, 20), Location, Rotation)
         f := Vector.RotateD(Vector.AddDir(Location, -5, 20), Location, Rotation)
         
-        drawVectorThickLine(a, b,1,black)
-        drawVectorThickLine(a, c,1,black)
-        drawVectorThickLine(d, b,1,black)
-        drawVectorThickLine(e, d,1,black)
-        drawVectorThickLine(e, f,1,black)
+        bodyX(1) := round(a.x) + offsetX
+        bodyY(1) := round(a.y) + offsetY
+        
+        bodyX(2) := round(b.x) + offsetX
+        bodyY(2) := round(b.y) + offsetY
+        
+        bodyX(3) := round(c.x) + offsetX
+        bodyY(3) := round(c.y) + offsetY
+        
+        bodyX(4) := round(d.x) + offsetX
+        bodyY(4) := round(d.y) + offsetY
+        
+        bodyX(5) := round(e.x) + offsetX
+        bodyY(5) := round(e.y) + offsetY
+        
+        bodyX(6) := round(f.x) + offsetX
+        bodyY(6) := round(f.y) + offsetY
+        
+        Draw.FillPolygon(bodyX,bodyY,6,col)
+        Draw.Polygon    (bodyX,bodyY,6,black)
+        
         
         % Reassign these variable for use in drawing the laser gun
         a := Vector.RotateD(Vector.AddDir(Location, 5, 22), Location, Rotation)
@@ -501,15 +530,32 @@ class Tank
         c := Vector.RotateD(Vector.AddDir(Location,-5, 5 ), Location, Rotation)
         d := Vector.RotateD(Vector.AddDir(Location, 5, 5 ), Location, Rotation)
         
+        var laserX : array 1..4 of int
+        var laserY : array 1..4 of int
+        
+        laserX(1) := round(a.x) + offsetX
+        laserY(1) := round(a.y) + offsetY
+        
+        laserX(2) := round(b.x) + offsetX
+        laserY(2) := round(b.y) + offsetY
+        
+        laserX(3) := round(c.x) + offsetX
+        laserY(3) := round(c.y) + offsetY
+        
+        laserX(4) := round(d.x) + offsetX
+        laserY(4) := round(d.y) + offsetY
+        
+        Draw.FillPolygon(laserX,laserY,4,grey)
+        Draw.Polygon    (laserX,laserY,4,black)
         
         % Draw the Laser Gun!
-        drawVectorThickLine(a,b,1,black)
-        drawVectorThickLine(a,d,1,black)
-        drawVectorThickLine(c,b,1,black)
-        drawVectorThickLine(c,d,1,black)
-        var Forward := Vector.RotateD(Vector.AddDir(Location,0,10),Location,Rotation)
-        Draw.Fill(floor(Forward.x)+offsetX,floor(Forward.y)+offsetY,grey,black)
-        Draw.Fill(floor(Location.x)+offsetX,floor(Location.y)+offsetY,col,black)
+        %drawVectorThickLine(a,b,1,black)
+        %drawVectorThickLine(a,d,1,black)
+        %drawVectorThickLine(c,b,1,black)
+        %drawVectorThickLine(c,d,1,black)
+        %var Forward := Vector.RotateD(Vector.AddDir(Location,0,10),Location,Rotation)
+        %Draw.Fill(floor(Forward.x)+offsetX,floor(Forward.y)+offsetY,grey,black)
+        %Draw.Fill(floor(Location.x)+offsetX,floor(Location.y)+offsetY,col,black)
         
         % And the cannon
         a := Vector.RotateD(Vector.AddDir(Location, 1, 0), Location, turretRotation)
@@ -522,7 +568,7 @@ class Tank
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, grey)
         Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, black)
         
-        Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 500, 500, yellow)
+        %Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 500, 500, yellow)
         
     end render
     
@@ -561,6 +607,11 @@ class Tank
         
         % Add extra speed
         Velocity := Vector.Add(Velocity,NewSpeed)
+        
+        if (Vector.getSqrMag(NewSpeed) > 1) then
+            PS -> Init(Location.x,Location.y,2,2,15,42,2,1,10)
+             %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
+        end if
         
         % Rotate to get relative new position
         RelPos := Vector.RotateD(Velocity,zero,Rotation)
@@ -783,7 +834,7 @@ class Tank
         end if
         
         if (CanFire()) then
-            result sqDist < 250000 and lastShot + shotDelay < Time.Elapsed
+            result sqDist < 250000 and weapons(currentWeapon).weapon.lastShot + shotDelay < Time.Elapsed
         else
             if (weapons(currentWeapon).weapon.ammo = 0 and weapons(currentWeapon).weapon.lastReload = 0) then
                 Reload()
@@ -829,6 +880,7 @@ var pickup  :   flexible array 1..0 of            weaponPickup
 
 var BGMusicFile : string := ""
 
+% Loads map "map" into memory from a file.
 proc loadMap (map : string)
     % generate map from walls and vector points
     var stream : int
@@ -1022,6 +1074,7 @@ end PtInRect
 
 var bgImg : int := 0
 
+% Destroys the level in memory.
 proc clearLevel ()
     for i : 1..upper(bullets)
         free bullets(i)
@@ -1042,6 +1095,8 @@ proc clearLevel ()
         free enemies(i)
     end for
     free enemies
+    
+    free pickup
     
     free cas
     
@@ -1382,7 +1437,7 @@ loop    % Main game logic loop
     end for
     
     
-    %put (LastFrame + frameMillis) - Time.Elapsed
+    put (LastFrame + frameMillis) - Time.Elapsed
     
     %put upper(bullets)
     
