@@ -1,4 +1,6 @@
-% All main game code
+% The Tank Game core code and classes.
+% Mostly to simplify the main Tank.t file.
+
 
 % The Vectors library, for positions, directions, and other stuff.
 include "Vectors.t"
@@ -608,8 +610,8 @@ class Tank
         % Add extra speed
         Velocity := Vector.Add(Velocity,NewSpeed)
         
-        if (Vector.getSqrMag(NewSpeed) > 0) then
-            PS -> Init(Location.x,Location.y,1,1,5,42,2,10,20)
+        if (Vector.getSqrMag(NewSpeed) > 1) then
+            PS -> Init(Location.x,Location.y,2,2,15,42,2,1,10)
              %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         end if
         
@@ -1200,8 +1202,6 @@ loop    % Main game logic loop
         Player -> update(mX-offsetX, mY-offsetY, mB)
     end if
     
-    
-    
     if Player->getLoc().x < maxx/2 then
         offsetX := 0
     else
@@ -1231,9 +1231,6 @@ loop    % Main game logic loop
     for i : 1..upper(walls) 
         walls(i) -> draw()
     end for
-    
-    PS -> update()
-    PS -> draw()
     
     for i : 1.. upper (pickup)
         if (pickup(i).used) then
@@ -1364,7 +1361,8 @@ loop    % Main game logic loop
         %     Init (x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
     end for
         
-    
+    Player -> render()
+    Player -> drawGUI()
     
     for i : 1..upper(enemies)
         enemies(i) -> render()
@@ -1393,8 +1391,8 @@ loop    % Main game logic loop
         end if
     end for
     
-    Player -> render()
-    Player -> drawGUI()
+    PS -> update()
+    PS -> draw()
     
     %put "Pre Check!"
     
