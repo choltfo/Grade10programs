@@ -9,12 +9,25 @@ CS:
 Just don't get it shot, right? The paint just dried.
 2000
 false
+false
+CS:
+Tip: Blinking red-and-white balls are weapon pickups! Use keys 1-9 to switch weapons!
+4000
+false
 true
 
 Map:
 map2.map
 CS:
 Maybe you didn't hear me. Don't scratch the damn paint!
+2000
+false
+true
+
+Map:
+map3.map
+CS:
+Things are going to get a bit trickier at this point. Good luck.
 2000
 false
 true

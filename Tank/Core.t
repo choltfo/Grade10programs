@@ -34,6 +34,11 @@ var mX, mY, mB, mLB : int := 0      % Mouse vars
 
 var mapX, mapY : int := 0
 
+var useCLS : boolean := true
+var takeDamage : boolean := true
+var drawParticles : boolean := true
+var useSound : boolean := false
+
 type colourArea : record
     BLcorner : Vector2
     TRcorner : Vector2
@@ -337,7 +342,7 @@ end Laser
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon, weaponPickup, gunShot
     
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon, setLA, getLA
     
     var health : real := 100
     
@@ -354,6 +359,7 @@ class Tank
     var curLasers, maxLasers : real := 100
     var laserDamage := 5
     var canLase : boolean := true
+    var laserAllowed : boolean := false
     
     var lastReload := 0
     var reloadMillis := 2500
@@ -366,8 +372,9 @@ class Tank
     var currentWeapon : int := 1
     var weapons : flexible array 1..1 of weaponStorageInv
     
-    weapons(1) := defWeapon
     
+    
+    weapons(1) := defWeapon
     function getWeapon() : weaponStorageInv
         result weapons(currentWeapon)
     end getWeapon
@@ -385,6 +392,14 @@ class Tank
     var Rotation,turretRotation : real := 0
     
     %function CheckCol
+    
+    proc setLA(LA : boolean)
+        laserAllowed := LA
+    end setLA
+    
+    function getLA() : boolean
+        result laserAllowed
+    end getLA
     
     function getLoc() : Vector2
         result Location
@@ -566,6 +581,13 @@ class Tank
         d := Vector.RotateD(Vector.AddDir(Location, 1,10), Location, turretRotation)
         
         drawVectorBox(a,b,c,d,black,black)
+        
+        if (health < 50) then
+            PS -> Init (Location.x,Location.y,1,1, 10,grey,2,20,50)
+            PS -> Init (Location.x,Location.y,2,2, 10,41,2,1,20)
+            PS -> Init (Location.x,Location.y,2,2, 10,red,2,1,20)
+            PS -> Init (Location.x,Location.y,2,2, 10,yellow,2,1,20)
+        end if
         
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, grey)
         Draw.Oval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, black)
@@ -897,7 +919,9 @@ proc loadMap (map : string)
         new mapFile, upper(mapFile) + 1
         get : stream, mapFile(upper(mapFile)) : *
     end loop
-
+    
+    
+    playerHasControl := true
     mapX := strint(mapFile (1))
     mapY := strint(mapFile (2))
     BGMusicFile := mapFile (3)
@@ -1102,11 +1126,14 @@ proc clearLevel ()
     
     free cas
     
+    playerHasControl := true
+    
 end clearLevel
 
 proc pauseScreen()
     var mX,mY,mB,lMB : int := 0
-    %Music.PlayFileStop
+    %Music.PlayFileStop 
+    var cheatCode : string := ""
     loop
         formerChars := chars
         Input.KeyDown (chars)
@@ -1119,6 +1146,29 @@ proc pauseScreen()
         Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
         Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
         Font.Draw("Space to fire laser",round((maxx/2)-(Font.Width("Space to fire laser",Font2)/2)),maxy-260,Font2,black)
+        
+        
+        for i : 97 .. 122
+            if (chars(chr(i)) and not formerChars(chr(i)) ) then
+                if chars(cheat(char,180)) then
+                    cheatCode += chr(i-32)
+                else
+                    cheatCode += chr(i)
+                end if
+            end if
+        end for
+        
+        if (chars(KEY_ENTER) and cheatCode = "chessburger") then
+            Player -> setLA(true)
+        end if
+        
+        if (chars(KEY_ENTER) and cheatCode = "cls") then
+            useCLS := not useCLS
+        end if
+        
+        if (chars(KEY_ENTER) and cheatCode = "part") then
+            drawParticles := not drawParticles
+        end if
         
         
         
@@ -1189,7 +1239,7 @@ loop    % Main game logic loop
             paused := true
         end if
         
-        if chars (' ') and Player -> CanFireLaser() then
+        if chars (' ') and Player -> CanFireLaser() and Player -> getLA() then
             new lasers, upper(lasers)+1
             lasers(upper(lasers)) := Player -> FireLaser() %SHOOT FROM THE TANK!
         end if
@@ -1362,7 +1412,6 @@ loop    % Main game logic loop
     end for
         
     Player -> render()
-    Player -> drawGUI()
     
     for i : 1..upper(enemies)
         enemies(i) -> render()
@@ -1391,8 +1440,14 @@ loop    % Main game logic loop
         end if
     end for
     
-    PS -> update()
-    PS -> draw()
+    if (drawParticles) then
+        PS -> update()
+        PS -> draw()
+    end if
+    
+    if (playerHasControl) then
+        Player -> drawGUI()
+    end if
     
     %put "Pre Check!"
     
@@ -1439,7 +1494,7 @@ loop    % Main game logic loop
     end for
     
     
-    put (LastFrame + frameMillis) - Time.Elapsed
+    %put (LastFrame + frameMillis) - Time.Elapsed
     
     %put upper(bullets)
     
@@ -1456,6 +1511,7 @@ loop    % Main game logic loop
     if (upper(enemies) = 0 or Player -> getHealth() <= 0) and not done then
         done := true
         victoryTime := Time.Elapsed
+        playerHasControl := false
     end if
     
     if (done) then
@@ -1466,7 +1522,9 @@ loop    % Main game logic loop
     end if
     
     View.Update()
-    cls()
+    if (useCLS) then
+        cls()
+    end if
     %Draw.FillBox(offsetX,offsetX,mapX+offsetX,mapY+offsetY,brown)
     %loop
     %    exit when (LastFrame + frameMillis) < Time.Elapsed
