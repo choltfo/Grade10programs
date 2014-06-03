@@ -130,19 +130,19 @@ type line : record
 end record
 
 proc terraGen (levels,width,depth : int)
-    var lines : flexible array 1..0,1..0 of line
-    var verts : flexible array 1..2,1..2 of real
+    var lines : flexible array 1..0 of line
+    var verts : flexible array 1..(levels*2)+3,1..(levels*2)+3 of real
     
-    verts(1,1) := 100
-    verts(2,1) := 0
-    verts(1,2) := 0
+    verts(1,1) := 0
+    verts(2,1) := 100
+    verts(1,2) := 300
     verts(2,2) := 400
     
     var x,y : int := 2
     
     for i : 1..levels
-        var oldX := upper(verts, 1)
-        var oldY := upper(verts, 2)
+        var oldX := x
+        var oldY := y
         x := (x*2)-1
         y := (y*2)-1
         
@@ -152,24 +152,63 @@ proc terraGen (levels,width,depth : int)
             end for
         end for
         
-        for o : 1..upper(verts, 1)
-            for p : 1..upper(verts, 2)
-                if not(o mod 2 = 1 and p mod 2 = 1) then
-                    verts(o,p) := (verts(o,p-1)+verts(o,p+1)+verts(o-1,p)+verts(o+1,p))/4
+        % Populate centers
+        % 10101
+        % 0X0X0
+        % 10101
+        % 0X0X0
+        % 10101
+        for o : 1..x
+            for p : 1..y
+                if o mod 2 = 0 and p mod 2 = 0 then
+                    verts(o,p) := (verts(o+1,p+1)+verts(o+1,p-1)+verts(o-1,p+1)+verts(o-1,p-1))/4
                 end if
             end for
         end for
+        
+        % Populate sides
+        % 1X1X1
+        % X1X1X
+        % 1X1X1
+        % X1X1X
+        % 1X1X1
+        for o : 1..x
+            for p : 1..y
+                if (o mod 2 = 0) xor (p mod 2 = 0) then 
+                    put o," ",p
+                    if (o = 1) then
+                        verts(o,p) := (verts(o,p-1)+verts(o,p+1)+verts(o+1,p))/3
+                    elsif (o = x) then
+                        verts(o,p) := (verts(o,p-1)+verts(o,p+1)+verts(o-1,p))/3
+                    elsif (p = y) then
+                        verts(o,p) := (verts(o,p-1)+verts(o-1,p)+verts(o+1,p))/3
+                    elsif (p = 1) then
+                        verts(o,p) := (verts(o,p+1)+verts(o-1,p)+verts(o+1,p))/3
+                    else
+                        verts(o,p) := (verts(o,p-1)+verts(o,p+1)+verts(o-1,p)+verts(o+1,p))/4
+                    end if
+                end if
+            end for
+        end for
+        
+        cls 
+        for o : 1..x
+            for p : 1..y
+                %put round(verts(o,p))," "..
+            end for
+            put ""
+        end for
     end for
     
-    new lines, upper(verts,1)-1,upper(verts,2)-1
+    new lines, (x-1)*(y-1)
     
     for o : 1..upper(lines,1)
         for p : 1..upper(lines,2)
-            lines(o,p).a.x := width * (o-1)
+            lines(o,p).a.x := width * (p-1)
             lines(o,p).a.z := depth * (o-1)
             lines(o,p).a.y := verts(o+1,p+1)
             
-            lines(o,p).b.x := width * (o)
+            lines(o,p).b.x := width * (p)
             lines(o,p).b.z := depth * (o)
             lines(o,p).b.y := verts(o,p)
             
@@ -177,13 +216,23 @@ proc terraGen (levels,width,depth : int)
         end for
     end for
     
-    for o : 1..upper(lines,1)
-        for p : 1..upper(lines,2)
+    /*for o : 1..x
+        for p : 1..y
+            var L : Vector3
+            L.x := width * (o-1)
+            L.z := depth * (p-1)
+            L.y := 0
+            var P : Vector2 := worldToScreen(L)
+            Draw.Line(round(P.x),round(P.y),round(P.x),round(P.y+verts(o,p)),red)
+        end for
+    end for*/
+    
+    for o : 1..upper(lines)
             var a,b : Vector2
-            a := worldToScreen(lines(o,p).a)
-            b := worldToScreen(lines(o,p).b)
+            a := worldToScreen(lines(o).a)
+            b := worldToScreen(lines(o).b)
             
-            Draw.Line(round(a.x),round(a.y),round(b.x),round(b.y),lines(o,p).col)
+            Draw.Line(round(a.x),round(a.y),round(b.x),round(b.y),lines(o)col)
         end for
     end for
     
@@ -191,6 +240,8 @@ end terraGen
 
 drawCompass()
 
-terraGen(1,20,20)
+terraGen(3,20,20)
+
+drawCompass()
 
 
