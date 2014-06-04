@@ -11,6 +11,8 @@ include "Lightning.t"
 % The particles library, for explosions.
 include "Particles.t"
 
+include "UIE.t"
+
 View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
 
 Music.PreLoad("CannonShot.mp3")
@@ -38,6 +40,7 @@ var useCLS : boolean := true
 var takeDamage : boolean := true
 var drawParticles : boolean := true
 var useSound : boolean := false
+var useMusic : boolean := false
 
 type colourArea : record
     BLcorner : Vector2
@@ -1132,7 +1135,9 @@ end clearLevel
 
 proc pauseScreen()
     var mX,mY,mB,lMB : int := 0
-    %Music.PlayFileStop 
+    if useMusic then
+        Music.PlayFileStop
+    end if
     var cheatCode : string := ""
     loop
         formerChars := chars
@@ -1170,7 +1175,8 @@ proc pauseScreen()
             drawParticles := not drawParticles
         end if
         
-        
+        useMusic := UIE.checkBox(100,100,useMusic,mX,mY,mB,lMB)
+        useSound := UIE.checkBox(100,120,useSound,mX,mY,mB,lMB)
         
         exit when chars(KEY_ESC) and not formerChars(KEY_ESC)
         View.Update()
@@ -1178,13 +1184,17 @@ proc pauseScreen()
         delay (10)
         lMB := mB
     end loop
-    %Music.PlayFileLoop("Music/"+BGMusicFile)
+    if useMusic then
+        Music.PlayFileLoop("Music/"+BGMusicFile)
+    end if
 end pauseScreen
 
 
 function playLoadedLevel() : boolean
 
-%Music.PlayFileLoop("Music/"+BGMusicFile)
+if useMusic then
+    Music.PlayFileLoop("Music/"+BGMusicFile)
+end if
 
 var paused : boolean := false
 
@@ -1465,7 +1475,12 @@ loop    % Main game logic loop
         for j : RemoveTheseBullets (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1)
         end for
-            if (upper(bullets) > 0) then
+        for j : 1..upper(RemoveTheseBullets)
+            if (RemoveTheseBullets(j) > RemoveTheseBullets(i)) then
+                RemoveTheseBullets(j) += -1
+            end if
+        end for
+        if (upper(bullets) > 0) then
             new bullets, upper (bullets) - 1
         end if
         
@@ -1476,7 +1491,8 @@ loop    % Main game logic loop
         for j : RemoveTheseLasers (i) .. upper (lasers) - 1 
             lasers (j) := lasers (j + 1)
         end for
-            if (upper(lasers) > 0) then
+        
+        if (upper(lasers) > 0) then
             new lasers, upper (lasers) - 1
         end if
         

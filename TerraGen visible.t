@@ -133,22 +133,27 @@ for decreasing o : x-1..1
                     end if
                 end if
                 
+                
                 %Draw.Line(round(drawPos.x),round(drawPos.y),round(drawPos2.x),round(drawPos2.y),max(round(drawPos2.x-drawPos.x),round(drawPos.x-drawPos2.x)))
             end for
         end for
         
-        if (verts(o,p) > 200) then
-            if (verts(o+1,p+1) < verts(o,p)) then
-                Draw.FillPolygon(xs,ys,4,white)
+        if (verts(o,p) > 0) then
+            if (verts(o,p) > 200) then
+                if (verts(o+1,p+1) < verts(o,p)) then
+                    Draw.FillPolygon(xs,ys,4,white)
+                else
+                    Draw.FillPolygon(xs,ys,4,darkerwhite)
+                end if
             else
-                Draw.FillPolygon(xs,ys,4,darkerwhite)
+                if (verts(o+1,p+1) < verts(o,p)) then
+                    Draw.FillPolygon(xs,ys,4,darkgrey)
+                else
+                    Draw.FillPolygon(xs,ys,4,darkergrey)
+                end if
             end if
         else
-            if (verts(o+1,p+1) < verts(o,p)) then
-                Draw.FillPolygon(xs,ys,4,darkgrey)
-            else
-                Draw.FillPolygon(xs,ys,4,darkergrey)
-            end if
+            Draw.FillPolygon(xs,ys,4,blue)
         end if
         
         
