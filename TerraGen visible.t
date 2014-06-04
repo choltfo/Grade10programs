@@ -166,7 +166,7 @@ proc terraGen (totalWidth,totalDepth : int)
 
 var lines : flexible array 1..0 of line
 
-if (false) then
+if (true) then
     verts(1,1) := 0
     verts(2,1) := 0
     verts(3,1) := 0
@@ -264,25 +264,34 @@ loop
     lmx := mx
     lmy := my
     Mouse.Where(mx,my,mb)
-    drawCompass()
-    terraRend(500,500)
+    
     
     if (chars(KEY_LEFT_ARROW)) then
         rot += 10
+        drawCompass()
+        terraRend(500,500)
+        lastFrameTime := Time.Elapsed
+    View.Update
     end if
     if (chars(KEY_RIGHT_ARROW)) then
         rot += -10
+        drawCompass()
+        terraRend(500,500)
+        lastFrameTime := Time.Elapsed
+    View.Update
     end if
 
     if (mb = 1) then
         camX += mx-lmx
         camY += my-lmy
+        drawCompass()
+        terraRend(500,500)
+        lastFrameTime := Time.Elapsed
+        View.Update
     end if
 
     %Time.DelaySinceLast(15)
     %put Time.Elapsed - lastFrameTime
-    lastFrameTime := Time.Elapsed
-    View.Update
     %cls
 end loop
 
