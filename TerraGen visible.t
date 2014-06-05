@@ -1,8 +1,8 @@
 
 include "AADraw.t"
 
-View.Set("Graphics:1362;702,offscreenonly,nobuttonbar,title:Turing TerraGen - 1362 x 702")
-%View.Set("Graphics:1916;1014,offscreenonly,nobuttonbar,title:Turing TerraGen - 1916 x 1014")
+%View.Set("Graphics:1362;702,offscreenonly,nobuttonbar,title:Turing TerraGen - 1362 x 702")
+View.Set("Graphics:1916;1014,offscreenonly,nobuttonbar,title:Turing TerraGen - 1916 x 1014")
 var camX, camY := 0
 
 var rot : real := 45
