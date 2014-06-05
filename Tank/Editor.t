@@ -244,7 +244,7 @@ proc EditLoadedMap()
                 else
                     new enemies, upper (enemies)+1
                     new Tank, enemies(upper(enemies))
-                    enemies(upper(enemies))->Init(vel,firstPoint,fric,45,selectedColour)
+                    enemies(upper(enemies))->Init(vel,firstPoint,fric,45,selectedColour,1000,defWeapon)
                 end if
             end if
         end if

@@ -83,7 +83,7 @@ var defWeapon : weaponStorageInv
 defWeapon.weapon.UID := 0
 defWeapon.weapon.name := "Standard Cannon"
 defWeapon.weapon.damage := 20
-defWeapon.weapon.speed := 5
+defWeapon.weapon.speed := 10
 defWeapon.weapon.ammo := 10
 defWeapon.weapon.clipSize := 10
 defWeapon.weapon.shotDelay := 100
@@ -91,14 +91,14 @@ defWeapon.weapon.reloadDelay := 5000
 defWeapon.weapon.automatic := false
 defWeapon.weapon.lastReload := 0
 defWeapon.weapon.lastShot := 0
-
-defWeapon.weapon.trail.maxXSpeed := 10
-defWeapon.weapon.trail.maxYSpeed := 10
-defWeapon.weapon.trail.numOfP := 5
+%(Location.x,Location.y,2,2,15,grey,2,1,10)
+defWeapon.weapon.trail.maxXSpeed := 2
+defWeapon.weapon.trail.maxYSpeed := 2
+defWeapon.weapon.trail.numOfP := 15
 defWeapon.weapon.trail.Colour := grey
-defWeapon.weapon.trail.size := 5
-defWeapon.weapon.trail.TTLMax := 15
-defWeapon.weapon.trail.TTLMin := 10
+defWeapon.weapon.trail.size := 2
+defWeapon.weapon.trail.TTLMax := 10
+defWeapon.weapon.trail.TTLMin := 1
 
 defWeapon.weapon.hit.maxXSpeed := 20
 defWeapon.weapon.hit.maxYSpeed := 20
@@ -110,7 +110,9 @@ defWeapon.weapon.hit.TTLMin := 100
 defWeapon.ammunition := 999999999
 
 process gunShot
-    %Music.PlayFile("CannonShot.mp3")
+    if useSound then
+        Music.PlayFile("CannonShot.mp3")
+    end if
 end gunShot
 
 class Wall
@@ -216,8 +218,10 @@ end Wall
 
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
-        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector, offsetX, offsetY, mapX, mapY
+        doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector, offsetX, offsetY, mapX, mapY, weaponType
     export update, Init, checkWallCol, getLoc, getVel, getDamage
+    
+    var weap : weaponType
     
     % Location
     var Location : Vector2
@@ -241,7 +245,9 @@ class Bullet
         result damage
     end getDamage
     
-    procedure Init (Loc, Vel : Vector2, rot,speed,dmg:real)
+    procedure Init (Loc, Vel : Vector2, rot,speed,dmg:real, w : weaponType)
+        
+        weap := w
         
         Velocity := Vel
         
@@ -262,9 +268,10 @@ class Bullet
         
         Location := Vector.Add(Location,Velocity)
         
-        PS -> Init(Location.x,Location.y,2,2,15,grey,2,1,10)
+        %PS -> Init(Location.x,Location.y,2,2,15,grey,2,1,10)
+        PS -> InitPreset(Location.x,Location.y,weap.trail)
              %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
-        drawVectorThickLine(Location,Vector.Add(Location,Velocity),3,red)
+        %drawVectorThickLine(Location,Vector.Add(Location,Velocity),3,red)
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 2, 2, black)
         result Location.x < mapX and Location.x > 0 and Location.y < mapY and Location.y > 0
         
@@ -345,7 +352,7 @@ end Laser
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon, weaponPickup, gunShot
     
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon, setLA, getLA
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon, setLA, getLA, setCurrentWeapon
     
     var health : real := 100
     
@@ -375,6 +382,9 @@ class Tank
     var currentWeapon : int := 1
     var weapons : flexible array 1..1 of weaponStorageInv
     
+    proc setCurrentWeapon(i : int)
+        currentWeapon := i
+    end setCurrentWeapon
     
     
     weapons(1) := defWeapon
@@ -426,13 +436,15 @@ class Tank
         end if
     end Reload
     
-    procedure Init (Vel, Loc, Fri : Vector2, rot : real,c : int)
+    procedure Init (Vel, Loc, Fri : Vector2, rot : real,c, fireDelay : int,w : weaponStorageInv)
         
         Location := Loc
         Velocity := Vel
         Rotation := rot
         Fric     := Fri
         col := c
+        
+        shotDelay := fireDelay
         
         Fric.x := 0
         Fric.y := 0
@@ -496,8 +508,10 @@ class Tank
         % Health Bar
         Draw.FillBox(round(Location.x) - 25+offsetX, round(Location.y) + 25+offsetY,
             round(Location.x) + 25+offsetX, round(Location.y) + 30+offsetY, red)
-        Draw.FillBox(round(Location.x) - 25 + offsetX, round(Location.y) + 25+offsetY,
-            round(Location.x) - 25 + floor(health*50/100)+offsetX, round(Location.y) + 30+offsetY, green)
+        if health > 0 then
+            Draw.FillBox(round(Location.x) - 25 + offsetX, round(Location.y) + 25+offsetY,
+                round(Location.x) - 25 + floor(health*50/100)+offsetX, round(Location.y) + 30+offsetY, green)
+        end if
             
         Draw.Line(round(Location.x) - 25+offsetX, round(Location.y) + 25+offsetY,
             round(Location.x) + 25+offsetX, round(Location.y) + 25+offsetY,black)
@@ -586,10 +600,10 @@ class Tank
         drawVectorBox(a,b,c,d,black,black)
         
         if (health < 50) then
-            PS -> Init (Location.x,Location.y,1,1, 10,grey,2,20,50)
-            PS -> Init (Location.x,Location.y,2,2, 10,41,2,1,20)
-            PS -> Init (Location.x,Location.y,2,2, 10,red,2,1,20)
-            PS -> Init (Location.x,Location.y,2,2, 10,yellow,2,1,20)
+            PS -> Init (Location.x,Location.y,1,1, 5,grey,2,20,50)
+            PS -> Init (Location.x,Location.y,2,2, 5,41,2,1,20)
+            PS -> Init (Location.x,Location.y,2,2, 5,red,2,1,20)
+            PS -> Init (Location.x,Location.y,2,2, 5,yellow,2,1,20)
         end if
         
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 3, 3, grey)
@@ -599,7 +613,7 @@ class Tank
         
     end render
     
-    procedure update (mX, mY, mB : int)
+    proc update (mX, mY, mB : int)
         
         if (curLasers < maxLasers) then
             curLasers += 10*(frameMillis/1000)
@@ -635,7 +649,7 @@ class Tank
         % Add extra speed
         Velocity := Vector.Add(Velocity,NewSpeed)
         
-        if (Vector.getSqrMag(NewSpeed) > 1) then
+        if (Vector.getSqrMag(NewSpeed) > 0) then
             PS -> Init(Location.x,Location.y,2,2,15,42,2,1,10)
              %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
         end if
@@ -725,7 +739,7 @@ class Tank
         
         var vel : Vector2 := Vector.RotateD(Vector.AddDir(Velocity,0,21), zero, turretRotation)
         
-        Bul -> Init(Vector.Add(Location,vel), zero,90+turretRotation,weapons(currentWeapon).weapon.speed,weapons(currentWeapon).weapon.damage)
+        Bul -> Init(Vector.Add(Location,vel), zero,90+turretRotation,weapons(currentWeapon).weapon.speed,weapons(currentWeapon).weapon.damage,weapons(currentWeapon).weapon)
         weapons(currentWeapon).weapon.ammo -= 1
         
         %var vel : Vector2 := Vector.Add(Velocity,Vector.RotateD(Vector.AddDir(zero,0,weapons(currentWeapon).weapon.speed),zero,turretRotation))
@@ -1062,10 +1076,19 @@ proc loadMap (map : string)
             
             x := strint(mapFile (i+1))
             y := strint(mapFile (i+2))
+            var weap := strint (mapFile (i+4))
+            var del := strint (mapFile (i+5))
             put "Found enemy at (",x,", ",y,")."
             new enemies, upper(enemies) + 1
             new Tank, enemies(upper(enemies))
-            enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)))
+            if weap not= 0 then
+                enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)),del,defWeapon)
+                enemies(upper(enemies))->pickupWeapon(pickup(weap))
+                enemies(upper(enemies))->setCurrentWeapon(2)
+            else
+                enemies(upper(enemies))->Init(vel,Vector.AddDir(zero,x,y),fric,45,strint(mapFile(i+3)),del,defWeapon)
+            end if
+            
         end if
         
     end for
@@ -1082,7 +1105,7 @@ proc loadMap (map : string)
     loc.y := 100
 
     new Tank, Player
-    Player -> Init(vel,loc,fric,0,green)
+    Player -> Init(vel,loc,fric,0,green,1000,defWeapon)
 
 end loadMap
 
@@ -1175,6 +1198,8 @@ proc pauseScreen()
             drawParticles := not drawParticles
         end if
         
+        put cheatCode
+        
         useMusic := UIE.checkBox(100,100,useMusic,mX,mY,mB,lMB)
         useSound := UIE.checkBox(100,120,useSound,mX,mY,mB,lMB)
         
@@ -1199,7 +1224,7 @@ end if
 var paused : boolean := false
 
 new Tank, Player
-Player -> Init(vel,loc,fric,0,green)
+Player -> Init(vel,loc,fric,0,green,0,defWeapon)
 
 var done : boolean := false
 var victoryTime := 0
@@ -1287,6 +1312,11 @@ loop    % Main game logic loop
     for i : 1..upper(cas)
         drawVectorFillBox(cas(i).TRcorner,cas(i).BLcorner,cas(i).col)
     end for
+    
+    if (drawParticles) then
+        PS -> update()
+        PS -> draw()
+    end if
     
     for i : 1..upper(walls) 
         walls(i) -> draw()
@@ -1449,11 +1479,6 @@ loop    % Main game logic loop
             new enemies, upper (enemies) - 1
         end if
     end for
-    
-    if (drawParticles) then
-        PS -> update()
-        PS -> draw()
-    end if
     
     if (playerHasControl) then
         Player -> drawGUI()

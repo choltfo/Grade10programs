@@ -25,7 +25,7 @@ end record
 
 class ParticleSystem
 import Particle, particleBurst
-export Init, update, draw,InitAngular, setOffset
+export Init, update, draw,InitAngular, setOffset,InitPreset
 
 var particles : flexible array 1..0 of Particle
 var ox, oy : int := 0

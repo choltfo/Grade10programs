@@ -45,7 +45,7 @@ proc loadCampaign
     
 end loadCampaign
 
-% Plays all maps loaded into "levels"
+% Plays all maps loaded into "levels" by sequentially loading them into 'core'
 proc playCampaign
     loadCampaign
     for i : 1..upper(levels)
