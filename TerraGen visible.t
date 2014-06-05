@@ -1,7 +1,8 @@
 
 include "AADraw.t"
 
-View.Set("Graphics:1362;702,offscreenonly,nobuttonbar,title:Turing TerraGen - 1362 x 702")
+%View.Set("Graphics:1362;702,offscreenonly,nobuttonbar,title:Turing TerraGen - 1362 x 702")
+View.Set("Graphics:1916;1014,offscreenonly,nobuttonbar,title:Turing TerraGen - 1916 x 1014")
 var camX, camY := 0
 
 var rot : real := 45
@@ -152,13 +153,14 @@ for decreasing o : x-1..1
                     Draw.FillPolygon(xs,ys,4,darkergrey)
                 end if
             end if
+            Draw.Polygon(xs,ys,4,linecol)
         else
             Draw.FillPolygon(xs,ys,4,blue)
         end if
         
         
         
-        Draw.Polygon(xs,ys,4,linecol)
+        
         
     end for
 end for
@@ -200,6 +202,7 @@ for i : 1..levels
     var oldY := y
     cls
     Draw.FillBox(0,0,maxx,maxy,black)
+    put i
     terraRend(totalWidth,totalDepth)
     x := (x*2)-1
     y := (y*2)-1
