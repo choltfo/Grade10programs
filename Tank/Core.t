@@ -13,8 +13,8 @@ include "Particles.t"
 
 include "UIE.t"
 
-%View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
-View.Set("Graphics:1900;995,offscreenonly,nobuttonbar")
+View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
+%View.Set("Graphics:1900;995,offscreenonly,nobuttonbar")
 
 Music.PreLoad("CannonShot.mp3")
 
@@ -1345,12 +1345,12 @@ loop    % Main game logic loop
     var RemoveTheseWalls : flexible array 0..-1 of int
     var RemoveTheseEnemies : flexible array 0..-1 of int
     
-    for i : 1..upper(bullets)
-        put bullets(i)=nil
-    end for
+    %for i : 1..upper(bullets)
+    %    put bullets(i)=nil
+    %end for
     
     for i : 1..upper(bullets)
-        var alive: boolean := true
+        var alive : boolean := true
         if (alive) then
             for o : 1..upper(walls)
                 if (bullets(i) -> checkWallCol(walls(o))) then
@@ -1389,7 +1389,9 @@ loop    % Main game logic loop
                     alive := false
                 end if
             end for
-            
+        end if
+        
+        if alive then
             for o : 1..upper(enemies)
                 
                 if (enemies(o) -> checkBulletCollision(bullets(i))) then
@@ -1402,14 +1404,16 @@ loop    % Main game logic loop
                     PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,yellow,1,10,20)
                     PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,41,1,10,20)
                 end if
-                
+                exit when not alive
             end for
             
-            if (Player -> checkBulletCollision(bullets(i))) then
-                Player -> damage(bullets(i)->getDamage())
-                alive := false
-                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                RemoveTheseBullets (upper (RemoveTheseBullets)) := i
+            if alive then
+                if (Player -> checkBulletCollision(bullets(i))) then
+                    Player -> damage(bullets(i)->getDamage())
+                    alive := false
+                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
+                end if
             end if
             
             
@@ -1517,9 +1521,9 @@ loop    % Main game logic loop
     
     for i : 1 .. upper(RemoveTheseBullets)
         
-        put RemoveTheseBullets(i)
-        put "RTB: ", upper(RemoveTheseBullets)
-        put "BIR: ", upper(bullets)
+        %put RemoveTheseBullets(i)
+        %put "RTB: ", upper(RemoveTheseBullets)
+        %put "BIR: ", upper(bullets)
         
         free bullets(RemoveTheseBullets(i))
         bullets (RemoveTheseBullets(i)) := bullets (upper(bullets))
@@ -1536,13 +1540,15 @@ loop    % Main game logic loop
         
     for i : 0 .. upper (RemoveTheseLasers)
         
-        for j : RemoveTheseLasers (i) .. upper (lasers) - 1 
-            lasers (j) := lasers (j + 1)
-        end for
+        free lasers(RemoveTheseLasers(i))
+        lasers(RemoveTheseLasers(i)) := lasers(upper(lasers))
+        new lasers, upper(lasers)-1
         
-        if (upper(lasers) > 0) then
-            new lasers, upper (lasers) - 1
-        end if
+        for o : 1..upper(RemoveTheseLasers)
+            if  (RemoveTheseLasers(o) = upper(lasers)+1) then
+                RemoveTheseLasers(o) := RemoveTheseLasers(i)
+            end if
+        end for
         
     end for
         
