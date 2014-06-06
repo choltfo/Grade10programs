@@ -63,7 +63,7 @@ proc playCampaign
             end if
         end loop
     end for
-        
+    
     put "VICTORY!"
 end playCampaign
 

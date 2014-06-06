@@ -1340,16 +1340,20 @@ loop    % Main game logic loop
         end if
     end for
         
-    var RemoveTheseBullets : flexible array 0..-1 of int
+    var RemoveTheseBullets : flexible array 1..0 of int
     var RemoveTheseLasers : flexible array 0..-1 of int
     var RemoveTheseWalls : flexible array 0..-1 of int
     var RemoveTheseEnemies : flexible array 0..-1 of int
     
     for i : 1..upper(bullets)
+        put bullets(i)=nil
+    end for
+    
+    for i : 1..upper(bullets)
         var alive: boolean := true
         if (alive) then
             for o : 1..upper(walls)
-                if ( bullets(i) -> checkWallCol(walls(o))) then
+                if (bullets(i) -> checkWallCol(walls(o))) then
                     % TODO: Blast holes in walls.
                     
                     var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
@@ -1405,7 +1409,7 @@ loop    % Main game logic loop
                 Player -> damage(bullets(i)->getDamage())
                 alive := false
                 new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
+                RemoveTheseBullets (upper (RemoveTheseBullets)) := i
             end if
             
             
@@ -1414,7 +1418,7 @@ loop    % Main game logic loop
         
         if (bullets(i) -> update() not= true) then
             new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-            RemoveTheseBullets (upper (RemoveTheseBullets)) := i - upper (RemoveTheseBullets)
+            RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
         end if
         
         /*if (alive) then
@@ -1497,20 +1501,38 @@ loop    % Main game logic loop
     %put "Post Check!"
         
         
-    for i : 0 .. upper (RemoveTheseBullets)
+    /*for i : 0 .. upper (RemoveTheseBullets)
         for j : RemoveTheseBullets (i) .. upper (bullets) - 1 
             bullets (j) := bullets (j + 1)
         end for
         for j : 1..upper(RemoveTheseBullets)
             if (RemoveTheseBullets(j) > RemoveTheseBullets(i)) then
-                RemoveTheseBullets(j) += -1
+                RemoveTheseBullets(j) -= 1
             end if
         end for
         if (upper(bullets) > 0) then
             new bullets, upper (bullets) - 1
         end if
+    end for*/
+    
+    for i : 1 .. upper(RemoveTheseBullets)
         
+        put RemoveTheseBullets(i)
+        put "RTB: ", upper(RemoveTheseBullets)
+        put "BIR: ", upper(bullets)
+        
+        free bullets(RemoveTheseBullets(i))
+        bullets (RemoveTheseBullets(i)) := bullets (upper(bullets))
+        new bullets, upper(bullets)-1
+        
+        for o : 1 .. upper(RemoveTheseBullets)
+            if (RemoveTheseBullets(o) = upper(bullets)+1) then
+                RemoveTheseBullets(o) := RemoveTheseBullets(i)
+            end if
+        end for
     end for
+    
+    
         
     for i : 0 .. upper (RemoveTheseLasers)
         
