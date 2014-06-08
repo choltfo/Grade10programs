@@ -63,6 +63,7 @@ type weaponType : record
     hit : particleBurst
     lastReload : int
     lastShot : int
+    shots : array 1..4 of particleBurst
 end record
 
 type weaponStorageInv : record
@@ -108,6 +109,43 @@ defWeapon.weapon.hit.Colour := yellow
 defWeapon.weapon.hit.size := 7
 defWeapon.weapon.hit.TTLMax := 150
 defWeapon.weapon.hit.TTLMin := 100
+
+defWeapon.weapon.shots(1).maxXSpeed := 0
+defWeapon.weapon.shots(1).maxYSpeed := 0
+defWeapon.weapon.shots(1).numOfP := 100
+defWeapon.weapon.shots(1).Colour := darkgrey
+defWeapon.weapon.shots(1).size := 2
+defWeapon.weapon.shots(1).TTLMax := 20
+defWeapon.weapon.shots(1).TTLMin := 10
+%PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 100,darkgrey,2,10,20)
+
+defWeapon.weapon.shots(2).maxXSpeed := 0
+defWeapon.weapon.shots(2).maxYSpeed := 0
+defWeapon.weapon.shots(2).numOfP := 15
+defWeapon.weapon.shots(2).Colour := yellow
+defWeapon.weapon.shots(2).size := 2
+defWeapon.weapon.shots(2).TTLMax := 20
+defWeapon.weapon.shots(2).TTLMin := 10
+%PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,yellow,2,10,20)
+
+defWeapon.weapon.shots(3).maxXSpeed := 0
+defWeapon.weapon.shots(3).maxYSpeed := 0
+defWeapon.weapon.shots(3).numOfP := 15
+defWeapon.weapon.shots(3).Colour := 41
+defWeapon.weapon.shots(3).size := 2
+defWeapon.weapon.shots(3).TTLMax := 20
+defWeapon.weapon.shots(3).TTLMin := 10
+%PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,41,2,10,20)
+
+defWeapon.weapon.shots(4).maxXSpeed := 0
+defWeapon.weapon.shots(4).maxYSpeed := 0
+defWeapon.weapon.shots(4).numOfP := 30
+defWeapon.weapon.shots(4).Colour := red
+defWeapon.weapon.shots(4).size := 2
+defWeapon.weapon.shots(4).TTLMax := 20
+defWeapon.weapon.shots(4).TTLMin := 10
+%PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 30,red,2,10,20)
+
 defWeapon.ammunition := 999999999
 
 process gunShot
@@ -258,10 +296,14 @@ class Bullet
         Velocity := Vector.AddDir(Velocity,cosd(rot)*speed,sind(rot)*speed)
         
         
-        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 100,darkgrey,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,yellow,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,41,2,10,20)
-        PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 30,red,2,10,20)
+        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 100,darkgrey,2,10,20)
+        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,yellow,2,10,20)
+        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,41,2,10,20)
+        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 30,red,2,10,20)
+        
+        for i : 1..upper(w.shots)
+            PS -> InitPresetAngular (Location.x, Location.y, Velocity.x, Velocity.y, w.shots(i))
+        end for
         
     end Init
     
@@ -1014,6 +1056,7 @@ proc loadMap (map : string)
             WP.weapon.shotDelay := strint(mapFile(i+6))
             WP.weapon.reloadDelay := strint(mapFile(i+7))
             WP.weapon.automatic := mapFile(i+8) = "true"
+            
             WP.weapon.trail.maxXSpeed := strint(mapFile(i+10))
             WP.weapon.trail.maxYSpeed := strint(mapFile(i+11))
             WP.weapon.trail.numOfP := strint(mapFile(i+12))
@@ -1029,13 +1072,46 @@ proc loadMap (map : string)
             WP.weapon.hit.size := strint(mapFile(i+22))
             WP.weapon.hit.TTLMin := strint(mapFile(i+23))
             WP.weapon.hit.TTLMax := strint(mapFile(i+24))
-            WP.position.x := strint(mapFile(i+25))
-            WP.position.y := strint(mapFile(i+26))
-            WP.respawnDelay := strint(mapFile(i+27))
+            
+            WP.weapon.shots(1).maxXSpeed := strint(mapFile(i+26))
+            WP.weapon.shots(1).maxYSpeed := strint(mapFile(i+27))
+            WP.weapon.shots(1).numOfP := strint(mapFile(i+28))
+            WP.weapon.shots(1).Colour := strint(mapFile(i+29))
+            WP.weapon.shots(1).size := strint(mapFile(i+30))
+            WP.weapon.shots(1).TTLMin := strint(mapFile(i+31))
+            WP.weapon.shots(1).TTLMax := strint(mapFile(i+32))
+            
+            WP.weapon.shots(2).maxXSpeed := strint(mapFile(i+34))
+            WP.weapon.shots(2).maxYSpeed := strint(mapFile(i+35))
+            WP.weapon.shots(2).numOfP := strint(mapFile(i+36))
+            WP.weapon.shots(2).Colour := strint(mapFile(i+37))
+            WP.weapon.shots(2).size := strint(mapFile(i+38))
+            WP.weapon.shots(2).TTLMin := strint(mapFile(i+39))
+            WP.weapon.shots(2).TTLMax := strint(mapFile(i+40))
+            
+            WP.weapon.shots(3).maxXSpeed := strint(mapFile(i+42))
+            WP.weapon.shots(3).maxYSpeed := strint(mapFile(i+43))
+            WP.weapon.shots(3).numOfP := strint(mapFile(i+44))
+            WP.weapon.shots(3).Colour := strint(mapFile(i+45))
+            WP.weapon.shots(3).size := strint(mapFile(i+46))
+            WP.weapon.shots(3).TTLMin := strint(mapFile(i+47))
+            WP.weapon.shots(3).TTLMax := strint(mapFile(i+48))
+            
+            WP.weapon.shots(4).maxXSpeed := strint(mapFile(i+50))
+            WP.weapon.shots(4).maxYSpeed := strint(mapFile(i+51))
+            WP.weapon.shots(4).numOfP := strint(mapFile(i+52))
+            WP.weapon.shots(4).Colour := strint(mapFile(i+53))
+            WP.weapon.shots(4).size := strint(mapFile(i+54))
+            WP.weapon.shots(4).TTLMin := strint(mapFile(i+55))
+            WP.weapon.shots(4).TTLMax := strint(mapFile(i+56))
+            
+            WP.position.x := strint(mapFile(i+57))
+            WP.position.y := strint(mapFile(i+58))
+            WP.respawnDelay := strint(mapFile(i+59))
             
             WP.used := false
             WP.returnTime := 0
-            WP.ammunition := strint(mapFile(i+28))
+            WP.ammunition := strint(mapFile(i+60))
             WP.weapon.ammo := WP.weapon.clipSize
             
             

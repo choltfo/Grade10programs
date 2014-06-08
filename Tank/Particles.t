@@ -25,7 +25,7 @@ end record
 
 class ParticleSystem
 import Particle, particleBurst
-export Init, update, draw,InitAngular, setOffset,InitPreset
+export Init, update, draw,InitAngular, setOffset,InitPreset, InitPresetAngular
 
 var particles : flexible array 1..0 of Particle
 var ox, oy : int := 0
@@ -66,6 +66,10 @@ procedure InitAngular (x,y,maxSpeedX,maxSpeedY:real, numOfP,Colour,size,TTLMin,T
         particles(upper(particles)).maxTTL:=particles(upper(particles)).TTL
     end for
 end InitAngular
+
+procedure InitPresetAngular (x,y,mxs,mys: real, a:particleBurst)
+    InitAngular (x,y,mxs,mys, a.numOfP,a.Colour,a.size,a.TTLMin,a.TTLMax)
+end InitPresetAngular
 
 procedure update
     var removeThese : flexible array 1..0 of int

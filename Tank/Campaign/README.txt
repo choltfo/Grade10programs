@@ -15,7 +15,7 @@ Wall:	<- Starts a wall declaration
 0	<- x1
 200	<- y1
 100	<- x2
-500	<- y2
+500	<- y2	
 
 Enemy:	<- Enemy declaration
 500	<- X
@@ -47,7 +47,7 @@ Weapon:
             5 size
             10  TTILMin
             15  TTLMax
-            10 Ammo
             X
             Y
             10000 Respawn Delay
+	    10 Ammo
