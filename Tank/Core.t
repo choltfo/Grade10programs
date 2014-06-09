@@ -1467,7 +1467,7 @@ loop    % Main game logic loop
             end for
         end if
         
-        if alive then
+        if (alive) then
             for o : 1..upper(enemies)
                 
                 if (enemies(o) -> checkBulletCollision(bullets(i))) then
@@ -1496,9 +1496,11 @@ loop    % Main game logic loop
         end if
         
         
-        if (bullets(i) -> update() not= true) then
-            new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-            RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
+        if alive then
+            if (bullets(i) -> update() not= true) then
+                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
+            end if
         end if
         
         /*if (alive) then

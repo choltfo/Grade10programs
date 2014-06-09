@@ -6,11 +6,11 @@ type HockeyPlayer : record
 end record
 
 var player : array 1..10 of HockeyPlayer
-var fileNum : int
 
+var fileNum : int
 for i : 1..upper(player)
-    player(i).name := "Holtforster"
-    player(i).number := 91
+    player(i).name := "Holtforster"+chr(i)
+    player(i).number := i
 end for
 
 open : fileNum, "HockeyFile.txt", write

@@ -47,6 +47,14 @@ Weapon:
             5 size
             10  TTILMin
             15  TTLMax
+	    Trail: particleBurst
+            2 maxXSpeed
+            2 maxYSpeed
+            5 numOfP
+            41 colour
+            5 size
+            10  TTILMin
+            15  TTLMax
             X
             Y
             10000 Respawn Delay

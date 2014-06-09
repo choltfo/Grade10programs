@@ -1,12 +1,4 @@
 Map:
-map3.map
-CS:
-asdf
-0
-false
-true
-
-Map:
 map1.map
 CS:
 Have some fun! Drive a tank!
@@ -37,5 +29,13 @@ map3.map
 CS:
 Things are going to get a bit trickier at this point. Good luck.
 2000
+false
+true
+
+Map:
+map4.map
+CS:
+There are noow many enemies. And one has a rocket launcher.
+1000
 false
 true
