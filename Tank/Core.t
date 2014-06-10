@@ -156,12 +156,18 @@ end gunShot
 
 class Wall
     import frameMillis, Vector2, drawVectorThickLine,zero,drawVectorBox, Vector
-    export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture
+    export Init, draw, getP1, getP2, getB, getM, getWallIntersect, Puncture, alive, setAlive
     
     
     var p1, p2 : Vector2
     
     var m,b : real := 0 % As in Y=mX+b
+    
+    var alive := true
+    
+    proc setAlive (al : boolean)
+        alive := al
+    end setAlive
     
     function getP1() : Vector2
         result p1
@@ -1429,40 +1435,44 @@ loop    % Main game logic loop
         var alive : boolean := true
         if (alive) then
             for o : 1..upper(walls)
-                if (bullets(i) -> checkWallCol(walls(o))) then
-                    % TODO: Blast holes in walls.
-                    
-                    var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
-                    
-                    if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                        if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
-                            new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
-                        else
-                            walls(o)->Init(hitLoc,walls(o)->getP2())
-                        end if
-                    elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                if walls(o) -> alive then
+                    if (bullets(i) -> checkWallCol(walls(o))) then
+                        % TODO: Blast holes in walls.
+                        
+                        var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
+                        
                         if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                            new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                            RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                            if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                                new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                                RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                                walls(o) -> setAlive(false)
+                            else
+                                walls(o)->Init(hitLoc,walls(o)->getP2())
+                            end if
+                        elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                            if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
+                                new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                                RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                                walls(o) -> setAlive(false)
+                            else
+                                walls(o)->Init(walls(o)->getP1(),hitLoc)
+                            end if
                         else
-                            walls(o)->Init(walls(o)->getP1(),hitLoc)
+                            new walls, upper(walls)+1
+                            walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
                         end if
-                    else
-                        new walls, upper(walls)+1
-                        walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
+                        
+                        
+                        PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
+                        PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
+                        PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
+                        PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
+                        %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
+                        
+                        new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
+                        RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
+                        alive := false
                     end if
-                    
-                    
-                    PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
-                    PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
-                    PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
-                    PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
-                    %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
-                    
-                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
-                    alive := false
                 end if
             end for
         end if
@@ -1632,12 +1642,15 @@ loop    % Main game logic loop
         
     for i : 0 .. upper (RemoveTheseWalls)
         
-        for j : RemoveTheseWalls (i) .. upper (walls) - 1 
-            walls (j) := walls (j + 1)
+        free walls(RemoveTheseWalls(i))
+        walls(RemoveTheseWalls(i)) := walls(upper(walls))
+        new walls, upper(walls)-1
+        
+        for o : 1..upper(RemoveTheseLasers)
+            if  (RemoveTheseLasers(o) = upper(walls)+1) then
+                RemoveTheseLasers(o) := RemoveTheseLasers(i)
+            end if
         end for
-            if (upper(walls) > 0) then
-            new walls, upper (walls) - 1
-        end if
         
     end for
     
