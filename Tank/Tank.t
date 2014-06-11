@@ -97,6 +97,26 @@ loop    % Title screen loop
     end if
     Font.Draw("Map editor",round((maxx/2)-(Font.Width("Map editor",Font2)/2)),maxy-435,Font2,black)
     
+    var US := 0
+    if (useSound) then
+        US := 1
+    end if
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Sound on/off",Font2)/2))-10,maxy-480,round((maxx/2)+(Font.Width("Sound on/off",Font2)/2))+10,maxy-450,black,green*US)) then
+        
+        useSound := not useSound
+    end if
+    Font.Draw("Sound on/off",round((maxx/2)-(Font.Width("Sound on/off",Font2)/2)),maxy-475,Font2,black)
+    
+    var UM := 0
+    if (useMusic) then
+        UM := 1
+    end if
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Music on/off",Font2)/2))-10,maxy-520,round((maxx/2)+(Font.Width("Music on/off",Font2)/2))+10,maxy-490,black,green*UM)) then
+        
+        useMusic := not useMusic
+    end if
+    Font.Draw("Music on/off",round((maxx/2)-(Font.Width("Music on/off",Font2)/2)),maxy-515,Font2,black)
+    
     
     
     %((round(Time.Elapsed() / 200)) mod 2)*green

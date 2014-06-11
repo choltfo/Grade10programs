@@ -1568,7 +1568,7 @@ loop    % Main game logic loop
     end for
     
     if (playerHasControl) then
-        Player -> drawGUI()
+        %Player -> drawGUI()
     end if
     
     %put "Pre Check!"

@@ -11,16 +11,16 @@ type particleBurst : record
 end record
 
 type Particle : record
-col : int
-TTL : int
-maxTTL:int
-size: int
+    col : int
+    TTL : int
+    maxTTL:int
+    size: int
 
-x : real
-y : real
+    x : real
+    y : real
 
-xVel : real
-yVel : real
+    xVel : real
+    yVel : real
 end record
 
 class ParticleSystem
