@@ -264,7 +264,9 @@ end Wall
 class Bullet
     import frameMillis, Vector2, drawVectorThickLine, zero, drawVectorBox, Wall,
         doVectorsCollide, getVectorCollision, realBetween, GUIBase, PS, Vector, offsetX, offsetY, mapX, mapY, weaponType
-    export update, Init, checkWallCol, getLoc, getVel, getDamage
+    export update, Init, checkWallCol, getLoc, getVel, getDamage, alive, setAlive
+    
+    var alive := true
     
     var weap : weaponType
     
@@ -289,6 +291,10 @@ class Bullet
     function getDamage() : real
         result damage
     end getDamage
+    
+    proc setAlive(a : boolean)
+        alive := a
+    end setAlive
     
     procedure Init (Loc, Vel : Vector2, rot,speed,dmg:real, w : weaponType)
         
@@ -401,7 +407,7 @@ end Laser
 class Tank
     import frameMillis, Vector2, drawVectorThickLine,zero,Bullet,drawVectorBox, Font2, Wall, getVectorCollision, doVectorsCollide, Laser, GUIBase, LightningBox, PS, Vector, offsetX, offsetY,  mapX, mapY, weaponStorageInv, defWeapon, weaponPickup, gunShot
     
-    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon, setLA, getLA, setCurrentWeapon
+    export setControls, update, Init, Fire, Reload, CanFire,checkWallCol, CanFireLaser, FireLaser, render,drawGUI, getLoc, getRot, checkBulletCollision, checkHealth, damage, updateAI, checkLaserCollision, getHealth, getCol, weaponControls,pickupWeapon, setLA, getLA, setCurrentWeapon, shotDelay
     
     var health : real := 100
     
@@ -1432,84 +1438,68 @@ loop    % Main game logic loop
     %end for
     
     for i : 1..upper(bullets)
-        var alive : boolean := true
-        if (alive) then
-            for o : 1..upper(walls)
-                if walls(o) -> alive then
-                    if (bullets(i) -> checkWallCol(walls(o))) then
-                        % TODO: Blast holes in walls.
-                        
-                        var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(), Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
-                        
-                        if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                            if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
-                                new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                                RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
-                                walls(o) -> setAlive(false)
-                            else
-                                walls(o)->Init(hitLoc,walls(o)->getP2())
-                            end if
-                        elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
-                            if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                                new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                                RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
-                                walls(o) -> setAlive(false)
-                            else
-                                walls(o)->Init(walls(o)->getP1(),hitLoc)
-                            end if
-                        else
-                            new walls, upper(walls)+1
-                            walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
-                        end if
-                        
-                        
-                        PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
-                        PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
-                        PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
-                        PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
-                        %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
-                        
-                        new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                        RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
-                        alive := false
-                    end if
-                end if
-            end for
-        end if
-        
-        if (alive) then
-            for o : 1..upper(enemies)
+        for o : 1..upper(walls)
+            if (bullets(i) -> checkWallCol(walls(o))) then
+                % TODO: Blast holes in walls.
                 
+                var hitLoc : Vector2 := getVectorCollision(walls(o)->getP1(), walls(o)->getP2(), bullets(i)->getLoc(),Vector.Add(bullets(i)->getLoc(),bullets(i)->getVel()))
+                    
+                if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
+                    if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                        new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                        RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                        walls(o) -> setAlive(false)
+                    else
+                        walls(o)->Init(hitLoc,walls(o)->getP2())
+                    end if
+                elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
+                    if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
+                        new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                        RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                        walls(o) -> setAlive(false)
+                    else
+                        walls(o)->Init(walls(o)->getP1(),hitLoc)
+                    end if
+                else
+                    new walls, upper(walls)+1
+                    walls(upper(walls)) := walls(o) -> Puncture(hitLoc, 20)
+                end if
+                
+                    
+                PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
+                PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
+                PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
+                PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
+                %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
+                
+                bullets(i) -> setAlive(false)
+            end if
+        end for
+        
+        if (bullets(i) -> alive) then
+            for o : 1..upper(enemies)
                 if (enemies(o) -> checkBulletCollision(bullets(i))) then
                     enemies(o) -> damage(bullets(i)->getDamage())
-                    alive := false
-                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
-                    
+                    bullets(i) -> setAlive(false)
+                        
                     PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,red,1,10,20)
                     PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,yellow,1,10,20)
                     PS -> Init (enemies(o)->getLoc().x, enemies(o)->getLoc().y, 5,5,50,41,1,10,20)
                 end if
-                exit when not alive
             end for
+        end if
             
-            if alive then
-                if (Player -> checkBulletCollision(bullets(i))) then
-                    Player -> damage(bullets(i)->getDamage())
-                    alive := false
-                    new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                    RemoveTheseBullets (upper (RemoveTheseBullets)) := i
-                end if
+        if bullets(i) -> alive then
+            if (Player -> checkBulletCollision(bullets(i))) then
+                Player -> damage(bullets(i)->getDamage())
+                bullets(i) -> setAlive(false)
             end if
-            
-            
         end if
         
         
-        if alive then
+        if bullets(i) -> alive then
             if (bullets(i) -> update() not= true) then
-                new RemoveTheseBullets, upper (RemoveTheseBullets) + 1 
-                RemoveTheseBullets (upper (RemoveTheseBullets)) := i% - upper (RemoveTheseBullets)
+                bullets(i) -> setAlive(false)
             end if
         end if
         
@@ -1607,11 +1597,11 @@ loop    % Main game logic loop
         end if
     end for*/
     
-    for i : 1 .. upper(RemoveTheseBullets)
+    /*for i : 1 .. upper(RemoveTheseBullets)
         
-        %put RemoveTheseBullets(i)
-        %put "RTB: ", upper(RemoveTheseBullets)
-        %put "BIR: ", upper(bullets)
+        put RemoveTheseBullets(i)
+        put "RTB: ", upper(RemoveTheseBullets)
+        put "BIR: ", upper(bullets)
         
         free bullets(RemoveTheseBullets(i))
         bullets (RemoveTheseBullets(i)) := bullets (upper(bullets))
@@ -1622,7 +1612,29 @@ loop    % Main game logic loop
                 RemoveTheseBullets(o) := RemoveTheseBullets(i)
             end if
         end for
-    end for
+    end for*/
+    
+    if upper(bullets) not= 0 then
+        var i := 1
+        var StartTime := Time.Elapsed
+        loop
+            %put i
+            %put upper(bullets)
+            %put bullets(i) -> alive
+            if (not bullets(i) -> alive) then
+                free bullets(i)
+                if (upper(bullets) not= i) then
+                    bullets(i) := bullets(upper(bullets))
+                end if
+                new bullets, upper(bullets)-1
+                i -= 1
+            end if
+            i += 1
+            exit when i >= upper(bullets)
+            %put i = upper(bullets)
+        end loop
+        %put Time.Elapsed - StartTime
+    end if
     
     
         

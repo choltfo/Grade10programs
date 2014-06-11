@@ -1,4 +1,4 @@
-% The particles library
+% Splatter by Holtforster particles library
 
 type particleBurst : record
     maxXSpeed : real
@@ -72,6 +72,7 @@ procedure InitPresetAngular (x,y,mxs,mys: real, a:particleBurst)
 end InitPresetAngular
 
 procedure update
+    var StartTime := Time.Elapsed
     var removeThese : flexible array 1..0 of int
     for i : 1..upper(particles)
         particles(i).TTL -= 1
@@ -95,14 +96,17 @@ procedure update
     new particles, upper(particles) - upper(removeThese)
     %put upper(particles)
     free removeThese
+    put "PS update time: ", Time.Elapsed - StartTime
 end update
 
 procedure draw
+    var StartTime := Time.Elapsed
     for i : 1 .. upper(particles)
         if (particles(i).TTL > 0) then
             Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
         end if
     end for
+    put "PS draw time: ", Time.Elapsed - StartTime
 end draw
 
 end ParticleSystem

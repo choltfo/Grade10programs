@@ -25,6 +25,9 @@ procedure save (fileName:string)
         put : stream, round(enemies(i)->getLoc().x)
         put : stream, round(enemies(i)->getLoc().y)
         put : stream, round(enemies(i)->getCol())
+        put : stream, "0"
+        put : stream, round(enemies(i)->shotDelay)
+        
     end for
     
     for i : 1.. upper (cas)
