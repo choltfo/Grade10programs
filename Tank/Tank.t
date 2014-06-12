@@ -69,10 +69,13 @@ end playCampaign
 
 % The only actual code outside of modules, procs, classes, and functions
 var hasWaited := false
+var logo : int := Pic.FileNew("logo.bmp")
 loop    % Title screen loop
     mLB := mB
     Mouse.Where(mX, mY, mB)
-    Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),maxy-100,Font1,black)
+    %Font.Draw("The Tank Game",round((maxx/2)-(Font.Width("The Tank Game",Font1)/2)),maxy-100,Font1,black)
+    Pic.Draw(logo,round(maxx/2)-round(Pic.Width(logo)/2),maxy-Pic.Height(logo),0)
+    
     Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
     Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
     Font.Draw("R tdo reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
@@ -85,13 +88,13 @@ loop    % Title screen loop
         hasWaited := true
     end if
     
-    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Click to start!",Font2)/2))-10,maxy-400,round((maxx/2)+(Font.Width("Click to start!",Font2)/2))+10,maxy-370,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-400,round((maxx/2)+110),maxy-370,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
         
         playCampaign
     end if
     Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-395,Font2,black)
     
-    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Map editor",Font2)/2))-10,maxy-440,round((maxx/2)+(Font.Width("Map Editor",Font2)/2))+10,maxy-410,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-440,round((maxx/2)+110),maxy-410,black,green)) then
         
         EditLoadedMap
     end if
@@ -101,21 +104,34 @@ loop    % Title screen loop
     if (useSound) then
         US := 1
     end if
-    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Sound on/off",Font2)/2))-10,maxy-480,round((maxx/2)+(Font.Width("Sound on/off",Font2)/2))+10,maxy-450,black,green*US)) then
-        
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-480,round((maxx/2)+110),maxy-450,black,red+((green-red)*US))) then
         useSound := not useSound
+        if useSound then
+            cls
+            Font.Draw("WARNING: Sound will dramatically reduce framerates, unless your computer",100,maxy-240,Font2,black)
+            Font.Draw("has an SSD RAID whose output exceeds the input speed of your RAM.",100,maxy-270,Font2,black)
+            View.Update()
+            delay(3000)
+        end if
     end if
-    Font.Draw("Sound on/off",round((maxx/2)-(Font.Width("Sound on/off",Font2)/2)),maxy-475,Font2,black)
+    if (useSound) then
+        Font.Draw("Sound on",round((maxx/2)-(Font.Width("Sound on",Font2)/2)),maxy-475,Font2,black)
+    else
+        Font.Draw("Sound off",round((maxx/2)-(Font.Width("Sound off",Font2)/2)),maxy-475,Font2,black)
+    end if
     
     var UM := 0
     if (useMusic) then
         UM := 1
     end if
-    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-(Font.Width("Music on/off",Font2)/2))-10,maxy-520,round((maxx/2)+(Font.Width("Music on/off",Font2)/2))+10,maxy-490,black,green*UM)) then
-        
+    if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-520,round((maxx/2)+110),maxy-490,black,red+((green-red)*UM))) then
         useMusic := not useMusic
     end if
-    Font.Draw("Music on/off",round((maxx/2)-(Font.Width("Music on/off",Font2)/2)),maxy-515,Font2,black)
+    if (useMusic) then
+        Font.Draw("Music on",round((maxx/2)-(Font.Width("Music on",Font2)/2)),maxy-515,Font2,black)
+    else
+        Font.Draw("Music off",round((maxx/2)-(Font.Width("Music off",Font2)/2)),maxy-515,Font2,black)
+    end if
     
     
     

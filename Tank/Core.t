@@ -1468,8 +1468,8 @@ loop    % Main game logic loop
                     
                 PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,red,5,20,20)
                 PS -> Init (hitLoc.x, hitLoc.y, 2,2,20,yellow,5,20,20)
-                PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,grey,2,20,75)
-                PS -> Init (hitLoc.x, hitLoc.y, 10,10,100,black,1,20,75)
+                PS -> Init (hitLoc.x, hitLoc.y, 10,10,50,grey,2,20,50)
+                PS -> Init (hitLoc.x, hitLoc.y, 10,10,50,black,1,20,50)
                 %Init (x,y,maxXSpeed,maxYSpeed,numOfP,Colour,size,TTLMin,TTLMax : int)
                 
                 bullets(i) -> setAlive(false)

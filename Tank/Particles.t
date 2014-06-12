@@ -73,38 +73,31 @@ end InitPresetAngular
 
 procedure update
     var StartTime := Time.Elapsed
-    var removeThese : flexible array 1..0 of int
-    for i : 1..upper(particles)
-        particles(i).TTL -= 1
-        particles(i).x += particles(i).xVel
-        particles(i).y += particles(i).yVel
-        
-        if (particles(i).TTL <= 0) then
-            new removeThese, upper(removeThese) + 1
-            removeThese(upper(removeThese)) := i
-        end if
-    end for
     
-    % These will be ordered ascending, with (1) := 1, and (6) := 100
+    if (upper(particles) > 0) then
+        var i : int := 1
+        loop
+            particles(i).TTL -= 1
+            particles(i).x += particles(i).xVel
+            particles(i).y += particles(i).yVel
+            
+            if (particles(i).TTL <= 0) then
+                particles(i) := particles(upper(particles))
+                new particles, upper(particles)-1
+            else
+                i += 1
+            end if
+            exit when i > upper(particles)
+        end loop
+    end if
     
-    for decreasing i : upper(removeThese) .. 1
-        var temp : Particle := particles(upper(particles) - i+1)
-        particles(upper(particles)-1+1) := particles(removeThese(i))
-        particles(removeThese(i)) := temp
-    end for
-    
-    new particles, upper(particles) - upper(removeThese)
-    %put upper(particles)
-    free removeThese
     put "PS update time: ", Time.Elapsed - StartTime
 end update
 
 procedure draw
     var StartTime := Time.Elapsed
     for i : 1 .. upper(particles)
-        if (particles(i).TTL > 0) then
-            Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
-        end if
+        Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
     end for
     put "PS draw time: ", Time.Elapsed - StartTime
 end draw
