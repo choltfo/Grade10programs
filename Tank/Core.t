@@ -307,12 +307,6 @@ class Bullet
         Location := Loc
         Velocity := Vector.AddDir(Velocity,cosd(rot)*speed,sind(rot)*speed)
         
-        
-        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 100,darkgrey,2,10,20)
-        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,yellow,2,10,20)
-        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 15,41,2,10,20)
-        %PS -> InitAngular (Location.x, Location.y, Velocity.x, Velocity.y, 30,red,2,10,20)
-        
         for i : 1..upper(w.shots)
             PS -> InitPresetAngular (Location.x, Location.y, Velocity.x, Velocity.y, w.shots(i))
         end for
@@ -322,11 +316,7 @@ class Bullet
     function update () : boolean
         
         Location := Vector.Add(Location,Velocity)
-        
-        %PS -> Init(Location.x,Location.y,2,2,15,grey,2,1,10)
         PS -> InitPreset(Location.x,Location.y,weap.trail)
-             %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
-        %drawVectorThickLine(Location,Vector.Add(Location,Velocity),3,red)
         Draw.FillOval(round(Location.x)+offsetX, round(Location.y)+offsetY, 2, 2, black)
         result Location.x < mapX and Location.x > 0 and Location.y < mapY and Location.y > 0
         
@@ -703,11 +693,6 @@ class Tank
         
         % Add extra speed
         Velocity := Vector.Add(Velocity,NewSpeed)
-        
-        if (Vector.getSqrMag(NewSpeed) > 0) then
-            PS -> Init(Location.x,Location.y,2,2,15,42,2,1,10)
-             %Init(x,y,maxXSpeed,maxYSpeed : real, numOfP,Colour,size,TTLMin,TTLMax : int)
-        end if
         
         % Rotate to get relative new position
         RelPos := Vector.RotateD(Velocity,zero,Rotation)
@@ -1289,8 +1274,10 @@ proc pauseScreen()
         
         put cheatCode
         
-        useMusic := UIE.checkBox(100,100,useMusic,mX,mY,mB,lMB)
-        useSound := UIE.checkBox(100,120,useSound,mX,mY,mB,lMB)
+        useMusic := UIE.checkBox(200,100,useMusic,mX,mY,mB,lMB)
+        Draw.Text("Music",230,100,Font2,black)
+        useSound := UIE.checkBox(200,120,useSound,mX,mY,mB,lMB)
+        Draw.Text("Sound",230,120,Font2,black)
         
         exit when chars(KEY_ESC) and not formerChars(KEY_ESC)
         View.Update()
@@ -1446,16 +1433,16 @@ loop    % Main game logic loop
                     
                 if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
                     if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
-                        new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                        RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                        %new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                        %RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         walls(o) -> setAlive(false)
                     else
                         walls(o)->Init(hitLoc,walls(o)->getP2())
                     end if
                 elsif (Vector.getSqrMag(Vector.Subtract(walls(o)->getP2(),hitLoc)) < 100) then
                     if (Vector.getSqrMag(Vector.Subtract(walls(o)->getP1(),hitLoc)) < 100) then
-                        new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
-                        RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
+                        %new RemoveTheseWalls, upper (RemoveTheseWalls) + 1
+                        %RemoveTheseWalls (upper (RemoveTheseWalls)) := o - upper (RemoveTheseWalls)
                         walls(o) -> setAlive(false)
                     else
                         walls(o)->Init(walls(o)->getP1(),hitLoc)
@@ -1652,19 +1639,19 @@ loop    % Main game logic loop
         
     end for
         
-    for i : 0 .. upper (RemoveTheseWalls)
-        
-        free walls(RemoveTheseWalls(i))
-        walls(RemoveTheseWalls(i)) := walls(upper(walls))
-        new walls, upper(walls)-1
-        
-        for o : 1..upper(RemoveTheseLasers)
-            if  (RemoveTheseLasers(o) = upper(walls)+1) then
-                RemoveTheseLasers(o) := RemoveTheseLasers(i)
+    if upper(walls) > 0 then
+        var i : int := 1
+        loop
+            if (not walls(i) -> alive) then
+                free walls(i)
+                walls(i) := walls(upper(walls))
+                new walls, upper(walls)-1
+            else
+                i += 1
             end if
-        end for
-        
-    end for
+            exit when i > upper(walls)
+        end loop
+    end if
     
     
     %put (LastFrame + frameMillis) - Time.Elapsed
