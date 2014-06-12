@@ -91,15 +91,18 @@ procedure update
         end loop
     end if
     
-    put "PS update time: ", Time.Elapsed - StartTime
+    %put "PS update time: ", Time.Elapsed - StartTime
 end update
 
 procedure draw
     var StartTime := Time.Elapsed
     for i : 1 .. upper(particles)
-        Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
+        if (particles(i).x+ox < maxx and particles(i).x+ox > 0 and particles(i).y+oy < maxy and particles(i).x+oy > 0) then
+            Draw.FillOval(round(particles(i).x)+ox,round(particles(i).y)+oy,ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),ceil(((particles(i).size/2)*particles(i).TTL)/particles(i).maxTTL),particles(i).col)
+        end if
     end for
-    put "PS draw time: ", Time.Elapsed - StartTime
+    %put "PS draw time: ", Time.Elapsed - StartTime
+    put upper(particles)/((Time.Elapsed - StartTime)+1)
 end draw
 
 end ParticleSystem
