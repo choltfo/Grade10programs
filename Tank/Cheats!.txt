@@ -1,0 +1,9 @@
+CHEATS:
+
+When in the pause menu, type in the following without quotes and press enter to get the specified result:
+
+"mostimpressive" : Instantly beat the level.
+"chessburger" : Acess the laser gun, hold space to fire.
+"cls" : Turns off screen clearing. May cause siesures.
+"part" : Turns off particle drawing and updating, but not creation. Hint: Use in comination with "cls" for interesting results.
+

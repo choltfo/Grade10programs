@@ -78,9 +78,8 @@ loop    % Title screen loop
     
     Font.Draw("WASD to move",round((maxx/2)-(Font.Width("WASD to move",Font2)/2)),maxy-200,Font2,black)
     Font.Draw("Mouse to shoot",round((maxx/2)-(Font.Width("Mouse to shoot",Font2)/2)),maxy-220,Font2,black)
-    Font.Draw("R tdo reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
-    Font.Draw("Space to fire laser",round((maxx/2)-(Font.Width("Space to fire laser",Font2)/2)),maxy-260,Font2,black)
-    
+    Font.Draw("R to reload",round((maxx/2)-(Font.Width("R to reload",Font2)/2)),maxy-240,Font2,black)
+    Font.Draw("1-9 to change weapons",round((maxx/2)-(Font.Width("1-9 to change weapons",Font2)/2)),maxy-260,Font2,black)
     
     if (not hasWaited) then
         View.Update()
@@ -89,13 +88,11 @@ loop    % Title screen loop
     end if
     
     if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-400,round((maxx/2)+110),maxy-370,black,((round(Time.Elapsed() / 200)) mod 2)*green)) then
-        
         playCampaign
     end if
     Font.Draw("Click to start!",round((maxx/2)-(Font.Width("Click to start!",Font2)/2)),maxy-395,Font2,black)
     
     if (ButtonBox (mX,mY,mB,mLB,round((maxx/2)-110),maxy-440,round((maxx/2)+110),maxy-410,black,green)) then
-        
         EditLoadedMap
     end if
     Font.Draw("Map editor",round((maxx/2)-(Font.Width("Map editor",Font2)/2)),maxy-435,Font2,black)

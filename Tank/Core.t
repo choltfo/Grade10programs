@@ -521,20 +521,36 @@ class Tank
         turretRotation += L*(frameMillis/1000)*100
     end setControls
     
+    proc drawMenuTab(i:int)
+        Draw.FillBox(i*40,GUIBase+5,30+(i*40),GUIBase - 40,grey)
+        Draw.ThickLine(i*40,GUIBase,i*40,GUIBase - 40,3,black)
+        Draw.ThickLine(30+(i*40),GUIBase,30+(i*40),GUIBase - 40,3,black)
+        Draw.ThickLine(i*40,GUIBase-40,30+(i*40),GUIBase - 40,3,black)
+    end drawMenuTab
+    
     proc drawGUI ()
+        
+        for i : 1..upper(weapons)
+            % Draw a tab for the weapon.
+            drawMenuTab(i)
+        end for
         
         Draw.FillBox(0,GUIBase, maxx,maxy,grey)
         Draw.ThickLine(0,GUIBase,maxx,GUIBase,3,black)
         
-        LB -> update()
-        LB -> draw(round(curLasers),round(maxLasers), not canLase)
+        if (laserAllowed) then
+            LB -> update()
+            LB -> draw(round(curLasers),round(maxLasers), not canLase)
+        end if
         
         if (weapons(currentWeapon).weapon.lastReload = 0) then
             var ammoLine : string := weapons(currentWeapon).weapon.name+" : " + intstr(weapons(currentWeapon).weapon.ammo) +"/"+intstr(weapons(currentWeapon).weapon.clipSize)
-            Font.Draw(ammoLine, maxx - 400, maxy-20,Font2, black)
+            Font.Draw(ammoLine, maxx - 400, maxy-30,Font2, black)
         else
-            Font.Draw("Reloading",maxx-400,maxy-20,Font2, red * (round(Time.Elapsed / 200) mod 2))
+            Font.Draw("Reloading",maxx-400,maxy-30,Font2, red * (round(Time.Elapsed / 200) mod 2))
         end if
+        
+        drawMenuTab(currentWeapon)
         
         %put upper(weapons)
         
@@ -1230,7 +1246,7 @@ proc clearLevel ()
     
 end clearLevel
 
-proc pauseScreen()
+function pauseScreen() : boolean
     var mX,mY,mB,lMB : int := 0
     if useMusic then
         Music.PlayFileStop
@@ -1272,6 +1288,10 @@ proc pauseScreen()
             drawParticles := not drawParticles
         end if
         
+        if (chars(KEY_ENTER) and cheatCode = "mostimpressive") then
+            result true
+        end if
+        
         put cheatCode
         
         useMusic := UIE.checkBox(200,100,useMusic,mX,mY,mB,lMB)
@@ -1288,6 +1308,7 @@ proc pauseScreen()
     if useMusic then
         Music.PlayFileLoop("Music/"+BGMusicFile)
     end if
+    result false
 end pauseScreen
 
 
@@ -1554,9 +1575,9 @@ loop    % Main game logic loop
         end if
     end for
     
-    if (playerHasControl) then
-        %Player -> drawGUI()
-    end if
+    %if (playerHasControl) then
+    Player -> drawGUI()
+    %end if
     
     %put "Pre Check!"
     
@@ -1664,7 +1685,9 @@ loop    % Main game logic loop
     if (paused) then
         bgImg := Pic.New(0,0,maxx,maxy)
         bgImg := Pic.Blur(bgImg,10)
-        pauseScreen()
+        if (pauseScreen()) then
+            result true
+        end if
         paused := false
     end if
     
@@ -1675,7 +1698,7 @@ loop    % Main game logic loop
     end if
     
     if (done) then
-        put "Victory!"
+        %put "Victory!"
         if (victoryTime + victoryDelay < Time.Elapsed) then
             result upper(enemies) = 0
         end if
