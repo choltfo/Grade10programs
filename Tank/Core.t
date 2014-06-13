@@ -522,10 +522,10 @@ class Tank
     end setControls
     
     proc drawMenuTab(i:int)
-        Draw.FillBox(i*40,GUIBase+5,30+(i*40),GUIBase - 40,grey)
-        Draw.ThickLine(i*40,GUIBase,i*40,GUIBase - 40,3,black)
-        Draw.ThickLine(30+(i*40),GUIBase,30+(i*40),GUIBase - 40,3,black)
-        Draw.ThickLine(i*40,GUIBase-40,30+(i*40),GUIBase - 40,3,black)
+        Draw.FillBox(maxx-450+i*40,GUIBase+5,maxx-450+30+(i*40),GUIBase - 40,grey)
+        Draw.ThickLine(maxx-450+i*40,GUIBase,maxx-450+i*40,GUIBase - 40,3,black)
+        Draw.ThickLine(maxx-450+30+(i*40),GUIBase,maxx-450+30+(i*40),GUIBase - 40,3,black)
+        Draw.ThickLine(maxx-450+i*40,GUIBase-40,maxx-450+30+(i*40),GUIBase - 40,3,black)
     end drawMenuTab
     
     proc drawGUI ()
@@ -549,6 +549,8 @@ class Tank
         else
             Font.Draw("Reloading",maxx-400,maxy-30,Font2, red * (round(Time.Elapsed / 200) mod 2))
         end if
+        
+        Draw.ThickLine(maxx-450,GUIBase,maxx-450,maxy,3,black)
         
         drawMenuTab(currentWeapon)
         
@@ -931,7 +933,11 @@ class Tank
         end if
         
         if (CanFire()) then
-            result sqDist < 250000 and weapons(currentWeapon).weapon.lastShot + shotDelay < Time.Elapsed
+            if (weapons(currentWeapon).weapon.automatic) then
+                result sqDist < 250000
+            else
+                result sqDist < 250000 and weapons(currentWeapon).weapon.lastShot + shotDelay < Time.Elapsed
+            end if
         else
             if (weapons(currentWeapon).weapon.ammo = 0 and weapons(currentWeapon).weapon.lastReload = 0) then
                 Reload()
@@ -943,7 +949,7 @@ class Tank
     
     function weaponControls (mb,lmb,ws:int) : boolean
         if (ws not= -1) then
-            if (ws < upper(weapons)) then
+            if (ws <= upper(weapons)) then
                 currentWeapon := ws
             end if
         end if

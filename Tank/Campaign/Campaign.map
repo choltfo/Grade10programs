@@ -2,11 +2,6 @@ Map:
 map1.map
 CS:
 Have some fun! Drive a tank!
-500
-false
-false
-CS:
-Just don't get it shot, right? The paint just dried.
 2000
 false
 true
@@ -14,7 +9,7 @@ true
 Map:
 map2.map
 CS:
-Maybe you didn't hear me. Don't scratch the damn paint!
+Okay. You got that all now? Pretty simple.
 2000
 false
 true
@@ -22,20 +17,21 @@ true
 Map:
 map3.map
 CS:
-Things are going to get a bit trickier at this point. Good luck.
+Things are going to get a bit trickier at this point. Good luck. Also, that guy has a machine gun.
 2000
 false
 false
 CS:
-Tip: Blinking red-and-white balls are weapon pickups! Use keys 1-9 to switch weapons!
+Tip: Blinking red-and-white balls are weapon pickups! Use keys 1-9 to switch weapons! Look in the upper corner of the screen.
 2000
 true
 true
 
-Map:
-map4.map
 CS:
 There are now many enemies. And one has a rocket launcher.
 1000
 false
 true
+
+Map:
+map4.map
