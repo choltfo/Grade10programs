@@ -1,5 +1,3 @@
-% Antialiased drawing methods. I hope.
-
 
 type Vector3 : record
     x : real
@@ -58,11 +56,6 @@ module Vectors2
         res.x := ((a.x-o.x)*cosd(theta))-((a.y-o.y)*(sind(theta))) + (o.x)
         res.y := ((a.x-o.x)*sind(theta))+((a.y-o.y)*(cosd(theta))) + (o.y)
         
-        /*NewVec -> Set(
-        ((x- (o-> getX()) )*cosd(theta))-((y- (o-> getY()) )*(sind(theta))) + (o-> getX()),
-        ((x- (o-> getX()) )*sind(theta))+((y- (o-> getY()) )*cosd(theta)) + (o-> getY())
-        )*/
-        
         result res
     end RotateD
     
@@ -83,3 +76,37 @@ module Vectors2
     end normalize
     
 end Vectors2
+
+
+module Vectors3
+    import Vector3
+    export Add, Subtract, RotateD
+    function Add(a, b : Vector3) : Vector3
+        var res : Vector3
+        res.x := a.x + b.x
+        res.y := a.y + b.y
+        res.z := a.z + b.z
+        result res
+    end Add
+    
+    function Subtract(a, b : Vector3) : Vector3
+        var res : Vector3
+        res.x := a.x - b.x
+        res.y := a.y - b.y
+        res.z := a.z - b.z
+        result res
+    end Subtract
+    
+    function RotateD (a, c, r : Vector3) : Vector3
+        var res : Vector3
+        %res.x := ((a.x-o.x)*cosd(theta))-((a.y-o.y)*(sind(theta))) + (o.x)
+        %res.y := ((a.x-o.x)*sind(theta))+((a.y-o.y)*(cosd(theta))) + (o.y)
+        
+        res.x := ((a.x-c.x)*cosd(r.y))-((a.z-c.z)*(sind(r.y))) + (c.x)
+        res.z := ((a.x-c.x)*sind(r.y))+((a.z-c.z)*(cosd(r.y))) + (c.z)
+        res.y := a.y
+        result res
+    end RotateD
+end Vectors3
+
+

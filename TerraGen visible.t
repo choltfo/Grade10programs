@@ -1,9 +1,20 @@
 
-include "AADraw.t"
+include "Vectors.t"
 
 View.Set("Graphics:1362;702,offscreenonly,nobuttonbar,title:Turing TerraGen - 1362 x 702")
 %View.Set("Graphics:1916;1014,offscreenonly,nobuttonbar,title:Turing TerraGen - 1916 x 1014")
-var camX, camY := 0
+var camX, camZ, camY := 0
+
+var camPos : Vector3
+var camRot : Vector3
+
+camPos.x := 0;
+camPos.y := 1000;
+camPos.z := 0;
+
+camPos.x := -45;
+camPos.y := 45;
+camPos.z := 0;
 
 var rot : real := 45
 
@@ -11,9 +22,7 @@ var darkergrey := RGB.AddColor(0.4,0.4,0.4)
 var darkerwhite := RGB.AddColor(0.90,0.90,0.90)
 var linecol := RGB.AddColor(0.2,0.2,0.2)
 
-
-
-function worldToScreen (pos : Vector3) : Vector2
+function WTSParallel (pos : Vector3) : Vector2
     var point : Vector2
     
     point.x := pos.x
@@ -22,12 +31,24 @@ function worldToScreen (pos : Vector3) : Vector2
     point := Vectors2.RotateD(point, zero2, rot)
     
     point.x := round(maxx/2) + point.x + camX
-    point.y := pos.y + 20 + point.y + camY
+    point.y := pos.y + 20 + point.y + camZ
     
     result point
     
-end worldToScreen
+end WTSParallel
 
+function WTSPerspective (pos : Vector3) : Vector2
+    var point : Vector2
+    var posRel : Vector3 := Vectors3.Subtract(pos,camPos)
+    posRel := Vectors3.RotateD(posRel,camPos,camRot)
+    
+    
+    result point
+end WTSPerspective  
+
+function worldToScreen (pos : Vector3) : Vector2
+    result WTSParallel(pos)
+end worldToScreen
 
 proc drawCompass()
     
@@ -78,8 +99,8 @@ var verts : array 1..size,1..size of real
 
 proc terraRend(totalWidth,totalDepth : int)
 
-var width := totalWidth/x
-var depth := totalDepth/y
+var width : int := round(totalWidth/x)
+var depth : int := round(totalDepth/y)
 
 for o : 1..x
     for p : 1..y
@@ -174,15 +195,15 @@ proc terraGen (totalWidth,totalDepth : int)
 var lines : flexible array 1..0 of line
 
 if (true) then
-    verts(1,1) := 0
-    verts(2,1) := 0
-    verts(3,1) := 0
-    verts(1,2) := 0
+    verts(1,1) := -100
+    verts(2,1) := -100
+    verts(3,1) := -100
+    verts(1,2) := -100
     verts(2,2) := 400
-    verts(3,2) := 0
-    verts(1,3) := 0
-    verts(2,3) := 0
-    verts(3,3) := 0
+    verts(3,2) := -100
+    verts(1,3) := -100
+    verts(2,3) := -100
+    verts(3,3) := -100
 else
     verts(1,1) := 400
     verts(2,1) := 0
@@ -201,7 +222,7 @@ for i : 1..levels
     var oldX := x
     var oldY := y
     cls
-    Draw.FillBox(0,0,maxx,maxy,black)
+    Draw.FillBox(0,0,maxx,maxy,blue)
     put i
     terraRend(totalWidth,totalDepth)
     x := (x*2)-1
@@ -267,7 +288,7 @@ var lastFrameTime := 0
 var chars : array char of boolean
 loop
     Input.KeyDown(chars)
-    Draw.FillBox(0,0,maxx,maxy,black)
+    Draw.FillBox(0,0,maxx,maxy,blue)
     lmb := mb
     lmx := mx
     lmy := my
@@ -276,15 +297,15 @@ loop
     
     if (chars(KEY_LEFT_ARROW)) then
         rot += 10
-        drawCompass()
         terraRend(500,500)
+        drawCompass()
         lastFrameTime := Time.Elapsed
     View.Update
     end if
     if (chars(KEY_RIGHT_ARROW)) then
         rot += -10
-        drawCompass()
         terraRend(500,500)
+        drawCompass()
         lastFrameTime := Time.Elapsed
     View.Update
     end if

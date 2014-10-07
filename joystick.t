@@ -133,8 +133,8 @@ module joystick
 	    const ry := caps.maxY - caps.minY
 
 	    if rx > 0 and ry > 0 then
-		fx1 := (joyMax * 2.0) / rx
-		fy1 := (joyMax * 2.0) / ry
+            fx1 := (joyMax * 2.0) / rx
+            fy1 := (joyMax * 2.0) / ry
 	    end if
 	end if
 
@@ -154,103 +154,103 @@ module joystick
     var deadBand : int := 600   % Default dead band value
 
     procedure GetInfo (jNum : int, var btnpressed : array 1 .. * of boolean)
-	%Edited from origanal turing module
-	%removed x and y and changed buttons 1 and 2 with an array
+        %Edited from origanal turing module
+        %removed x and y and changed buttons 1 and 2 with an array
+        
+        const joyHalfMax := 5000
+        
+        var pr : PosRecord
 
-	const joyHalfMax := 5000
+        Read (jNum, pr)
 
-	var pr : PosRecord
+        if Error.Last = 0 then
 
-	Read (jNum, pr)
+            var x, y : int
 
-	if Error.Last = 0 then
+            if jNum = joystick1 then
+            x := round (pr.xpos * fx1) - joyMax
+            y := -1 * (round (pr.ypos * fy1) - joyMax)
+            else
+            x := round (pr.xpos * fx2) - joyMax
+            y := -1 * (round (pr.ypos * fy2) - joyMax)
+            end if
 
-	    var x, y : int
+            for i : 1 .. upper (btnpressed)
+            exit when i > 32
+            if i = 1 then
+                btnpressed (i) := (pr.buttons and btn1) not= 0
+                elsif i = 2 then
+                    btnpressed (i) := (pr.buttons and btn2) not= 0
+                elsif i = 3 then
+                    btnpressed (i) := (pr.buttons and btn3) not= 0
+                elsif i = 4 then
+                    btnpressed (i) := (pr.buttons and btn4) not= 0
+                elsif i = 5 then
+                    btnpressed (i) := (pr.buttons and btn5) not= 0
+                elsif i = 6 then
+                    btnpressed (i) := (pr.buttons and btn6) not= 0
+                elsif i = 7 then
+                    btnpressed (i) := (pr.buttons and btn7) not= 0
+                elsif i = 8 then
+                    btnpressed (i) := (pr.buttons and btn8) not= 0
+                elsif i = 9 then
+                    btnpressed (i) := (pr.buttons and btn9) not= 0
+                elsif i = 10 then
+                    btnpressed (i) := (pr.buttons and btn10) not= 0
+                elsif i = 11 then
+                    btnpressed (i) := (pr.buttons and btn11) not= 0
+                elsif i = 12 then
+                    btnpressed (i) := (pr.buttons and btn12) not= 0
+                elsif i = 13 then
+                    btnpressed (i) := (pr.buttons and btn13) not= 0
+                elsif i = 14 then
+                    btnpressed (i) := (pr.buttons and btn14) not= 0
+                elsif i = 15 then
+                    btnpressed (i) := (pr.buttons and btn15) not= 0
+                elsif i = 16 then
+                    btnpressed (i) := (pr.buttons and btn16) not= 0
+                elsif i = 17 then
+                    btnpressed (i) := (pr.buttons and btn17) not= 0
+                elsif i = 18 then
+                    btnpressed (i) := (pr.buttons and btn18) not= 0
+                elsif i = 19 then
+                    btnpressed (i) := (pr.buttons and btn19) not= 0
+                elsif i = 20 then
+                    btnpressed (i) := (pr.buttons and btn20) not= 0
+                elsif i = 21 then
+                    btnpressed (i) := (pr.buttons and btn21) not= 0
+                elsif i = 22 then
+                    btnpressed (i) := (pr.buttons and btn22) not= 0
+                elsif i = 23 then
+                    btnpressed (i) := (pr.buttons and btn23) not= 0
+                elsif i = 24 then
+                    btnpressed (i) := (pr.buttons and btn24) not= 0
+                elsif i = 25 then
+                    btnpressed (i) := (pr.buttons and btn25) not= 0
+                elsif i = 26 then
+                    btnpressed (i) := (pr.buttons and btn26) not= 0
+                elsif i = 27 then
+                    btnpressed (i) := (pr.buttons and btn27) not= 0
+                elsif i = 28 then
+                    btnpressed (i) := (pr.buttons and btn28) not= 0
+                elsif i = 29 then
+                    btnpressed (i) := (pr.buttons and btn29) not= 0
+                elsif i = 30 then
+                    btnpressed (i) := (pr.buttons and btn30) not= 0
+                elsif i = 31 then
+                    btnpressed (i) := (pr.buttons and btn31) not= 0
+                elsif i = 32 then
+                    btnpressed (i) := (pr.buttons and btn32) not= 0
+                end if
+            end for
+            %Edited from origanal turing module
+            %changed code to allow for 32 buttons still hard coded
 
-	    if jNum = joystick1 then
-		x := round (pr.xpos * fx1) - joyMax
-		y := -1 * (round (pr.ypos * fy1) - joyMax)
-	    else
-		x := round (pr.xpos * fx2) - joyMax
-		y := -1 * (round (pr.ypos * fy2) - joyMax)
-	    end if
-
-	    for i : 1 .. upper (btnpressed)
-		exit when i > 32
-		if i = 1 then
-		    btnpressed (i) := (pr.buttons and btn1) not= 0
-		elsif i = 2 then
-		    btnpressed (i) := (pr.buttons and btn2) not= 0
-		elsif i = 3 then
-		    btnpressed (i) := (pr.buttons and btn3) not= 0
-		elsif i = 4 then
-		    btnpressed (i) := (pr.buttons and btn4) not= 0
-		elsif i = 5 then
-		    btnpressed (i) := (pr.buttons and btn5) not= 0
-		elsif i = 6 then
-		    btnpressed (i) := (pr.buttons and btn6) not= 0
-		elsif i = 7 then
-		    btnpressed (i) := (pr.buttons and btn7) not= 0
-		elsif i = 8 then
-		    btnpressed (i) := (pr.buttons and btn8) not= 0
-		elsif i = 9 then
-		    btnpressed (i) := (pr.buttons and btn9) not= 0
-		elsif i = 10 then
-		    btnpressed (i) := (pr.buttons and btn10) not= 0
-		elsif i = 11 then
-		    btnpressed (i) := (pr.buttons and btn11) not= 0
-		elsif i = 12 then
-		    btnpressed (i) := (pr.buttons and btn12) not= 0
-		elsif i = 13 then
-		    btnpressed (i) := (pr.buttons and btn13) not= 0
-		elsif i = 14 then
-		    btnpressed (i) := (pr.buttons and btn14) not= 0
-		elsif i = 15 then
-		    btnpressed (i) := (pr.buttons and btn15) not= 0
-		elsif i = 16 then
-		    btnpressed (i) := (pr.buttons and btn16) not= 0
-		elsif i = 17 then
-		    btnpressed (i) := (pr.buttons and btn17) not= 0
-		elsif i = 18 then
-		    btnpressed (i) := (pr.buttons and btn18) not= 0
-		elsif i = 19 then
-		    btnpressed (i) := (pr.buttons and btn19) not= 0
-		elsif i = 20 then
-		    btnpressed (i) := (pr.buttons and btn20) not= 0
-		elsif i = 21 then
-		    btnpressed (i) := (pr.buttons and btn21) not= 0
-		elsif i = 22 then
-		    btnpressed (i) := (pr.buttons and btn22) not= 0
-		elsif i = 23 then
-		    btnpressed (i) := (pr.buttons and btn23) not= 0
-		elsif i = 24 then
-		    btnpressed (i) := (pr.buttons and btn24) not= 0
-		elsif i = 25 then
-		    btnpressed (i) := (pr.buttons and btn25) not= 0
-		elsif i = 26 then
-		    btnpressed (i) := (pr.buttons and btn26) not= 0
-		elsif i = 27 then
-		    btnpressed (i) := (pr.buttons and btn27) not= 0
-		elsif i = 28 then
-		    btnpressed (i) := (pr.buttons and btn28) not= 0
-		elsif i = 29 then
-		    btnpressed (i) := (pr.buttons and btn29) not= 0
-		elsif i = 30 then
-		    btnpressed (i) := (pr.buttons and btn30) not= 0
-		elsif i = 31 then
-		    btnpressed (i) := (pr.buttons and btn31) not= 0
-		elsif i = 32 then
-		    btnpressed (i) := (pr.buttons and btn32) not= 0
-		end if
-	    end for
-	    %Edited from origanal turing module
-	    %changed code to allow for 32 buttons still hard coded
-
-	else
-	    for i : 1 .. upper (btnpressed)
-		btnpressed (i) := false
-	    end for
-	end if
+        else
+            for i : 1 .. upper (btnpressed)
+            btnpressed (i) := false
+            end for
+        end if
     end GetInfo
 
 

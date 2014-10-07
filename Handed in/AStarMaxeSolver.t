@@ -3,6 +3,10 @@
     Goes in all 8 directions. 
 */
 
+const WATCHMODE : boolean := false
+
+const ENDX : int := 1
+const ENDY : int := 20
 
 type point : record
     wall : boolean
@@ -42,7 +46,7 @@ for x : 1..20
     for y : 1..20
         grid(x,y).wall := false
         grid(x,y).gScore := 9999999
-        grid(x,y).fScore := Math.Distance(x,y,20,20)
+        grid(x,y).fScore := Math.Distance(x,y,ENDX,ENDY)
         grid(x,y).used := false
     end for
 end for
@@ -51,8 +55,8 @@ grid(1,1).wall := false
 grid(1,1).gScore := 0
 grid(1,1).fScore := 10000
 
-grid(20,20).wall := false
-grid(20,20).fScore := 0
+grid(ENDX,ENDY).wall := false
+grid(ENDX,ENDY).fScore := 0
 
 for i : 0..21
     grid(i,0).wall := true
@@ -95,7 +99,7 @@ loop    % Allow map creation.
         end for
     end for
 
-    Draw.FillBox(20*CELL_WIDTH,20*CELL_HEIGHT,(20+1)*CELL_WIDTH,(20+1)*CELL_HEIGHT,red)
+    Draw.FillBox(ENDX*CELL_WIDTH,ENDY*CELL_HEIGHT,(ENDX+1)*CELL_WIDTH,(ENDY+1)*CELL_HEIGHT,red)
     Draw.FillBox(1*CELL_WIDTH,1*CELL_HEIGHT,(1+1)*CELL_WIDTH,(1+1)*CELL_HEIGHT,green)
     
     Draw.FillBox(maxx-Font.Width("Done", font),0,maxx,50,red)
@@ -109,9 +113,6 @@ loop    % Allow map creation.
 end loop
 
 var startTime := Time.Elapsed
-
-const ENDX : int := 20
-const ENDY : int := 20
 
 var openSet : flexible array 0..0 of coord
 
@@ -177,6 +178,7 @@ loop    % Populate gScores
     a := bestI
     put openSet(a).x,", ",openSet(a).y
     Text.Locate(1,1)
+    if (WATCHMODE) then delay(10) end if
     View.Update()
     
     /*if (lastLength = upper(openSet)) then
@@ -222,11 +224,12 @@ loop
     end for
     cur.x := lowestX
     cur.y := lowestY
+    if (WATCHMODE) then delay(10) end if
     View.Update()
     exit when cur.x = 1 and cur.y = 1
 end loop
 
-Draw.FillBox(20*CELL_WIDTH,20*CELL_HEIGHT,(20+1)*CELL_WIDTH,(20+1)*CELL_HEIGHT,red)
+Draw.FillBox(ENDX*CELL_WIDTH,ENDY*CELL_HEIGHT,(ENDX+1)*CELL_WIDTH,(ENDY+1)*CELL_HEIGHT,red)
 Draw.FillBox(1*CELL_WIDTH,1*CELL_HEIGHT,(1+1)*CELL_WIDTH,(1+1)*CELL_HEIGHT,green)
 
 for i : 0..21

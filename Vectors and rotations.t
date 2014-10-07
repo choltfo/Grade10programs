@@ -63,11 +63,11 @@ loop
     Input.KeyDown (chars)
     if chars (KEY_UP_ARROW) then
         %  put "Up Arrow Pressed  " ..
-        zRot -= 90
+        zRot -= 1
     end if
      if chars (KEY_DOWN_ARROW) then
         %  put "Up Arrow Pressed  " ..
-        zRot += 90
+        zRot += 1
     end if
     
     var CenterRt        : pointer to Vector2  := Center        -> RotateD(zRot,Center)
@@ -86,7 +86,7 @@ loop
     
     
     
-    delay(100)
+    delay(10)
 end loop
 
 

@@ -1,4 +1,4 @@
-import joystick
+import "joystick.t"
 
 type joypad : % create a joypad type
     record
@@ -20,7 +20,7 @@ for i : 1 .. upper (joy)
 end for
 
 loop
-    Draw.Cls()
-    put (joystick.GetInfo (joystick[1], joy ([1/2]).button))
-    
+    joystick.GetInfo (1, joy(1).button)  
+    put joy(1).button(1)
+    put joy(2).button(1)
 end loop

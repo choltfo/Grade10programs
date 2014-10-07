@@ -3,7 +3,6 @@ for i : 1 .. 100
 end for 
 Pic.ScreenSave (0, 0, maxx, maxy, "File.bmp")
 
-Pic
-cls 
+
 var pic : int := Pic.FileNew ("File.bmp") 
 Pic.Draw (pic, 0, 0, picCopy)

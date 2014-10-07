@@ -30,25 +30,28 @@ proc Switch ()
         new curDotsX, upper (curDotsX) - 1
         new curDotsY, upper (curDotsY) - 1
     end for
-        for decreasing i : upper(dotsX) .. 1
+    for decreasing i : upper(dotsX) .. 1
         AddCur(dotsX(i),dotsY(i))
         new dotsX, upper (dotsX) - 1
         new dotsY, upper (dotsY) - 1
     end for
 end Switch
 
+var tolerance : int := 20
+
 proc DRAW (x,y,i,c:int)
     %var aRand : int := Rand.Int(1,20)
     for a : 1 .. i
-        var xA : int := Rand.Int(-10,10) + sign(mX-x)*5
-        var yA : int := Rand.Int(-10,10) + sign(mY-y)*5
-        Draw.Line(x,y,x+xA,y+yA,yellow)%(c mod 6)+9)
+        var xA : int := Rand.Int(-tolerance,tolerance) + sign(mX-x)*tolerance
+        var yA : int := Rand.Int(-tolerance,tolerance) + sign(mY-y)*tolerance
+        Draw.Line(x,y,x+xA,y+yA,(c mod 6)+9)
         Add(x+xA,y+yA)
         View.Update()
     end for
 end DRAW
 
 var metaLayer : int := 1
+var maxML : int := 9
 loop
     if (mB = 1) then
         DRAW(floor(maxx/2),floor(maxy/2),1,red)
@@ -56,14 +59,14 @@ loop
         loop
             Mouse.Where(mX, mY, mB)
             for i : 1.. upper(curDotsX)
-                DRAW(curDotsX(i),curDotsY(i),1,layer+metaLayer)
+                DRAW(curDotsX(i),curDotsY(i),Rand.Int(1,3),layer+metaLayer)
             end for
                 
             layer += 1
             Switch()
             %put upper(curDotsY) , ", ", layer
             View.Update()
-            exit when layer > 50 or mB = 0
+            exit when layer > maxML or mB = 0
         end loop
     end if
     for decreasing i : upper(curDotsX) .. 1
@@ -77,8 +80,10 @@ loop
         
     cls
     Draw.FillBox(0,0,maxx,maxy,black)
+    if (metaLayer = maxML) then
+        View.Update
+    end if
     metaLayer+=1
-    View.Update
     Mouse.Where(mX, mY, mB)
 end loop
 
