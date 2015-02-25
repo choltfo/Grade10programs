@@ -30,6 +30,8 @@ export Init, update, draw,InitAngular, setOffset,InitPreset, InitPresetAngular
 var particles : flexible array 1..0 of Particle
 var ox, oy : int := 0
 
+const P_DEBUG := false
+
 proc setOffset(x,y : int)
     ox := x
     oy := y
@@ -113,7 +115,7 @@ procedure update
         end loop
     end if
     
-    put "PS update time: ", Time.Elapsed - StartTime
+    if (P_DEBUG) then put "PS update time: ", Time.Elapsed - StartTime end if
 end update
 
 procedure draw
@@ -126,8 +128,8 @@ procedure draw
                 particles(i).col)
         end if
     end for
-    put "PS draw time: ", Time.Elapsed - StartTime
-    put upper(particles)/((Time.Elapsed - StartTime)+1)
+    if (P_DEBUG) then put "PS draw time: ", Time.Elapsed - StartTime end if
+    if (P_DEBUG) then put upper(particles)/((Time.Elapsed - StartTime)+1) end if
 end draw
 
 end ParticleSystem

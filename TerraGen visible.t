@@ -83,7 +83,7 @@ a,b : Vector3
 col : int
 end record
 
-var levels : int := 6
+var levels : int := 5
 var noiseLevel : int := 100
 
 var size,x,y := 3
@@ -99,94 +99,86 @@ var verts : array 1..size,1..size of real
 
 proc terraRend(totalWidth,totalDepth : int)
 
-var width : int := round(totalWidth/x)
-var depth : int := round(totalDepth/y)
+    var width : int := round(totalWidth/x)
+    var depth : int := round(totalDepth/y)
 
-for o : 1..x
-    for p : 1..y
-        var L : Vector3
-        L.x := width * (o-1)
-        L.z := depth * (p-1)
-        L.y := 0
-        var P : Vector2 := worldToScreen(L)
-        %Draw.Line(round(P.x),round(P.y),round(P.x),round(P.y+verts(o,p)),red)
-    end for
-end for
-    
-for decreasing o : x-1..1
-    for decreasing p : y-1..1
-        var pos : Vector3
-        pos.x := (o-1)*width
-        pos.z := (p-1)*depth
-        pos.y := verts(o,p)
-        var drawPos : Vector2 := worldToScreen(pos)
-        
-        var xs : array 1..4 of int := init(0,0,0,0)
-        var ys : array 1..4 of int := init(0,0,0,0)
-        
-        xs(1) := round(drawPos.x)
-        ys(1) := round(drawPos.y)
-        for q : 0..1
-            for w : 0..1
-                var pos2 : Vector3
-                pos2.x := (o+q-1)*width
-                pos2.z := (p+w-1)*depth
-                pos2.y := verts(o+q,p+w)
-                var drawPos2 : Vector2 := worldToScreen(pos2)
-                
-                %xs((q*2)+w+1) := round(drawPos2.x)
-                %ys((q*2)+w+1) := round(drawPos2.y)
-                
-                if (w = 0) then
-                    if (q = 0) then
-                        xs(1) := round(drawPos2.x)
-                        ys(1) := round(drawPos2.y)
-                    else
-                        xs(2) := round(drawPos2.x)
-                        ys(2) := round(drawPos2.y)
-                    end if
-                else
-                    if (q = 0) then
-                        xs(4) := round(drawPos2.x)
-                        ys(4) := round(drawPos2.y)
-                    else
-                        xs(3) := round(drawPos2.x)
-                        ys(3) := round(drawPos2.y)
-                    end if
-                end if
-                
-                
-                %Draw.Line(round(drawPos.x),round(drawPos.y),round(drawPos2.x),round(drawPos2.y),max(round(drawPos2.x-drawPos.x),round(drawPos.x-drawPos2.x)))
-            end for
+    for o : 1..x
+        for p : 1..y
+            var L : Vector3
+            L.x := width * (o-1)
+            L.z := depth * (p-1)
+            L.y := 0
+            var P : Vector2 := worldToScreen(L)
+            %Draw.Line(round(P.x),round(P.y),round(P.x),round(P.y+verts(o,p)),red)
         end for
-        
-        if (verts(o,p) > 0) then
-            if (verts(o,p) > 200) then
-                if (verts(o+1,p+1) < verts(o,p)) then
-                    Draw.FillPolygon(xs,ys,4,white)
-                else
-                    Draw.FillPolygon(xs,ys,4,darkerwhite)
-                end if
-            else
-                if (verts(o+1,p+1) < verts(o,p)) then
-                    Draw.FillPolygon(xs,ys,4,darkgrey)
-                else
-                    Draw.FillPolygon(xs,ys,4,darkergrey)
-                end if
-            end if
-            Draw.Polygon(xs,ys,4,linecol)
-        else
-            Draw.FillPolygon(xs,ys,4,blue)
-        end if
-        
-        
-        
-        
-        
     end for
-end for
-View.Update
-Time.DelaySinceLast(1000)
+        
+    for decreasing o : x-1..1
+        for decreasing p : y-1..1
+            var pos : Vector3
+            pos.x := (o-1)*width
+            pos.z := (p-1)*depth
+            pos.y := verts(o,p)
+            var drawPos : Vector2 := worldToScreen(pos)
+            
+            var xs : array 1..4 of int := init(0,0,0,0)
+            var ys : array 1..4 of int := init(0,0,0,0)
+            
+            xs(1) := round(drawPos.x)
+            ys(1) := round(drawPos.y)
+            for q : 0..1
+                for w : 0..1
+                    var pos2 : Vector3
+                    pos2.x := (o+q-1)*width
+                    pos2.z := (p+w-1)*depth
+                    pos2.y := verts(o+q,p+w)
+                    var drawPos2 : Vector2 := worldToScreen(pos2)
+                    
+                    %xs((q*2)+w+1) := round(drawPos2.x)
+                    %ys((q*2)+w+1) := round(drawPos2.y)
+                    
+                    if (w = 0) then
+                        if (q = 0) then
+                            xs(1) := round(drawPos2.x)
+                            ys(1) := round(drawPos2.y)
+                        else
+                            xs(2) := round(drawPos2.x)
+                            ys(2) := round(drawPos2.y)
+                        end if
+                    else
+                        if (q = 0) then
+                            xs(4) := round(drawPos2.x)
+                            ys(4) := round(drawPos2.y)
+                        else
+                            xs(3) := round(drawPos2.x)
+                            ys(3) := round(drawPos2.y)
+                        end if
+                    end if%Draw.Line(round(drawPos.x),round(drawPos.y),round(drawPos2.x),round(drawPos2.y),max(round(drawPos2.x-drawPos.x),round(drawPos.x-drawPos2.x)))
+                end for
+            end for
+            
+            if (verts(o,p) > 0) then
+                if (verts(o,p) > 200) then
+                    if (verts(o+1,p+1) < verts(o,p)) then
+                        Draw.FillPolygon(xs,ys,4,white)
+                    else
+                        Draw.FillPolygon(xs,ys,4,darkerwhite)
+                    end if
+                else
+                    if (verts(o+1,p+1) < verts(o,p)) then
+                        Draw.FillPolygon(xs,ys,4,darkgrey)
+                    else
+                        Draw.FillPolygon(xs,ys,4,darkergrey)
+                    end if
+                end if
+                Draw.Polygon(xs,ys,4,linecol)
+            else
+                Draw.FillPolygon(xs,ys,4,blue)
+            end if
+        end for
+    end for
+    View.Update
+    Time.DelaySinceLast(1000)
 end terraRend
 
 
@@ -294,25 +286,33 @@ loop
     lmy := my
     Mouse.Where(mx,my,mb)
     
+     if (chars(KEY_UP_ARROW)) then
+        camY+=100
+        terraRend(500,500)
+        drawCompass()
+        lastFrameTime := Time.Elapsed
+        View.Update
+    end if
     
     if (chars(KEY_LEFT_ARROW)) then
         rot += 10
         terraRend(500,500)
         drawCompass()
         lastFrameTime := Time.Elapsed
-    View.Update
+        View.Update
     end if
+    
     if (chars(KEY_RIGHT_ARROW)) then
         rot += -10
         terraRend(500,500)
         drawCompass()
         lastFrameTime := Time.Elapsed
-    View.Update
+        View.Update
     end if
 
     if (mb = 1) then
         camX += mx-lmx
-        camY += my-lmy
+        camZ += my-lmy
         drawCompass()
         terraRend(500,500)
         lastFrameTime := Time.Elapsed

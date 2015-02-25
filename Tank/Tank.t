@@ -38,7 +38,7 @@ proc loadCampaign
             cutscene.addLine(campaignData(i+1),strint(campaignData(i+2)),campaignData(i+3)="true",campaignData(i+4)="true")
         end if
     end for
-    
+        
     View.Update()
     
     close : stream
@@ -63,7 +63,7 @@ proc playCampaign
             end if
         end loop
     end for
-    
+        
     put "VICTORY!"
 end playCampaign
 
