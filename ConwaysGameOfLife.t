@@ -162,6 +162,17 @@ loop
         cls()
         frameMillis += 1
     end if
+    
+    if (keys('c')) then
+        for x : 0..size
+        for y : 0..size
+            new Cell, CurrentCells(x,y)
+            CurrentCells(x,y) -> Alive (false)
+        end for
+    end for
+    
+    end if
+    
     if (keys('d')) then
         cls()
         frameMillis += -1

@@ -79,16 +79,15 @@ end drawCompass
 
 
 type line : record
-a,b : Vector3
-col : int
+    a,b : Vector3
+    col : int
 end record
 
+%This is the number of iterations that take place.
 var levels : int := 5
 var noiseLevel : int := 100
 
 var size,x,y := 3
-
-
 
 for i : 1..levels
     size := (size*2)-1
@@ -186,6 +185,8 @@ proc terraGen (totalWidth,totalDepth : int)
 
 var lines : flexible array 1..0 of line
 
+
+% Presets.
 if (true) then
     verts(1,1) := -100
     verts(2,1) := -100

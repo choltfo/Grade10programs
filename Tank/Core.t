@@ -13,7 +13,8 @@ include "Particles.t"
 
 include "UIE.t"
 
-View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
+%View.Set("Graphics:1300;650,offscreenonly,nobuttonbar")
+View.Set("Graphics:900;650,offscreenonly,nobuttonbar")
 %View.Set("Graphics:1900;995,offscreenonly,nobuttonbar")
 
 Music.PreLoad("CannonShot.mp3")
@@ -1580,7 +1581,7 @@ loop    % Main game logic loop
             new enemies, upper (enemies) - 1
         end if
     end for
-    
+
     %if (playerHasControl) then
     Player -> drawGUI()
     %end if
